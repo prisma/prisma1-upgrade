@@ -15,8 +15,5 @@ export default class P1 {
 }
 
 class Definition {
-  constructor(
-    private readonly doc: DocumentNode,
-    private readonly def: DefinitionNode
-  ) {}
+  constructor(readonly _doc: DocumentNode, readonly _def: DefinitionNode) {}
 }
