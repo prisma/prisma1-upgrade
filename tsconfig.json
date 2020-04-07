@@ -1,0 +1,29 @@
+{
+  "compilerOptions": {
+    "target": "esnext",
+    // we use commonjs for ts-node
+    "module": "commonjs",
+    // when we run tsc, only emit declarations
+    // rollup will handle transpilation
+    "emitDeclarationOnly": true,
+    "moduleResolution": "node",
+    "declaration": true,
+    "rootDir": "src/",
+    "outDir": "dist/",
+    "strict": true,
+    "noImplicitReturns": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+    "noEmitOnError": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "baseUrl": ".",
+    "paths": {
+      "*": ["./types/*"]
+    },
+    "noErrorTruncation": true
+  },
+  "exclude": ["node_modules/**", "dist/**"],
+  "include": ["src/**/*"]
+}

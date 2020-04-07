@@ -1,0 +1,39 @@
+{
+  "name": "upgrade",
+  "version": "1.0.0",
+  "description": "Upgrade is a CLI tool to help Prisma 1 users upgrade to Prisma 2.",
+  "main": "index.js",
+  "bin": {
+    "prisma-upgrade": "bin/upgrade.js"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "rollup -c",
+    "watch": "rollup -c -w"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/prisma/upgrade.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/prisma/upgrade/issues"
+  },
+  "homepage": "https://github.com/prisma/upgrade#readme",
+  "dependencies": {
+    "arg": "4.1.3",
+    "graphql": "15.0.0",
+    "kleur": "3.0.3",
+    "module": "1.2.5",
+    "resolve": "1.15.1"
+  },
+  "devDependencies": {
+    "@rollup/plugin-commonjs": "11.0.2",
+    "@rollup/plugin-node-resolve": "7.1.1",
+    "@rollup/plugin-sucrase": "3.0.0",
+    "rollup": "2.3.3",
+    "typescript": "3.8.3"
+  }
+}
