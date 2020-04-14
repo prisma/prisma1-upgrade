@@ -7,7 +7,8 @@
     "prisma-upgrade": "bin/upgrade.js"
   },
   "scripts": {
-    "test": "mocha dist/index_test.js",
+    "test": "mocha dist/api/index_test.js",
+    "test:watch": "mocha -w dist/api/index_test.js",
     "build": "rollup -c",
     "watch": "rollup -c -w",
     "check": "tsc"
