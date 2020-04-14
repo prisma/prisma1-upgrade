@@ -25,5 +25,5 @@
     "noErrorTruncation": true
   },
   "exclude": ["node_modules/**", "dist/**"],
-  "include": ["src/**/*"]
+  "include": ["src/**/*", "test/index_test.ts"]
 }

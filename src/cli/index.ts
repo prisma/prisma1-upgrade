@@ -1,3 +1,5 @@
+import { Prompt } from '../prompter'
+import * as api from '../api'
 import { bold } from 'kleur'
 // import P1 from './p1'
 // import P2 from './p2'
@@ -41,6 +43,11 @@ async function main(argv: string[]): Promise<void> {
     console.log(require('../package.json').version)
     return
   }
+
+  await api.upgrade({
+    prompter: new Prompt(),
+    console: console,
+  })
 
   return
 }

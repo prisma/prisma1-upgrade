@@ -7,7 +7,7 @@
     "prisma-upgrade": "bin/upgrade.js"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "mocha dist/index_test.js",
     "build": "rollup -c",
     "watch": "rollup -c -w",
     "check": "tsc"
@@ -28,12 +28,16 @@
     "graphql": "15.0.0",
     "kleur": "3.0.3",
     "module": "1.2.5",
+    "prompts": "2.3.2",
     "resolve": "1.15.1"
   },
   "devDependencies": {
     "@rollup/plugin-commonjs": "11.0.2",
     "@rollup/plugin-node-resolve": "7.1.1",
     "@rollup/plugin-sucrase": "3.0.0",
+    "@types/mocha": "7.0.2",
+    "@types/prompts": "2.0.5",
+    "mocha": "7.1.1",
     "rollup": "2.3.3",
     "typescript": "3.8.3"
   }

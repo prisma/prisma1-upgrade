@@ -6,7 +6,9 @@ const path = require('path')
 
 export default {
   input: {
-    index: 'src/index.ts',
+    'cli/index': 'src/cli/index.ts',
+    'api/index': 'src/api/index.ts',
+    'api/index_test': 'src/api/index_test.ts',
   },
   output: {
     name: '[name]',
