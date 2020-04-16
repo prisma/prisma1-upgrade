@@ -1,20 +1,53 @@
-import P1 from '../p1'
+import { MockPrompt } from '../prompter'
+import P1 from '../prisma1'
+import P2 from '../prisma2'
+import * as api from './'
 
 describe('@default value is missing', () => {
-  it('should translate', () => {
-    const p1 = P1.parse(`
+  it('mysql translate defaults', async () => {
+    const prisma1 = P1.parse(`
       type User {
+        firstName: String! @default(value: "alice")
         isActive: Boolean! @default(value: false)
       }
+      type Post {
+        createdAt: DateTime! @createdAt
+        updatedAt: DateTime! @updatedAt
+        number: Int! @default(value: 5)
+        float: Float! @default(value: 5.5)
+      }
     `)
-    console.log(p1.objectTypeDefinitions[0].fields[0].name)
-    console.log(p1.objectTypeDefinitions[0].fields[0].directives[0].name)
-    console.log(
-      p1.objectTypeDefinitions[0].fields[0].directives[0].arguments[0].name
-    )
-    console.log(
-      p1.objectTypeDefinitions[0].fields[0].directives[0].arguments[0].value
-    )
+
+    const prisma2 = P2.parse(`
+      datasource db {
+        provider = "mysql"
+        url = "mysql://prisma:pass@localhost:3306/db"
+      }
+      model User {
+        isActive Boolean
+      }
+      type Post {
+        createdAt DateTime
+        updatedAt DateTime
+        number Int
+        float Float
+      }
+    `)
+
+    await api.upgrade({
+      console: console,
+      prompter: new MockPrompt({}),
+      prisma1,
+      prisma2,
+    })
+    // console.log(p1.objectTypeDefinitions[0].fields[0].name)
+    // console.log(p1.objectTypeDefinitions[0].fields[0].directives[0].name)
+    // console.log(
+    //   p1.objectTypeDefinitions[0].fields[0].directives[0].arguments[0].name
+    // )
+    // console.log(
+    //   p1.objectTypeDefinitions[0].fields[0].directives[0].arguments[0].value
+    // )
     // console.log('translating')
   })
 })

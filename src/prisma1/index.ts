@@ -88,7 +88,7 @@ export default class P1 {
     })
   }
 
-  get objectTypeDefinitions(): ObjectTypeDefinition[] {
+  get objects(): ObjectTypeDefinition[] {
     let arr: ObjectTypeDefinition[] = []
     for (let def of this.definitions) {
       if (def instanceof ObjectTypeDefinition) {
@@ -126,7 +126,7 @@ class ObjectTypeDefinition {
   }
   get fields(): FieldDefinition[] {
     if (!this.def.fields) return []
-    return this.def.fields.map((field) => new FieldDefinition(field))
+    return this.def.fields.map((field) => new FieldDefinition(this, field))
   }
 }
 class InterfaceTypeDefinition {
@@ -223,7 +223,14 @@ class FragmentDefinition {
 }
 
 class FieldDefinition {
-  constructor(private readonly def: FieldDefinitionNode) {}
+  constructor(
+    private readonly modelDef: ObjectTypeDefinition,
+    private readonly def: FieldDefinitionNode
+  ) {}
+
+  get parent() {
+    return this.modelDef
+  }
 
   get name() {
     return this.def.name.value
@@ -332,9 +339,16 @@ class Argument {
   }
 }
 
-interface Value {
-  kind: ValueNode['kind']
-}
+type Value =
+  | Variable
+  | IntValue
+  | FloatValue
+  | StringValue
+  | BooleanValue
+  | NullValue
+  | EnumValue
+  | ListValue
+  | ObjectValue
 
 class Variable {
   constructor(private readonly def: VariableNode) {}

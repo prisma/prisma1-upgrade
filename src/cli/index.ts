@@ -44,10 +44,15 @@ async function main(argv: string[]): Promise<void> {
     return
   }
 
-  await api.upgrade({
-    prompter: new Prompt(),
-    console: console,
-  })
+  const prisma1Path = args._[0]
+  const prisma2Path = args._[1]
+  console.log(prisma1Path)
+  console.log(prisma2Path)
+
+  // await api.upgrade({
+  //   prompter: new Prompt(),
+  //   console: console,
+  // })
 
   return
 }
