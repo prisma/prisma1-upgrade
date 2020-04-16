@@ -34,7 +34,6 @@ import {
   EnumValueNode,
   ListValueNode,
   ObjectValueNode,
-  ValueNode,
 } from 'graphql/language/ast'
 
 import { parse } from 'graphql/language/parser'
@@ -441,7 +440,9 @@ class ListValue {
   }
 
   get value(): Readonly<Value[]> {
-    return this.def.values
+    // TODO: finish
+    // return this.def.values
+    return []
   }
 }
 
@@ -455,9 +456,10 @@ class ObjectValue {
 
   get value(): ObjectMap {
     const map: ObjectMap = {}
-    for (let field of this.def.fields) {
-      map[field.name.value] = field.value
-    }
+    // TODO: finish
+    // for (let field of this.def.fields) {
+    //   map[field.name.value] = field.value
+    // }
     return map
   }
 }

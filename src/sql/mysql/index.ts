@@ -79,5 +79,5 @@ function numericLiteral(clause: sql.NumericLiteral): string {
 }
 
 function stringLiteral(clause: sql.StringLiteral): string {
-  return String(clause.value)
+  return "'" + String(clause.value) + "'"
 }
