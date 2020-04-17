@@ -56,7 +56,7 @@ export async function upgrade(input: UpgradeInput): Promise<void> {
 
       This tool is designed to help you gracefully transition your ${provider} database from Prisma 1 to Prisma 2.
 
-      This is how it works:
+      Here's how it works:
 
         1. We inspect the contents of your Prisma 1 datamodel file.
         2. We generate SQL commands for you to run on your database.
@@ -160,7 +160,7 @@ export async function upgrade(input: UpgradeInput): Promise<void> {
   if (stmts.length) {
     console.log(
       redent(`
-        Great! Step 1 is to transition Prisma 1's @default's to default values backed by the database.
+        Great! Step 1 is to transition Prisma 1's @default's to default values backed by the database. Run the following SQL command against your database:
       `)
     )
     console.log(redent(print(stmts), 2))
@@ -214,7 +214,7 @@ export async function upgrade(input: UpgradeInput): Promise<void> {
   if (stmts.length) {
     console.log(
       redent(`
-        Step 2 is to transition Prisma 1's @createdAt to a datetime type with a default value of now.
+        Step 2 is to transition Prisma 1's @createdAt to a datetime type with a default value of now. Run the following SQL command against your database:
       `)
     )
     console.log(redent(print(stmts), 2))
@@ -268,7 +268,7 @@ export async function upgrade(input: UpgradeInput): Promise<void> {
   if (stmts.length) {
     console.log(
       redent(`
-        Step 2 is to transition Prisma 1's @updatedAt to a datetime type with a default value of now.
+        Step 3 is to transition Prisma 1's @updatedAt to a datetime type with a default value of now. Run the following SQL command against your database:
       `)
     )
     console.log(redent(print(stmts), 2))
