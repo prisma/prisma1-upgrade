@@ -1,10 +1,28 @@
 import { MockPrompt } from '../prompter'
+import { Discard } from '../console'
+import testaway from 'testaway'
 import P1 from '../prisma1'
 import P2 from '../prisma2'
 import * as api from './'
+import execa from 'execa'
+import path from 'path'
+import os from 'os'
 
-describe('@default value is missing', () => {
-  it('mysql translate defaults', async () => {
+const tmpdir = path.join(os.tmpdir(), 'prisma-upgrade')
+
+it('module should load', async () => {
+  await testaway(tmpdir, path.join(__dirname, '..', '..'))
+  const result = await execa(
+    path.join(tmpdir, 'node_modules', '.bin', 'prisma-upgrade'),
+    ['-h']
+  )
+  if (!~result.stdout.indexOf('prisma-upgrade')) {
+    throw new Error("module doesn't load")
+  }
+})
+
+describe('mysql', () => {
+  it('@defaults, @createdAt, @updatedAt', async () => {
     const prisma1 = P1.parse(`
       type User {
         firstName: String! @default(value: "alice")
@@ -35,7 +53,7 @@ describe('@default value is missing', () => {
     `)
 
     await api.upgrade({
-      console: console,
+      console: new Discard(),
       prompter: new MockPrompt({
         welcome: 'y',
         default: 'y',

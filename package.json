@@ -1,13 +1,17 @@
 {
-  "name": "upgrade",
-  "version": "1.0.0",
+  "name": "prisma-upgrade",
+  "version": "0.0.0",
   "description": "Upgrade is a CLI tool to help Prisma 1 users upgrade to Prisma 2.",
-  "main": "index.js",
+  "main": "dist/api/index.js",
+  "files": [
+    "bin",
+    "dist"
+  ],
   "bin": {
     "prisma-upgrade": "bin/upgrade.js"
   },
   "scripts": {
-    "test": "mocha dist/api/index_test.js",
+    "test": "mocha dist/api/index_test.js --timeout 10s",
     "test:watch": "mocha -w dist/api/index_test.js",
     "generate": "pegjs src/prisma2/parser/index.pegjs && ./scripts/cjs2es.js",
     "build": "rollup -c",
@@ -38,11 +42,14 @@
     "@rollup/plugin-commonjs": "11.0.2",
     "@rollup/plugin-node-resolve": "7.1.1",
     "@rollup/plugin-sucrase": "3.0.0",
+    "@types/execa": "2.0.0",
     "@types/mocha": "7.0.2",
     "@types/prompts": "2.0.5",
+    "execa": "4.0.0",
     "mocha": "7.1.1",
     "pegjs": "0.10.0",
     "rollup": "2.3.3",
+    "testaway": "2.0.1",
     "typescript": "3.8.3"
   }
 }
