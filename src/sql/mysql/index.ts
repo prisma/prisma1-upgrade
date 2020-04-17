@@ -38,15 +38,23 @@ function alterColumnAction(action: sql.AlterColumnAction): string {
   switch (action.type) {
     case 'set_column_default_clause':
       return setColumnDefaultClause(action)
+    case 'set_column_datatype_clause':
+      return setColumnDataTypeClause(action)
     default:
       throw new Error(
-        `mysql/print.alterColumnAction: unsupported action "${action.type}"`
+        `mysql/print.alterColumnAction: unsupported action "${JSON.stringify(
+          action
+        )}"`
       )
   }
 }
 
 function setColumnDefaultClause(clause: sql.SetColumnDefaultClause): string {
   return `SET ${defaultClause(clause.default)}`
+}
+
+function setColumnDataTypeClause(clause: sql.SetColumnDataTypeClause): string {
+  return `TYPE ${clause.datatype}`
 }
 
 function defaultClause(clause: sql.DefaultClause): string {
@@ -63,6 +71,8 @@ function defaultOption(clause: sql.DefaultOption): string {
       return numericLiteral(clause)
     case 'string_literal':
       return stringLiteral(clause)
+    case 'current_timestamp_value_function':
+      return 'CURRENT_TIMESTAMP'
   }
 }
 

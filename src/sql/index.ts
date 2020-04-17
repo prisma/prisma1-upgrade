@@ -72,6 +72,7 @@ export type AlterColumnDef = {
 
 export type AlterColumnAction =
   | SetColumnDefaultClause
+  | SetColumnDataTypeClause
   | DropColumnDefaultClause
   | AddColumnScopeClause
   | DropColumnScopeClause
@@ -91,6 +92,13 @@ export type SetColumnDefaultClause = {
   type: 'set_column_default_clause'
   default: DefaultClause
 }
+
+// TODO: this seems to be missing from the grammar
+export type SetColumnDataTypeClause = {
+  type: 'set_column_datatype_clause'
+  datatype: string
+}
+
 export type DropColumnDefaultClause = Todo
 export type AddColumnScopeClause = Todo
 export type DropColumnScopeClause = Todo
@@ -141,7 +149,12 @@ export type NullLiteral = {
 }
 
 export type ImplicitlyTypedValueSpec = NullLiteral | EmptySpec
-export type DateTimeValueFunction = Todo
+export type DateTimeValueFunction =
+  | CurrentDateValueFunction
+  | CurrentTimeValueFunction
+  | CurrentTimestampValueFunction
+  | CurrentLocalTimeValueFunction
+  | CurrentLocalTimestampValueFunction
 export type NationalStringLiteral = Todo
 export type UnicodeStringLiteral = Todo
 export type BinaryStringLiteral = Todo
@@ -152,3 +165,11 @@ export type BooleanLiteral = {
   value: boolean
 }
 export type EmptySpec = Todo
+
+type CurrentDateValueFunction = Todo
+type CurrentTimeValueFunction = Todo
+type CurrentTimestampValueFunction = {
+  type: 'current_timestamp_value_function'
+}
+type CurrentLocalTimeValueFunction = Todo
+type CurrentLocalTimestampValueFunction = Todo

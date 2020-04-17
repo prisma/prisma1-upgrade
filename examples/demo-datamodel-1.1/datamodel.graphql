@@ -1,0 +1,89 @@
+"""
+An attempt to model all features of datamodel v1.1
+Docs: https://www.prisma.io/docs/1.34/datamodel-and-migrations/datamodel-MYSQL-knul/
+"""
+type User {
+  id: ID! @id # ID field
+  createdAt: DateTime! @createdAt # DateTime created at
+  updatedAt: DateTime! @updatedAt # DateTime updated at
+  email: String! @unique # Required unique scalar
+  age: Int! # Required non-unique scalar
+  type: UserType! # Singular enum
+  tagline: Tagline @relation(link: INLINE) # Singular inline relation, this is not possible in Prisma 1
+  work: Work @relation(link: TABLE) # Singular relation table relation, TODO: Relation table with custom name
+  thoughts: [Thought!] # To many relation with implicit back relation
+  home: Home @relation(link: INLINE) # Optional 1-m relation with explicit many back relation
+  isActive: Boolean! @default(value: false) # Default
+  temperature: Float # Float field
+  meta: Json # Json field
+  identificationDocument: IdentificationDocument!
+    @relation(name: "UserIdentificationDocument", link: INLINE) # Required 1-1 relation
+  taxDocument: TaxDocument @relation(name: "UserTaxDocument", link: INLINE) # Optional 1-1 relation
+  bestFriend: User @relation(name: "UserBestFriend") # Optional self 1-1 relation
+  godFather: User! @relation(name: "UserGodFather") # Required self 1-1 relation
+  friends: [User!] @relation(name: "UserFriends", onDelete: CASCADE) # Self 1-m relation, cascade
+  nickName: String @db(name: "friendlyName")
+}
+
+type IdentificationDocument {
+  id: ID! @id
+  documentNumber: String!
+  issuedOn: DateTime!
+  expiresOn: DateTime!
+  user: User! @relation(name: "UserIdentificationDocument")
+}
+
+type TaxDocument {
+  id: ID! @id
+  documentNumber: String!
+  issuedOn: DateTime!
+  expiresOn: DateTime!
+  lastChangedOn: DateTime @updatedAt
+  user: User! @relation(name: "UserTaxDocument")
+}
+
+type Work {
+  id: ID! @id
+  createdAt: DateTime! @createdAt
+  updatedAt: DateTime! @updatedAt
+  title: String
+  description: String
+}
+
+type Home {
+  id: Int! @id
+  createdAt: DateTime! @createdAt
+  updatedAt: DateTime! @updatedAt
+  users: [User] # 1-m relation with inline relation (same as default), TODO: Example of back 1-m back relation with a relation table
+}
+
+type Thought {
+  id: ID! @id
+  createdAt: DateTime! @createdAt
+  updatedAt: DateTime! @updatedAt
+  baseIdea: String # Optional scalar
+  content: [String] @scalarList(strategy: RELATION) # Scalar array, with its only valid strategy
+}
+
+type Tagline {
+  id: ID! @id
+  createdAt: DateTime! @createdAt
+  updatedAt: DateTime! @updatedAt
+  description: String # Optional scalar
+  excerpt: String! # Required scalar
+  visibility: [TaglineVisibility] @scalarList(strategy: RELATION) # Enum array, with its only valid strategy
+}
+
+enum TaglineVisibility {
+  HOME
+  PROFILE
+  SETTINGS
+  MOBILE_HOME
+  MOBILE_PROFILE
+  MOBILE_SETTINGS
+}
+
+enum UserType {
+  NORMAL
+  AWESOME
+}

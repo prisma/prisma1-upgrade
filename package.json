@@ -9,6 +9,7 @@
   "scripts": {
     "test": "mocha dist/api/index_test.js",
     "test:watch": "mocha -w dist/api/index_test.js",
+    "generate": "pegjs src/prisma2/parser/index.pegjs && ./scripts/cjs2es.js",
     "build": "rollup -c",
     "watch": "rollup -c -w",
     "check": "tsc"
@@ -30,6 +31,7 @@
     "kleur": "3.0.3",
     "module": "1.2.5",
     "prompts": "2.3.2",
+    "redent": "3.0.0",
     "resolve": "1.15.1"
   },
   "devDependencies": {
@@ -39,6 +41,7 @@
     "@types/mocha": "7.0.2",
     "@types/prompts": "2.0.5",
     "mocha": "7.1.1",
+    "pegjs": "0.10.0",
     "rollup": "2.3.3",
     "typescript": "3.8.3"
   }

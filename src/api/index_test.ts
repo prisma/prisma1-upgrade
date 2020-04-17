@@ -26,7 +26,7 @@ describe('@default value is missing', () => {
       model User {
         isActive Boolean
       }
-      type Post {
+      model Post {
         createdAt DateTime
         updatedAt DateTime
         number Int
@@ -36,18 +36,14 @@ describe('@default value is missing', () => {
 
     await api.upgrade({
       console: console,
-      prompter: new MockPrompt({}),
+      prompter: new MockPrompt({
+        welcome: 'y',
+        default: 'y',
+        createdAt: 'y',
+        updatedAt: 'y',
+      }),
       prisma1,
       prisma2,
     })
-    // console.log(p1.objectTypeDefinitions[0].fields[0].name)
-    // console.log(p1.objectTypeDefinitions[0].fields[0].directives[0].name)
-    // console.log(
-    //   p1.objectTypeDefinitions[0].fields[0].directives[0].arguments[0].name
-    // )
-    // console.log(
-    //   p1.objectTypeDefinitions[0].fields[0].directives[0].arguments[0].value
-    // )
-    // console.log('translating')
   })
 })
