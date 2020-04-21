@@ -2,8 +2,9 @@ import { Console } from '../console'
 import { Prompter } from '../prompter'
 import Prisma1 from '../prisma1'
 import Prisma2 from '../prisma2'
-import printPG from '../sql/postgres'
-import printMS from '../sql/mysql'
+import printPG from '../sql/postgres/print'
+import printMS from '../sql/mysql/print'
+import * as graph from '../prisma1/graph'
 import * as sql from '../sql'
 import redent from 'redent'
 
@@ -164,14 +165,14 @@ export async function upgrade(input: UpgradeInput): Promise<void> {
       `)
     )
     console.log(redent(print(stmts), 2))
-  }
-  result = await prompter.prompt({
-    name: 'default',
-    type: 'confirm',
-    message: `Done? Press 'y' to continue`,
-  })
-  if (!result.default) {
-    return
+    result = await prompter.prompt({
+      name: 'default',
+      type: 'confirm',
+      message: `Done migrating @default? Press 'y' to continue`,
+    })
+    if (!result.default) {
+      return
+    }
   }
 
   // upgrade @createdAt
@@ -221,7 +222,7 @@ export async function upgrade(input: UpgradeInput): Promise<void> {
     result = await prompter.prompt({
       name: 'createdAt',
       type: 'confirm',
-      message: `Done? Press 'y' to continue`,
+      message: `Done migrating @createdAt? Press 'y' to continue`,
     })
     if (!result.createdAt) {
       return
@@ -275,12 +276,22 @@ export async function upgrade(input: UpgradeInput): Promise<void> {
     result = await prompter.prompt({
       name: 'updatedAt',
       type: 'confirm',
-      message: `Done? Press 'y' to continue`,
+      message: `Done migrating @updatedAt? Press 'y' to continue`,
     })
     if (!result.updatedAt) {
       return
     }
   }
+
+  // upgrade 1-1 relations Datamodel
+  const g = graph.load(prisma1)
+  stmts = []
+  // for (let model of models) {
+  //   const fields = model.fields
+  //   for (let field of fields) {
+  //     // console.log(field.name, field.type.named())
+  //   }
+  // }
 
   console.log(`You're all set. Thanks for using Prisma!`)
   return

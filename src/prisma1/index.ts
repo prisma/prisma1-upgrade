@@ -102,20 +102,20 @@ interface Definition {
   kind: DefinitionNode['kind']
 }
 
-class SchemaDefinition {
+export class SchemaDefinition {
   constructor(private readonly def: SchemaDefinitionNode) {}
   get kind() {
     return this.def.kind
   }
 }
 
-class ScalarTypeDefinition {
+export class ScalarTypeDefinition {
   constructor(private readonly def: ScalarTypeDefinitionNode) {}
   get kind() {
     return this.def.kind
   }
 }
-class ObjectTypeDefinition {
+export class ObjectTypeDefinition {
   constructor(private readonly def: ObjectTypeDefinitionNode) {}
   get kind() {
     return this.def.kind
@@ -128,100 +128,103 @@ class ObjectTypeDefinition {
     return this.def.fields.map((field) => new FieldDefinition(this, field))
   }
 }
-class InterfaceTypeDefinition {
+export class InterfaceTypeDefinition {
   constructor(private readonly def: InterfaceTypeDefinitionNode) {}
   get kind() {
     return this.def.kind
   }
 }
 
-class UnionTypeDefinition {
+export class UnionTypeDefinition {
   constructor(private readonly def: UnionTypeDefinitionNode) {}
   get kind() {
     return this.def.kind
   }
 }
 
-class EnumTypeDefinition {
+export class EnumTypeDefinition {
   constructor(private readonly def: EnumTypeDefinitionNode) {}
+  get name() {
+    return this.def.name.value
+  }
   get kind() {
     return this.def.kind
   }
 }
 
-class InputObjectTypeDefinition {
+export class InputObjectTypeDefinition {
   constructor(private readonly def: InputObjectTypeDefinitionNode) {}
   get kind() {
     return this.def.kind
   }
 }
 
-class DirectiveDefinition {
+export class DirectiveDefinition {
   constructor(private readonly def: DirectiveDefinitionNode) {}
   get kind() {
     return this.def.kind
   }
 }
 
-class SchemaExtension {
+export class SchemaExtension {
   constructor(private readonly def: SchemaExtensionNode) {}
   get kind() {
     return this.def.kind
   }
 }
 
-class ScalarTypeExtension {
+export class ScalarTypeExtension {
   constructor(private readonly def: ScalarTypeExtensionNode) {}
   get kind() {
     return this.def.kind
   }
 }
-class ObjectTypeExtension {
+export class ObjectTypeExtension {
   constructor(private readonly def: ObjectTypeExtensionNode) {}
   get kind() {
     return this.def.kind
   }
 }
-class InterfaceTypeExtension {
+export class InterfaceTypeExtension {
   constructor(private readonly def: InterfaceTypeExtensionNode) {}
   get kind() {
     return this.def.kind
   }
 }
-class UnionTypeExtension {
+export class UnionTypeExtension {
   constructor(private readonly def: UnionTypeExtensionNode) {}
   get kind() {
     return this.def.kind
   }
 }
-class EnumTypeExtension {
+export class EnumTypeExtension {
   constructor(private readonly def: EnumTypeExtensionNode) {}
   get kind() {
     return this.def.kind
   }
 }
-class InputObjectTypeExtension {
+export class InputObjectTypeExtension {
   constructor(private readonly def: InputObjectTypeExtensionNode) {}
   get kind() {
     return this.def.kind
   }
 }
 
-class OperationDefinition {
+export class OperationDefinition {
   constructor(private readonly def: OperationDefinitionNode) {}
   get kind() {
     return this.def.kind
   }
 }
 
-class FragmentDefinition {
+export class FragmentDefinition {
   constructor(private readonly def: FragmentDefinitionNode) {}
   get kind() {
     return this.def.kind
   }
 }
 
-class FieldDefinition {
+export class FieldDefinition {
   constructor(
     private readonly modelDef: ObjectTypeDefinition,
     private readonly def: FieldDefinitionNode
@@ -252,25 +255,55 @@ class FieldDefinition {
   }
 }
 
-interface Type {
+export interface Type {
+  named(): string
   kind: TypeNode['kind']
+  toString(): string
+  isReference(): boolean
 }
 
-class NamedType {
-  constructor(private readonly def: NamedTypeNode) {}
-  get name() {
-    return this.def.name
+function isReference(name: string): boolean {
+  switch (name) {
+    case 'ID':
+    case 'String':
+    case 'Int':
+    case 'Float':
+    case 'Boolean':
+    case 'DateTime':
+    case 'Json':
+      return false
+    default:
+      return true
   }
+}
+
+export class NamedType implements Type {
+  constructor(private readonly def: NamedTypeNode) {}
+
   get kind(): 'NamedType' {
     return this.def.kind
   }
+
+  named() {
+    return this.def.name.value
+  }
+
+  toString(): string {
+    return this.def.name.value
+  }
+
+  isReference(): boolean {
+    return isReference(this.named())
+  }
 }
 
-class ListType {
+export class ListType implements Type {
   constructor(private readonly def: ListTypeNode) {}
+
   get kind(): 'ListType' {
     return this.def.kind
   }
+
   inner() {
     switch (this.def.type.kind) {
       case 'ListType':
@@ -281,13 +314,27 @@ class ListType {
         return new NonNullType(this.def.type)
     }
   }
+
+  named(): string {
+    return this.inner().named()
+  }
+
+  toString(): string {
+    return '[' + this.inner.toString() + ']'
+  }
+
+  isReference(): boolean {
+    return isReference(this.named())
+  }
 }
 
-class NonNullType {
+export class NonNullType implements Type {
   constructor(private readonly def: NonNullTypeNode) {}
+
   get kind(): 'NonNullType' {
     return this.def.kind
   }
+
   inner() {
     switch (this.def.type.kind) {
       case 'ListType':
@@ -296,9 +343,21 @@ class NonNullType {
         return new NamedType(this.def.type)
     }
   }
+
+  named(): string {
+    return this.inner().named()
+  }
+
+  toString(): string {
+    return this.inner().toString() + '!'
+  }
+
+  isReference(): boolean {
+    return isReference(this.named())
+  }
 }
 
-class Directive {
+export class Directive {
   constructor(private readonly def: DirectiveNode) {}
   get name() {
     return this.def.name.value
@@ -309,7 +368,7 @@ class Directive {
   }
 }
 
-class Argument {
+export class Argument {
   constructor(private readonly def: ArgumentNode) {}
   get name() {
     return this.def.name.value
@@ -349,7 +408,7 @@ type Value =
   | ListValue
   | ObjectValue
 
-class Variable {
+export class Variable {
   constructor(private readonly def: VariableNode) {}
 
   get kind(): 'Variable' {
@@ -361,7 +420,7 @@ class Variable {
   }
 }
 
-class IntValue {
+export class IntValue {
   constructor(private readonly def: IntValueNode) {}
 
   get kind(): 'IntValue' {
@@ -373,7 +432,7 @@ class IntValue {
   }
 }
 
-class FloatValue {
+export class FloatValue {
   constructor(private readonly def: FloatValueNode) {}
 
   get kind(): 'FloatValue' {
@@ -385,7 +444,7 @@ class FloatValue {
   }
 }
 
-class StringValue {
+export class StringValue {
   constructor(private readonly def: StringValueNode) {}
 
   get kind(): 'StringValue' {
@@ -397,7 +456,7 @@ class StringValue {
   }
 }
 
-class BooleanValue {
+export class BooleanValue {
   constructor(private readonly def: BooleanValueNode) {}
 
   get kind(): 'BooleanValue' {
@@ -409,7 +468,7 @@ class BooleanValue {
   }
 }
 
-class NullValue {
+export class NullValue {
   constructor(private readonly def: NullValueNode) {}
 
   get kind(): 'NullValue' {
@@ -421,7 +480,7 @@ class NullValue {
   }
 }
 
-class EnumValue {
+export class EnumValue {
   constructor(private readonly def: EnumValueNode) {}
 
   get kind(): 'EnumValue' {
@@ -433,7 +492,7 @@ class EnumValue {
   }
 }
 
-class ListValue {
+export class ListValue {
   constructor(private readonly def: ListValueNode) {}
   get kind(): 'ListValue' {
     return this.def.kind
@@ -448,7 +507,7 @@ class ListValue {
 
 type ObjectMap = { [name: string]: Value }
 
-class ObjectValue {
+export class ObjectValue {
   constructor(private readonly def: ObjectValueNode) {}
   get kind(): 'ObjectValue' {
     return this.def.kind

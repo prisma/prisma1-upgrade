@@ -66,4 +66,46 @@ describe('mysql', () => {
 
     // TODO: buffer commands and run against the actual database
   })
+
+  it('@relation(link:INLINE)', async () => {
+    const prisma1 = P1.parse(`
+      type User {
+        id: ID! @id
+        profile: Profile! @relation(link: INLINE)
+      }
+      type Profile {
+        id: ID! @id
+        user: User!
+      }
+    `)
+
+    const prisma2 = P2.parse(`
+      datasource db {
+        provider = "mysql"
+        url = "mysql://prisma:pass@localhost:3306/db"
+      }
+      model User {
+        id Int @id
+        profile Profile
+      }
+      model Profile {
+        id Int @id
+        user User
+      }
+    `)
+
+    await api.upgrade({
+      console: console,
+      prompter: new MockPrompt({
+        welcome: 'y',
+        default: 'y',
+        createdAt: 'y',
+        updatedAt: 'y',
+      }),
+      prisma1,
+      prisma2,
+    })
+
+    // TODO: buffer commands and run against the actual database
+  })
 })
