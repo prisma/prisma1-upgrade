@@ -10,7 +10,8 @@ import os from 'os'
 
 const tmpdir = path.join(os.tmpdir(), 'prisma-upgrade')
 
-it('module should load', async () => {
+it('module should load', async function () {
+  this.timeout('10s')
   await testaway(tmpdir, path.join(__dirname, '..', '..'))
   const result = await execa(
     path.join(tmpdir, 'node_modules', '.bin', 'prisma-upgrade'),
@@ -72,10 +73,15 @@ describe('mysql', () => {
       type User {
         id: ID! @id
         profile: Profile! @relation(link: INLINE)
+        account: Account!
       }
       type Profile {
         id: ID! @id
         user: User!
+      }
+      type Account {
+        id: ID! @id
+        user: User @relation
       }
     `)
 
@@ -101,6 +107,7 @@ describe('mysql', () => {
         default: 'y',
         createdAt: 'y',
         updatedAt: 'y',
+        inlineRelation: 'y',
       }),
       prisma1,
       prisma2,

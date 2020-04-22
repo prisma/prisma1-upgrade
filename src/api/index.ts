@@ -4,7 +4,7 @@ import Prisma1 from '../prisma1'
 import Prisma2 from '../prisma2'
 import printPG from '../sql/postgres/print'
 import printMS from '../sql/mysql/print'
-import * as graph from '../prisma1/graph'
+import * as Graph from '../prisma1/graph'
 import * as sql from '../sql'
 import redent from 'redent'
 
@@ -161,7 +161,7 @@ export async function upgrade(input: UpgradeInput): Promise<void> {
   if (stmts.length) {
     console.log(
       redent(`
-        Great! Step 1 is to transition Prisma 1's @default's to default values backed by the database. Run the following SQL command against your database:
+        Let's transition Prisma 1's @default's to default values backed by the database. Run the following SQL command against your database:
       `)
     )
     console.log(redent(print(stmts), 2))
@@ -215,7 +215,7 @@ export async function upgrade(input: UpgradeInput): Promise<void> {
   if (stmts.length) {
     console.log(
       redent(`
-        Step 2 is to transition Prisma 1's @createdAt to a datetime type with a default value of now. Run the following SQL command against your database:
+        Let's transition Prisma 1's @createdAt to a datetime type with a default value of now. Run the following SQL command against your database:
       `)
     )
     console.log(redent(print(stmts), 2))
@@ -269,7 +269,7 @@ export async function upgrade(input: UpgradeInput): Promise<void> {
   if (stmts.length) {
     console.log(
       redent(`
-        Step 3 is to transition Prisma 1's @updatedAt to a datetime type with a default value of now. Run the following SQL command against your database:
+        Let's transition Prisma 1's @updatedAt to a datetime type with a default value of now. Run the following SQL command against your database:
       `)
     )
     console.log(redent(print(stmts), 2))
@@ -284,8 +284,83 @@ export async function upgrade(input: UpgradeInput): Promise<void> {
   }
 
   // upgrade 1-1 relations Datamodel
-  const g = graph.load(prisma1)
+  const graph = Graph.load(prisma1)
+
+  // loop over edges and apply back-relation rules
+  // to break up cycles and place the fields in the proper place
   stmts = []
+  const edges = graph.edges()
+  const visited: { [name: string]: string[] } = {}
+  for (let i = 0; i < edges.length; i++) {
+    const src = graph.node(edges[i].v)
+    const dst = graph.node(edges[i].w)
+    const edge1: Graph.Edge = graph.edge(edges[i].v, edges[i].w)
+
+    // relation with a back-relation
+    for (let j = 0; j < edges.length; j++) {
+      // check for an edge going in the opposite direction
+      if (edges[i].v !== edges[j].w || edges[j].v !== edges[i].w) {
+        continue
+      } else if (visited[src.name] && ~visited[src.name].indexOf(dst.name)) {
+        continue
+      }
+
+      // mark as visited
+      visited[src.name] = visited[src.name] || []
+      visited[src.name].push(dst.name)
+      visited[dst.name] = visited[dst.name] || []
+      visited[dst.name].push(src.name)
+
+      const edge2: Graph.Edge = graph.edge(edges[j].v, edges[j].w)
+      // 1:1 relationship
+      if (edge1.type === 'hasOne' && edge2.type === 'hasOne') {
+        const uniqueEdge =
+          edge1.link === 'INLINE' // edge inline
+            ? edge1
+            : edge2.link === 'INLINE' // edge2 inline
+            ? edge2
+            : edge1.from < edge2.from // alphanumeric
+            ? edge1
+            : edge2
+
+        stmts.push({
+          type: 'alter_table_statement',
+          tableName: uniqueEdge.from,
+          actions: [
+            {
+              type: 'add_table_constraint_definition',
+              constraint: {
+                type: 'table_constraint_definition',
+                constraint: {
+                  type: 'unique_constraint_definition',
+                  spec: 'UNIQUE',
+                  columns: [uniqueEdge.field],
+                },
+              },
+            },
+          ],
+        })
+      }
+    }
+  }
+  if (stmts.length) {
+    console.log(
+      redent(`
+        Let's transition Prisma 1's 1-to-1 relations with @relation or @relation(link:INLINE) to unique constraints on the database. Run the following SQL command against your database:
+      `)
+    )
+    console.log(redent(print(stmts), 2))
+    result = await prompter.prompt({
+      name: 'inlineRelation',
+      type: 'confirm',
+      message: `Done migrating your inline relations? Press 'y' to continue`,
+    })
+    if (!result.inlineRelation) {
+      return
+    }
+  }
+
+  // console.log(graph.print(g))
   // for (let model of models) {
   //   const fields = model.fields
   //   for (let field of fields) {

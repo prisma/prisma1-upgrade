@@ -83,7 +83,42 @@ export type DropColumnDef = {
 }
 export type AddTableConstraintDef = {
   type: 'add_table_constraint_definition'
+  constraint: TableConstraintDef
 }
+
+export type TableConstraintDef = {
+  type: 'table_constraint_definition'
+  name?: ConstraintNameDef
+  constraint: TableConstraint
+  characteristics?: ConstraintCharacteristics
+}
+
+export type ConstraintNameDef = {
+  type: 'constraint_name_definition'
+  name: string
+}
+
+export type TableConstraint =
+  | UniqueConstraintDefinition
+  | ReferentialConstraintDefinition
+  | CheckConstraintDefinition
+
+export type UniqueConstraintDefinition = {
+  type: 'unique_constraint_definition'
+  spec: 'UNIQUE' | 'PRIMARY KEY'
+  columns: string[]
+}
+
+export type ReferentialConstraintDefinition = {
+  type: 'referential_constraint_definition'
+}
+
+export type CheckConstraintDefinition = {
+  type: 'check_constraint_definition'
+}
+
+export type ConstraintCharacteristics = Todo
+
 export type DropTableConstraintDef = {
   type: 'drop_table_contraint_definition'
 }
