@@ -2,6 +2,9 @@ import { Console } from '../console'
 import { Prompter } from '../prompter'
 import Prisma1 from '../prisma1'
 import Prisma2 from '../prisma2'
+import Parser from '../prisma2/parser'
+import Printer from '../prisma2/printer'
+import * as p2 from '../prisma2/ast'
 import printPG from '../sql/postgres/print'
 import printMS from '../sql/mysql/print'
 import * as Graph from '../prisma1/graph'
@@ -13,15 +16,34 @@ type UpgradeInput = {
   prompter: Prompter
   prisma1: Prisma1
   prisma2: Prisma2
+  inspector: Inspector
+}
+
+interface Inspector {
+  introspect(
+    schema: string
+  ): Promise<{
+    datamodel: string
+  }>
 }
 
 function unsupported(msg: string): Error {
   return new Error(msg)
 }
 
+// Schema Op
+type Op = UpsertAttributeOp
+
+type UpsertAttributeOp = {
+  type: 'UpsertAttributeOp'
+  model: string
+  field: string
+  attribute: p2.Attribute
+}
+
 // upgrade performs a set of rules
 export async function upgrade(input: UpgradeInput): Promise<void> {
-  const { console, prompter, prisma1, prisma2 } = input
+  const { console, prompter, prisma1, prisma2, inspector } = input
 
   // get the datasource
   const datasource = prisma2.datasources[0]
@@ -61,12 +83,13 @@ export async function upgrade(input: UpgradeInput): Promise<void> {
 
         1. We inspect the contents of your Prisma 1 datamodel file.
         2. We generate SQL commands for you to run on your database.
-        3. We ask you to re-introspect your database to get a new Prisma 2 Schema.
+        3. We re-introspect your database to get a new Prisma 2 Schema.
+        4. We apply any Prisma-specific changes to the new Prisma 2 Schema
 
-      We will not execute any SQL commands for you automatically, you are in full control
+      We will not try to migrate your database for you. You are in full control
       over the changes to your ${provider} database.
 
-      We suggest you first run the following SQL commands on your testing or staging ${provider} database.
+      We suggest you first run the subsequent SQL commands on your testing or staging ${provider} database.
       Then when you're confident with the transition you can migrate your production database.
 
       If you have any questions along the way, please reach out to hi@prisma.io.
@@ -360,13 +383,144 @@ export async function upgrade(input: UpgradeInput): Promise<void> {
     }
   }
 
-  // console.log(graph.print(g))
-  // for (let model of models) {
-  //   const fields = model.fields
-  //   for (let field of fields) {
-  //     // console.log(field.name, field.type.named())
-  //   }
-  // }
+  // next handle the Json type
+  stmts = []
+  for (let model of models) {
+    const fields = model.fields
+    for (let field of fields) {
+      if (field.type.named() === 'Json') {
+        stmts.push({
+          type: 'alter_table_statement',
+          tableName: model.name,
+          actions: [
+            {
+              type: 'alter_column_definition',
+              columnName: field.name,
+              action: {
+                type: 'set_column_datatype_clause',
+                datatype: 'json',
+              },
+            },
+          ],
+        })
+      }
+    }
+  }
+  if (stmts.length) {
+    console.log(
+      redent(`
+        Let's transition Prisma 1's Json type to a json type in the database. Run the following SQL command against your database:
+      `)
+    )
+    console.log(redent(print(stmts), 2))
+    result = await prompter.prompt({
+      name: 'json',
+      type: 'confirm',
+      message: `Done migrating Json? Press 'y' to continue`,
+    })
+    if (!result.json) {
+      return
+    }
+  }
+
+  // next we'll find ID and UUID datatypes
+  const ops: Op[] = []
+  for (let model of models) {
+    const fields = model.fields
+    for (let field of fields) {
+      // handle ID types
+      if (field.type.named() === 'ID') {
+        ops.push({
+          type: 'UpsertAttributeOp',
+          model: model.name,
+          field: field.name,
+          attribute: {
+            type: 'attribute',
+            name: 'default',
+            arguments: [
+              {
+                type: 'unkeyed_argument',
+                value: {
+                  type: 'function_value',
+                  name: 'cuid',
+                  arguments: [],
+                },
+              },
+            ],
+          },
+        })
+      }
+      // handle UUIDs
+      if (field.type.named() === 'UUID') {
+        ops.push({
+          type: 'UpsertAttributeOp',
+          model: model.name,
+          field: field.name,
+          attribute: {
+            type: 'attribute',
+            name: 'default',
+            arguments: [
+              {
+                type: 'unkeyed_argument',
+                value: {
+                  type: 'function_value',
+                  name: 'uuid',
+                  arguments: [],
+                },
+              },
+            ],
+          },
+        })
+      }
+    }
+  }
+  if (ops.length) {
+    const { datamodel } = await inspector.introspect(`
+      datasource db {
+        provider = "${datasource.provider}"
+        url = "${datasource.url}"
+      }
+    `)
+    const schema = Parser.parse(datamodel, {})
+    for (let op of ops) {
+      switch (op.type) {
+        case 'UpsertAttributeOp':
+          for (let block of schema.blocks) {
+            if (block.type !== 'model' || block.name !== op.model) {
+              continue
+            }
+            for (let prop of block.properties) {
+              if (prop.type !== 'field') {
+                continue
+              }
+              let found = false
+              for (let i = 0; i < prop.attributes.length; i++) {
+                const attr = prop.attributes[i]
+                if (
+                  attr.name !== op.attribute.name ||
+                  attr.group !== op.attribute.group
+                ) {
+                  continue
+                }
+                found = true
+                // update
+                prop.attributes[i] = op.attribute
+              }
+              // insert
+              if (!found) {
+                prop.attributes.push(op.attribute)
+              }
+            }
+          }
+          break
+        default:
+          throw new Error(`unhandled operation: "${op.type}"`)
+      }
+    }
+    const printer = new Printer()
+    console.log(printer.print(schema))
+    console.log('')
+  }
 
   console.log(`You're all set. Thanks for using Prisma!`)
   return
