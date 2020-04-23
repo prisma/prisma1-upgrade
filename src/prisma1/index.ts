@@ -265,6 +265,7 @@ export interface Type {
 function isReference(name: string): boolean {
   switch (name) {
     case 'ID':
+    case 'UUID':
     case 'String':
     case 'Int':
     case 'Float':
