@@ -19,7 +19,7 @@ type UpgradeInput = {
   inspector: Inspector
 }
 
-interface Inspector {
+export interface Inspector {
   introspect(
     schema: string
   ): Promise<{
@@ -193,6 +193,7 @@ export async function upgrade(input: UpgradeInput): Promise<void> {
       type: 'confirm',
       message: `Done migrating @default? Press 'y' to continue`,
     })
+    console.log('')
     if (!result.default) {
       return
     }
@@ -301,6 +302,7 @@ export async function upgrade(input: UpgradeInput): Promise<void> {
       type: 'confirm',
       message: `Done migrating @updatedAt? Press 'y' to continue`,
     })
+    console.log('')
     if (!result.updatedAt) {
       return
     }
@@ -378,6 +380,7 @@ export async function upgrade(input: UpgradeInput): Promise<void> {
       type: 'confirm',
       message: `Done migrating your inline relations? Press 'y' to continue`,
     })
+    console.log('')
     if (!result.inlineRelation) {
       return
     }
@@ -418,6 +421,7 @@ export async function upgrade(input: UpgradeInput): Promise<void> {
       type: 'confirm',
       message: `Done migrating Json? Press 'y' to continue`,
     })
+    console.log('')
     if (!result.json) {
       return
     }
@@ -517,9 +521,9 @@ export async function upgrade(input: UpgradeInput): Promise<void> {
           throw new Error(`unhandled operation: "${op.type}"`)
       }
     }
-    const printer = new Printer()
-    console.log(printer.print(schema))
-    console.log('')
+    // const printer = new Printer()
+    // console.log(printer.print(schema))
+    // console.log('')
   }
 
   console.log(`You're all set. Thanks for using Prisma!`)

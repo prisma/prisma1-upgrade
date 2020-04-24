@@ -1,4 +1,4 @@
-import { IntrospectionEngine, format } from '@prisma/sdk'
+import { IntrospectionEngine } from '@prisma/sdk'
 import { MockPrompt } from '../prompter'
 import { Discard } from '../console'
 import testaway from 'testaway'

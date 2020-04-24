@@ -203,10 +203,18 @@ UnkeyedArgument = value:Value {
   }
 }
 
-Value = ListValue / StringValue / FloatValue / IntValue / BooleanValue / DateTimeValue / FunctionValue / FieldValue
-ValueList = _ Value _ ","? _
+Value = ListValue / StringValue / FloatValue / IntValue / BooleanValue / DateTimeValue / FunctionValue / ReferenceValue
 
-ListValue = "[" ValueList* "]"
+ValueList = _ value:Value _ ","? _ {
+  return value
+}
+
+ListValue = "[" values:ValueList* "]" {
+  return {
+    type:"list_value",
+    values: values
+  }
+}
 
 StringValue = value:string {
   return {
@@ -251,9 +259,9 @@ FunctionValue = name:Identifier "(" parameters:FunctionParamList* ")" {
   }
 }
 
-FieldValue = name:Identifier {
+ReferenceValue = name:Identifier {
   return {
-    type: "field_value",
+    type: "reference_value",
     name: name
   }
 }

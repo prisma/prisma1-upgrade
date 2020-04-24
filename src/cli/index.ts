@@ -73,24 +73,33 @@ async function main(argv: string[]): Promise<void> {
   // change the working directory
   const wd = args['--chdir'] ? path.resolve(cwd, args['--chdir']) : cwd
   const p1 = path.resolve(wd, params[0])
-  const p2 = path.resolve(wd, params[1])
   if (!(await exists(p1))) {
     console.error(`[!] Prisma 1 Datamodel doesn't exist "${p1}"\n\n${usage()}`)
     process.exit(1)
   }
+  const p2 = path.resolve(wd, params[1])
   if (!(await exists(p2))) {
     console.error(`[!] Prisma 2 Schema doesn't exist "${p2}"\n\n${usage()}`)
     process.exit(1)
   }
 
   const prisma1 = P1.parse(await readFile(p1, 'utf8'))
-  const prisma2 = P2.parse(await readFile(p2, 'utf8'))
+  const prisma2String = await readFile(p2, 'utf8')
+  const prisma2 = P2.parse(prisma2String)
+
+  // TODO: remove mock
+  const inspector: api.Inspector = {
+    introspect(_schema: string): Promise<{ datamodel: string }> {
+      return Promise.resolve({ datamodel: prisma2String })
+    },
+  }
 
   await api.upgrade({
     prompter: new Prompt(),
     console: console,
     prisma1,
     prisma2,
+    inspector,
   })
 
   return

@@ -60,7 +60,7 @@ function Property(n: ast.Property): string {
     case 'attribute':
       return ModelAttribute(n)
     default:
-      throw new Error(`unhandled type ${n!.type}`)
+      throw new Error(`unhandled property ${n!.type}`)
   }
 }
 
@@ -100,7 +100,7 @@ function AttributeArgument(n: ast.AttributeArgument): string {
     case 'unkeyed_argument':
       return UnkeyedArgument(n)
     default:
-      throw new Error(`unhandled type ${n!.type}`)
+      throw new Error(`unhandled attribute argument ${n!.type}`)
   }
 }
 
@@ -142,8 +142,10 @@ function Value(n: ast.Value): string {
       return MapValue(n)
     case 'string_value':
       return StringValue(n)
+    case 'reference_value':
+      return ReferenceValue(n)
     default:
-      throw new Error(`unhandled type ${n!.type}`)
+      throw new Error(`unhandled value ${n!.type}`)
   }
 }
 
@@ -160,7 +162,7 @@ function FloatValue(n: ast.FloatValue): string {
 }
 
 function FunctionValue(n: ast.FunctionValue): string {
-  return `${n.name}(${n.arguments.map(Value).join(', ')})`
+  return `${n.name}(${(n.arguments || []).map(Value).join(', ')})`
 }
 
 function IntValue(n: ast.IntValue): string {
@@ -181,4 +183,8 @@ function MapValue(n: ast.MapValue): string {
 
 function StringValue(n: ast.StringValue): string {
   return n.value
+}
+
+function ReferenceValue(n: ast.ReferenceValue): string {
+  return n.name
 }

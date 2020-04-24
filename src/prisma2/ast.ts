@@ -109,6 +109,7 @@ export type Value =
   | DateTimeValue
   | FloatValue
   | FunctionValue
+  | ReferenceValue
 
 export type ListValue = {
   type: 'list_value'
@@ -148,5 +149,10 @@ export type FloatValue = {
 export type FunctionValue = {
   type: 'function_value'
   name: string
-  arguments: Value[]
+  arguments?: Value[]
+}
+
+export type ReferenceValue = {
+  type: 'reference_value'
+  name: string
 }
