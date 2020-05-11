@@ -1,11 +1,6 @@
-generator client {
-  provider = "prisma-client-js"
-  output   = "../../../query-generator/clients/prisma1/datamodel-v11@dev"
-}
-
 datasource db {
   provider = "mysql"
-  url      = "mysql://prisma:qd58rcCywPRS4Stk@introspection-prisma1.cg7tbvsdqlrs.eu-central-1.rds.amazonaws.com:3306/datamodel-v11@dev"
+  url      = "mysql://root:prisma@0.0.0.0:3307/datamodel-v11@dev"
 }
 
 model Home {

@@ -1,244 +1,341 @@
-import { IntrospectionEngine } from '@prisma/sdk'
+import { IntrospectionEngine, uriToCredentials } from '@prisma/sdk'
 import { MockPrompt } from '../prompter'
-import { Discard } from '../console'
-import testaway from 'testaway'
+import { Console } from '../console'
+// import testaway from 'testaway'
+import mariadb from 'mariadb'
 import P1 from '../prisma1'
 import P2 from '../prisma2'
 import * as api from './'
-import execa from 'execa'
+// import execa from 'execa'
 import path from 'path'
-import os from 'os'
+import util from 'util'
+import fs from 'fs'
+// import os from 'os'
 
-const tmpdir = path.join(os.tmpdir(), 'prisma-upgrade')
+// const tmpdir = path.join(os.tmpdir(), 'prisma-upgrade')
+const readFile = util.promisify(fs.readFile)
+const engine = new IntrospectionEngine()
 
-it('module should load', async function () {
-  this.timeout('10s')
-  await testaway(tmpdir, path.join(__dirname, '..', '..'))
-  const result = await execa(
-    path.join(tmpdir, 'node_modules', '.bin', 'prisma-upgrade'),
-    ['-h']
-  )
-  if (!~result.stdout.indexOf('prisma-upgrade')) {
-    throw new Error("module doesn't load")
-  }
-})
+// it('module should load', async function() {
+//   this.timeout('10s')
+//   await testaway(tmpdir, path.join(__dirname, '..', '..'))
+//   const result = await execa(
+//     path.join(tmpdir, 'node_modules', '.bin', 'prisma-upgrade'),
+//     ['-h']
+//   )
+//   if (!~result.stdout.indexOf('prisma-upgrade')) {
+//     throw new Error("module doesn't load")
+//   }
+// })
+
+let connectionString =
+  process.env.TEST_MYSQL_URI || 'mysql://root@localhost:3306'
+const credentials = uriToCredentials(connectionString)
+
+const dir = path.join(__dirname, '..', '..', 'examples')
+const tests = fs.readdirSync(dir)
 
 describe('mysql', () => {
-  it('@defaults, @createdAt, @updatedAt', async () => {
-    const prisma1 = P1.parse(`
-      type User {
-        firstName: String! @default(value: "alice")
-        isActive: Boolean! @default(value: false)
-      }
-      type Post {
-        createdAt: DateTime! @createdAt
-        updatedAt: DateTime! @updatedAt
-        number: Int! @default(value: 5)
-        float: Float! @default(value: 5.5)
-      }
-    `)
-
-    const prisma2 = P2.parse(`
-      datasource db {
-        provider = "mysql"
-        url = "mysql://prisma:pass@localhost:3306/db"
-      }
-      model User {
-        isActive Boolean
-      }
-      model Post {
-        createdAt DateTime
-        updatedAt DateTime
-        number Int
-        float Float
-      }
-    `)
-
-    const inspector = new IntrospectionEngine()
-
-    await api.upgrade({
-      console: new Discard(),
-      prompter: new MockPrompt({
-        welcome: 'y',
-        default: 'y',
-        createdAt: 'y',
-        updatedAt: 'y',
-      }),
-      prisma1,
-      prisma2,
-      inspector,
+  let db: mariadb.Connection
+  before(async () => {
+    db = await mariadb.createConnection({
+      host: credentials.host,
+      port: credentials.port,
+      database: credentials.database,
+      user: credentials.user,
+      password: credentials.password,
+      multipleStatements: true,
     })
-
-    // TODO: buffer commands and run against the actual database
   })
 
-  it('@relation(link:INLINE)', async () => {
-    const prisma1 = P1.parse(`
-      type User {
-        id: ID! @id
-        profile: Profile! @relation(link: INLINE)
-        account: Account!
-      }
-      type Profile {
-        id: ID! @id
-        user: User!
-      }
-      type Account {
-        id: ID! @id
-        user: User @relation
-      }
-    `)
+  after(async () => {
+    db && (await db.end())
+    engine.stop()
+  })
 
-    const prisma2 = P2.parse(`
-      datasource db {
-        provider = "mysql"
-        url = "mysql://prisma:pass@localhost:3306/db"
-      }
-      model User {
-        id Int @id
-        profile Profile
-      }
-      model Profile {
-        id Int @id
-        user User
-      }
-    `)
+  beforeEach(async () => {
+    await db.query(`create database prisma_mysql_test;`)
+    await db.query(`use prisma_mysql_test;`)
+  })
 
-    const inspector = new IntrospectionEngine()
+  afterEach(async () => {
+    await db.query(`drop database prisma_mysql_test;`)
+  })
 
-    await api.upgrade({
-      console: console,
-      prompter: new MockPrompt({
+  const mysqlTests = tests.filter((test) => test.startsWith('mysql'))
+  mysqlTests.forEach((test) => {
+    it(test, async () => {
+      const abspath = path.join(dir, test)
+      const dumpPath = path.join(abspath, 'dump.sql')
+      const dump = await readFile(dumpPath, 'utf8')
+      const before = await readFile(path.join(abspath, 'schema.prisma'), 'utf8')
+      const p2 = P2.parse(before)
+      const p1 = P1.parse(
+        await readFile(path.join(abspath, 'datamodel.graphql'), 'utf8')
+      )
+      await db.query(dump)
+      const prompt = new MockPrompt({
         welcome: 'y',
         default: 'y',
         createdAt: 'y',
         updatedAt: 'y',
         inlineRelation: 'y',
-      }),
-      prisma1,
-      prisma2,
-      inspector,
-    })
-
-    // TODO: buffer commands and run against the actual database
-  })
-
-  it('json', async () => {
-    const prisma1 = P1.parse(`
-      type User {
-        id: ID! @id
-        settings: Json!
-      }
-    `)
-
-    const p2 = `
-      datasource db {
-        provider = "mysql"
-        url = "mysql://prisma:pass@localhost:3306/db"
-      }
-      model User {
-        id Int @id
-        settings String
-      }
-    `
-
-    const prisma2 = P2.parse(p2)
-
-    const inspector = {
-      introspect(): Promise<{ datamodel: string }> {
-        return Promise.resolve({ datamodel: p2 })
-      },
-    }
-
-    await api.upgrade({
-      console: console,
-      prompter: new MockPrompt({
-        welcome: 'y',
         json: 'y',
-      }),
-      prisma1,
-      prisma2,
-      inspector,
+      })
+      const con: Console = {
+        async log(..._args: any[]) {
+          // console.log(...args)
+        },
+        async sql(sql) {
+          console.log(sql)
+          await db.query(sql)
+        },
+        async error(..._args: any[]) {
+          // console.error(...args)
+        },
+      }
+
+      await api.upgrade({
+        console: con,
+        inspector: engine,
+        prompter: prompt,
+        prisma1: p1,
+        prisma2: p2,
+      })
+
+      const schema = await engine.introspect(`
+        datasource db {
+          provider = "${p2.datasources[0].provider}"
+          url = "${p2.datasources[0].url}"
+        }
+      `)
+
+      console.log(before)
+      console.log(schema.datamodel)
+
+      // console.log(dump)
+      // console.log(schema)
+      // console.log(db)
     })
-
-    // TODO: buffer commands and run against the actual database
-  })
-
-  it('cuid', async () => {
-    const prisma1 = P1.parse(`
-      type User {
-        id: ID! @id
-      }
-    `)
-
-    const p2 = `
-      datasource db {
-        provider = "mysql"
-        url = "mysql://prisma:pass@localhost:3306/db"
-      }
-      model User {
-        id Int @id @default(now())
-      }
-    `
-
-    const prisma2 = P2.parse(p2)
-
-    const inspector = {
-      introspect(): Promise<{ datamodel: string }> {
-        return Promise.resolve({ datamodel: p2 })
-      },
-    }
-
-    await api.upgrade({
-      console: console,
-      prompter: new MockPrompt({
-        welcome: 'y',
-        json: 'y',
-      }),
-      prisma1,
-      prisma2,
-      inspector,
-    })
-
-    // TODO: buffer commands and run against the actual database
-  })
-
-  it('uuid', async () => {
-    const prisma1 = P1.parse(`
-      type User {
-        id: UUID! @id
-      }
-    `)
-
-    const p2 = `
-      datasource db {
-        provider = "mysql"
-        url = "mysql://prisma:pass@localhost:3306/db"
-      }
-      model User {
-        id Int @id
-      }
-    `
-
-    const prisma2 = P2.parse(p2)
-
-    const inspector = {
-      introspect(): Promise<{ datamodel: string }> {
-        return Promise.resolve({ datamodel: p2 })
-      },
-    }
-
-    await api.upgrade({
-      console: console,
-      prompter: new MockPrompt({
-        welcome: 'y',
-        json: 'y',
-      }),
-      prisma1,
-      prisma2,
-      inspector,
-    })
-
-    // TODO: buffer commands and run against the actual database
   })
 })
+
+// describe('mysql', () => {
+//   it('@defaults, @createdAt, @updatedAt', async () => {
+//     const prisma1 = P1.parse(`
+//       type User {
+//         firstName: String! @default(value: "alice")
+//         isActive: Boolean! @default(value: false)
+//       }
+//       type Post {
+//         createdAt: DateTime! @createdAt
+//         updatedAt: DateTime! @updatedAt
+//         number: Int! @default(value: 5)
+//         float: Float! @default(value: 5.5)
+//       }
+//     `)
+
+//     const prisma2 = P2.parse(`
+//       datasource db {
+//         provider = "mysql"
+//         url = "mysql://prisma:pass@localhost:3306/db"
+//       }
+//       model User {
+//         isActive Boolean
+//       }
+//       model Post {
+//         createdAt DateTime
+//         updatedAt DateTime
+//         number Int
+//         float Float
+//       }
+//     `)
+
+//     const inspector = new IntrospectionEngine()
+
+//     await api.upgrade({
+//       console: new Discard(),
+//       prompter: new MockPrompt({
+//         welcome: 'y',
+//         default: 'y',
+//         createdAt: 'y',
+//         updatedAt: 'y',
+//       }),
+//       prisma1,
+//       prisma2,
+//       inspector,
+//     })
+
+//     // TODO: buffer commands and run against the actual database
+//   })
+
+//   it('@relation(link:INLINE)', async () => {
+//     const prisma1 = P1.parse(`
+//       type User {
+//         id: ID! @id
+//         profile: Profile! @relation(link: INLINE)
+//         account: Account!
+//       }
+//       type Profile {
+//         id: ID! @id
+//         user: User!
+//       }
+//       type Account {
+//         id: ID! @id
+//         user: User @relation
+//       }
+//     `)
+
+//     const prisma2 = P2.parse(`
+//       datasource db {
+//         provider = "mysql"
+//         url = "mysql://prisma:pass@localhost:3306/db"
+//       }
+//       model User {
+//         id Int @id
+//         profile Profile
+//       }
+//       model Profile {
+//         id Int @id
+//         user User
+//       }
+//     `)
+
+//     const inspector = new IntrospectionEngine()
+
+//     await api.upgrade({
+//       console: console,
+//       prompter: new MockPrompt({
+//         welcome: 'y',
+//         default: 'y',
+//         createdAt: 'y',
+//         updatedAt: 'y',
+//         inlineRelation: 'y',
+//       }),
+//       prisma1,
+//       prisma2,
+//       inspector,
+//     })
+
+//     // TODO: buffer commands and run against the actual database
+//   })
+
+//   it('json', async () => {
+//     const prisma1 = P1.parse(`
+//       type User {
+//         id: ID! @id
+//         settings: Json!
+//       }
+//     `)
+
+//     const p2 = `
+//       datasource db {
+//         provider = "mysql"
+//         url = "mysql://prisma:pass@localhost:3306/db"
+//       }
+//       model User {
+//         id Int @id
+//         settings String
+//       }
+//     `
+
+//     const prisma2 = P2.parse(p2)
+
+//     const inspector = {
+//       introspect(): Promise<{ datamodel: string }> {
+//         return Promise.resolve({ datamodel: p2 })
+//       },
+//     }
+
+//     await api.upgrade({
+//       console: console,
+//       prompter: new MockPrompt({
+//         welcome: 'y',
+//         json: 'y',
+//       }),
+//       prisma1,
+//       prisma2,
+//       inspector,
+//     })
+
+//     // TODO: buffer commands and run against the actual database
+//   })
+
+//   it('cuid', async () => {
+//     const prisma1 = P1.parse(`
+//       type User {
+//         id: ID! @id
+//       }
+//     `)
+
+//     const p2 = `
+//       datasource db {
+//         provider = "mysql"
+//         url = "mysql://prisma:pass@localhost:3306/db"
+//       }
+//       model User {
+//         id Int @id @default(now())
+//       }
+//     `
+
+//     const prisma2 = P2.parse(p2)
+
+//     const inspector = {
+//       introspect(): Promise<{ datamodel: string }> {
+//         return Promise.resolve({ datamodel: p2 })
+//       },
+//     }
+
+//     await api.upgrade({
+//       console: console,
+//       prompter: new MockPrompt({
+//         welcome: 'y',
+//         json: 'y',
+//       }),
+//       prisma1,
+//       prisma2,
+//       inspector,
+//     })
+
+//     // TODO: buffer commands and run against the actual database
+//   })
+
+//   it('uuid', async () => {
+//     const prisma1 = P1.parse(`
+//       type User {
+//         id: UUID! @id
+//       }
+//     `)
+
+//     const p2 = `
+//       datasource db {
+//         provider = "mysql"
+//         url = "mysql://prisma:pass@localhost:3306/db"
+//       }
+//       model User {
+//         id Int @id
+//       }
+//     `
+
+//     const prisma2 = P2.parse(p2)
+
+//     const inspector = {
+//       introspect(): Promise<{ datamodel: string }> {
+//         return Promise.resolve({ datamodel: p2 })
+//       },
+//     }
+
+//     await api.upgrade({
+//       console: console,
+//       prompter: new MockPrompt({
+//         welcome: 'y',
+//         json: 'y',
+//       }),
+//       prisma1,
+//       prisma2,
+//       inspector,
+//     })
+
+//     // TODO: buffer commands and run against the actual database
+//   })
+// })

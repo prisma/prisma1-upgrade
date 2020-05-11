@@ -1,9 +1,9 @@
 import { Schema, DataSource } from './ast'
-import parser from './parser'
+import { parse } from 'prismafile'
 
 export default class P2 {
   static parse(p2: string): P2 {
-    const schema = parser.parse(p2, {})
+    const schema = parse(p2)
     return new P2(schema)
   }
 
@@ -33,7 +33,11 @@ class Datasource {
         return provider.value.value
       default:
         throw new Error(
-          `datasource ${this.node.name} "provider" attribute must be a string, but got ${provider.value.type}`
+          `datasource ${
+            this.node.name
+          } "provider" attribute must be a string, but got ${
+            provider.value.type
+          }`
         )
     }
   }
@@ -46,7 +50,9 @@ class Datasource {
         return url.value.value
       default:
         throw new Error(
-          `datasource ${this.node.name} "url" attribute must be a string, but got ${url.value.type}`
+          `datasource ${
+            this.node.name
+          } "url" attribute must be a string, but got ${url.value.type}`
         )
     }
   }

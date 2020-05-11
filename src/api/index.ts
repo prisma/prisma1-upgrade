@@ -1,9 +1,8 @@
-import { Console } from '../console'
+import { Console, console } from '../console'
 import { Prompter } from '../prompter'
 import Prisma1 from '../prisma1'
 import Prisma2 from '../prisma2'
-import Parser from '../prisma2/parser'
-import Printer from '../prisma2/printer'
+import { parse, print } from 'prismafile'
 import * as p2 from '../prisma2/ast'
 import printPG from '../sql/postgres/print'
 import printMS from '../sql/mysql/print'
@@ -73,7 +72,7 @@ export async function upgrade(input: UpgradeInput): Promise<void> {
       throw unsupported(`unsupported provider "${provider}"`)
   }
 
-  console.log(
+  await console.log(
     redent(`
       Welcome to the Prisma 1 to Prisma 2 upgrade tool.
 
@@ -121,6 +120,7 @@ export async function upgrade(input: UpgradeInput): Promise<void> {
           continue
         }
         let literal: sql.Literal | undefined
+        let dataType: string | undefined
         const value = arg.value
         switch (value.kind) {
           case 'BooleanValue':
@@ -128,39 +128,58 @@ export async function upgrade(input: UpgradeInput): Promise<void> {
               type: 'boolean_literal',
               value: value.value,
             }
+            dataType = `tinyint(1)`
             break
           case 'EnumValue':
             throw unsupported(
-              `${model.name}.${field.name} with a @default(value: ${value.value}) is not supported.`
+              `${model.name}.${field.name} with a @default(value: ${
+                value.value
+              }) is not supported.`
             )
           case 'IntValue':
+            literal = {
+              type: 'numeric_literal',
+              value: value.value,
+            }
+            dataType = `int(11)`
+            break
           case 'FloatValue':
             literal = {
               type: 'numeric_literal',
               value: value.value,
             }
+            dataType = `decimal(65,30)`
             break
           case 'ListValue':
             throw unsupported(
-              `${model.name}.${field.name} with a @default(value: ${value.value}) is not supported.`
+              `${model.name}.${field.name} with a @default(value: ${
+                value.value
+              }) is not supported.`
             )
           case 'ObjectValue':
             throw unsupported(
-              `${model.name}.${field.name} with a @default(value: ${value.value}) is not supported.`
+              `${model.name}.${field.name} with a @default(value: ${
+                value.value
+              }) is not supported.`
             )
           case 'NullValue':
             throw unsupported(
-              `${model.name}.${field.name} with a @default(value: ${value.value}) is not supported.`
+              `${model.name}.${field.name} with a @default(value: ${
+                value.value
+              }) is not supported.`
             )
           case 'StringValue':
             literal = {
               type: 'string_literal',
               value: value.value,
             }
+            dataType = `mediumtext`
             break
           case 'Variable':
             throw unsupported(
-              `${model.name}.${field.name} with a @default(value: ${value.name}) is not supported.`
+              `${model.name}.${field.name} with a @default(value: ${
+                value.name
+              }) is not supported.`
             )
         }
         // add an alter table operation command
@@ -173,6 +192,7 @@ export async function upgrade(input: UpgradeInput): Promise<void> {
               columnName: field.name,
               action: {
                 type: 'set_column_default_clause',
+                dataType: dataType,
                 default: literal,
               },
             },
@@ -182,18 +202,18 @@ export async function upgrade(input: UpgradeInput): Promise<void> {
     }
   }
   if (stmts.length) {
-    console.log(
+    await console.log(
       redent(`
         Let's transition Prisma 1's @default's to default values backed by the database. Run the following SQL command against your database:
       `)
     )
-    console.log(redent(print(stmts), 2))
+    await console.sql(redent(print(stmts), 2))
     result = await prompter.prompt({
       name: 'default',
       type: 'confirm',
       message: `Done migrating @default? Press 'y' to continue`,
     })
-    console.log('')
+    await console.log('')
     if (!result.default) {
       return
     }
@@ -217,15 +237,8 @@ export async function upgrade(input: UpgradeInput): Promise<void> {
               type: 'alter_column_definition',
               columnName: field.name,
               action: {
-                type: 'set_column_datatype_clause',
-                datatype: 'datetime',
-              },
-            },
-            {
-              type: 'alter_column_definition',
-              columnName: field.name,
-              action: {
                 type: 'set_column_default_clause',
+                dataType: 'datetime',
                 default: {
                   type: 'current_timestamp_value_function',
                 },
@@ -237,12 +250,12 @@ export async function upgrade(input: UpgradeInput): Promise<void> {
     }
   }
   if (stmts.length) {
-    console.log(
+    await console.log(
       redent(`
         Let's transition Prisma 1's @createdAt to a datetime type with a default value of now. Run the following SQL command against your database:
       `)
     )
-    console.log(redent(print(stmts), 2))
+    await console.sql(redent(print(stmts), 2))
     result = await prompter.prompt({
       name: 'createdAt',
       type: 'confirm',
@@ -267,19 +280,22 @@ export async function upgrade(input: UpgradeInput): Promise<void> {
           type: 'alter_table_statement',
           tableName: model.name,
           actions: [
-            {
-              type: 'alter_column_definition',
-              columnName: field.name,
-              action: {
-                type: 'set_column_datatype_clause',
-                datatype: 'datetime',
-              },
-            },
+            // {
+            //   type: 'alter_column_definition',
+            //   columnName: field.name,
+            //   action: {
+            //     type: 'set_column_datatype_clause',
+            //     datatype: 'datetime',
+            //   },
+            // },
             {
               type: 'alter_column_definition',
               columnName: field.name,
               action: {
                 type: 'set_column_default_clause',
+                dataType: 'datetime',
+                // TODO: perhaps be smarter here.
+                nullable: !!~field.type.toString().indexOf('?'),
                 default: {
                   type: 'current_timestamp_value_function',
                 },
@@ -291,12 +307,12 @@ export async function upgrade(input: UpgradeInput): Promise<void> {
     }
   }
   if (stmts.length) {
-    console.log(
+    await console.log(
       redent(`
         Let's transition Prisma 1's @updatedAt to a datetime type with a default value of now. Run the following SQL command against your database:
       `)
     )
-    console.log(redent(print(stmts), 2))
+    await console.sql(redent(print(stmts), 2))
     result = await prompter.prompt({
       name: 'updatedAt',
       type: 'confirm',
@@ -369,12 +385,12 @@ export async function upgrade(input: UpgradeInput): Promise<void> {
     }
   }
   if (stmts.length) {
-    console.log(
+    await console.log(
       redent(`
         Let's transition Prisma 1's 1-to-1 relations with @relation or @relation(link:INLINE) to unique constraints on the database. Run the following SQL command against your database:
       `)
     )
-    console.log(redent(print(stmts), 2))
+    await console.sql(redent(print(stmts), 2))
     result = await prompter.prompt({
       name: 'inlineRelation',
       type: 'confirm',
@@ -410,18 +426,18 @@ export async function upgrade(input: UpgradeInput): Promise<void> {
     }
   }
   if (stmts.length) {
-    console.log(
+    await console.log(
       redent(`
         Let's transition Prisma 1's Json type to a json type in the database. Run the following SQL command against your database:
       `)
     )
-    console.log(redent(print(stmts), 2))
+    await console.sql(redent(print(stmts), 2))
     result = await prompter.prompt({
       name: 'json',
       type: 'confirm',
       message: `Done migrating Json? Press 'y' to continue`,
     })
-    console.log('')
+    await console.log('')
     if (!result.json) {
       return
     }
@@ -485,7 +501,7 @@ export async function upgrade(input: UpgradeInput): Promise<void> {
         url = "${datasource.url}"
       }
     `)
-    const schema = Parser.parse(datamodel, {})
+    const schema = parse(datamodel)
     for (let op of ops) {
       switch (op.type) {
         case 'UpsertAttributeOp':
@@ -522,10 +538,10 @@ export async function upgrade(input: UpgradeInput): Promise<void> {
       }
     }
     // const printer = new Printer()
-    // console.log(printer.print(schema))
-    // console.log('')
+    // await console.log(printer.print(schema))
+    // await console.log('')
   }
 
-  console.log(`You're all set. Thanks for using Prisma!`)
+  await console.log(`You're all set. Thanks for using Prisma!`)
   return
 }

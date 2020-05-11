@@ -125,6 +125,8 @@ export type DropTableConstraintDef = {
 
 export type SetColumnDefaultClause = {
   type: 'set_column_default_clause'
+  dataType?: string
+  nullable?: boolean
   default: DefaultClause
 }
 

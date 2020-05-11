@@ -11,9 +11,14 @@ services:
         databases:
           default:
             connector: mysql
-            host: docker.for.mac.localhost
+            host: mysql
+            port: 3306
             user: root
             password: prisma
-            rawAccess: true
-            port: 3306
-            migrations: true
+  mysql:
+    image: mysql:5.7
+    restart: always
+    ports:
+      - '3307:3306'
+    environment:
+      MYSQL_ROOT_PASSWORD: prisma

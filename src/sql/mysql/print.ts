@@ -33,7 +33,9 @@ function alterTableAction(action: sql.AlterTableAction): string {
 }
 
 function alterColumnDef(def: sql.AlterColumnDef): string {
-  return `ALTER COLUMN ${def.columnName} ${alterColumnAction(def.action)}`
+  return `CHANGE ${def.columnName} ${def.columnName} ${alterColumnAction(
+    def.action
+  )}`
 }
 
 function addTableConstraintDef(def: sql.AddTableConstraintDef): string {
@@ -80,11 +82,15 @@ function alterColumnAction(action: sql.AlterColumnAction): string {
 }
 
 function setColumnDefaultClause(clause: sql.SetColumnDefaultClause): string {
-  return `SET ${defaultClause(clause.default)}`
+  const nullable = clause.nullable ? '' : 'NOT NULL'
+  if (clause.dataType) {
+    return `${clause.dataType} ${nullable} ${defaultClause(clause.default)}`
+  }
+  return `${defaultClause(clause.default)}`
 }
 
 function setColumnDataTypeClause(clause: sql.SetColumnDataTypeClause): string {
-  return `TYPE ${clause.datatype}`
+  return `${clause.datatype}`
 }
 
 function defaultClause(clause: sql.DefaultClause): string {
@@ -107,7 +113,7 @@ function defaultOption(clause: sql.DefaultOption): string {
 }
 
 function booleanLiteral(clause: sql.BooleanLiteral): string {
-  return String(clause.value).toUpperCase()
+  return clause.value ? '1' : '0'
 }
 
 function nullLiteral(_clause: sql.NullLiteral): string {
