@@ -1,3 +1,7 @@
+# 0.0.4 / 2020-05-14
+
+- fix default enums. log the final p2 (temporary)
+
 # 0.0.3 / 2020-05-14
 
 - cleanup dist file
