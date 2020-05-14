@@ -12,6 +12,7 @@ export default {
   },
   output: {
     name: '[name]',
+    chunkFileNames: '[name].js',
     dir: 'dist',
     format: 'cjs',
   },
