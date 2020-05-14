@@ -2,7 +2,7 @@ import { Console, console } from '../console'
 import { Prompter } from '../prompter'
 import Prisma1 from '../prisma1'
 import Prisma2 from '../prisma2'
-import { parse, print } from 'prismafile'
+import { parse, print as printP2 } from 'prismafile'
 import * as p2 from '../prisma2/ast'
 import printPG from '../sql/postgres/print'
 import printMS from '../sql/mysql/print'
@@ -59,14 +59,14 @@ export async function upgrade(input: UpgradeInput): Promise<void> {
   }
 
   // before we get started, check that we have a supported sql dialect
-  let print: ((ops: sql.Stmt[]) => string) | undefined
+  let printSQL: ((ops: sql.Stmt[]) => string) | undefined
   switch (provider) {
     case 'mysql':
-      print = printMS
+      printSQL = printMS
       break
     case 'postgres':
     case 'postgresql':
-      print = printPG
+      printSQL = printPG
       break
     default:
       throw unsupported(`unsupported provider "${provider}"`)
@@ -131,11 +131,12 @@ export async function upgrade(input: UpgradeInput): Promise<void> {
             dataType = `tinyint(1)`
             break
           case 'EnumValue':
-            throw unsupported(
-              `${model.name}.${field.name} with a @default(value: ${
-                value.value
-              }) is not supported.`
-            )
+            literal = {
+              type: 'string_literal',
+              value: value.value,
+            }
+            dataType = `varchar(191)`
+            break
           case 'IntValue':
             literal = {
               type: 'numeric_literal',
@@ -207,7 +208,7 @@ export async function upgrade(input: UpgradeInput): Promise<void> {
         Let's transition Prisma 1's @default's to default values backed by the database. Run the following SQL command against your database:
       `)
     )
-    await console.sql(redent(print(stmts), 2))
+    await console.sql(redent(printSQL(stmts), 2))
     result = await prompter.prompt({
       name: 'default',
       type: 'confirm',
@@ -255,7 +256,7 @@ export async function upgrade(input: UpgradeInput): Promise<void> {
         Let's transition Prisma 1's @createdAt to a datetime type with a default value of now. Run the following SQL command against your database:
       `)
     )
-    await console.sql(redent(print(stmts), 2))
+    await console.sql(redent(printSQL(stmts), 2))
     result = await prompter.prompt({
       name: 'createdAt',
       type: 'confirm',
@@ -312,7 +313,7 @@ export async function upgrade(input: UpgradeInput): Promise<void> {
         Let's transition Prisma 1's @updatedAt to a datetime type with a default value of now. Run the following SQL command against your database:
       `)
     )
-    await console.sql(redent(print(stmts), 2))
+    await console.sql(redent(printSQL(stmts), 2))
     result = await prompter.prompt({
       name: 'updatedAt',
       type: 'confirm',
@@ -390,7 +391,7 @@ export async function upgrade(input: UpgradeInput): Promise<void> {
         Let's transition Prisma 1's 1-to-1 relations with @relation or @relation(link:INLINE) to unique constraints on the database. Run the following SQL command against your database:
       `)
     )
-    await console.sql(redent(print(stmts), 2))
+    await console.sql(redent(printSQL(stmts), 2))
     result = await prompter.prompt({
       name: 'inlineRelation',
       type: 'confirm',
@@ -431,7 +432,7 @@ export async function upgrade(input: UpgradeInput): Promise<void> {
         Let's transition Prisma 1's Json type to a json type in the database. Run the following SQL command against your database:
       `)
     )
-    await console.sql(redent(print(stmts), 2))
+    await console.sql(redent(printSQL(stmts), 2))
     result = await prompter.prompt({
       name: 'json',
       type: 'confirm',
@@ -510,7 +511,7 @@ export async function upgrade(input: UpgradeInput): Promise<void> {
               continue
             }
             for (let prop of block.properties) {
-              if (prop.type !== 'field') {
+              if (prop.type !== 'field' || prop.name !== op.field) {
                 continue
               }
               let found = false
@@ -537,9 +538,9 @@ export async function upgrade(input: UpgradeInput): Promise<void> {
           throw new Error(`unhandled operation: "${op.type}"`)
       }
     }
-    // const printer = new Printer()
-    // await console.log(printer.print(schema))
-    // await console.log('')
+    await console.log('')
+    await console.log(printP2(schema))
+    await console.log('')
   }
 
   await console.log(`You're all set. Thanks for using Prisma!`)

@@ -19,3 +19,11 @@ Testing consists of 2 parts: a Local SQL Dump and Running Tests
 _Requirements:_ MySQL@5, Docker
 
 Since it's cumbersome to run Prisma 1 in CI, we need to locally setup test cases first
+
+### Setting up MySQL for examples
+
+```
+mysqladmin -h localhost -u root create prisma
+mysql -h localhost -u root prisma < ./examples/mysql-ablog/dump.sql
+mysqladmin -h localhost -u root drop prisma -f
+```

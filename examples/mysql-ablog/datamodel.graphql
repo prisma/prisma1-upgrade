@@ -3,7 +3,7 @@ type User {
   email: String @unique
   name: String!
   posts: [Post!]!
-  # role: Role! @default(value: CUSTOMER)
+  role: Role! @default(value: CUSTOMER)
   profile: Profile
   jsonData: Json
 }
