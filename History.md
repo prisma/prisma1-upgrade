@@ -1,3 +1,7 @@
+# 0.0.3 / 2020-05-14
+
+- cleanup dist file
+
 # 0.0.2 / 2020-05-14
 
 - fix console, test blog schema
