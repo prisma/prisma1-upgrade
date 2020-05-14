@@ -1,14 +1,16 @@
 import { Console } from 'console'
 
+const c = global.console
+
 export const console: Console = {
   async log(...args: any[]): Promise<void> {
-    console.log(...args)
+    c.log(...args)
   },
   async sql(sql: string): Promise<void> {
-    console.log(sql)
+    c.log(sql)
   },
   async error(...args: any[]): Promise<void> {
-    console.error(...args)
+    c.error(...args)
   },
 }
 

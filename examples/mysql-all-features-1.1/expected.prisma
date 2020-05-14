@@ -1,33 +1,43 @@
 datasource db {
   provider = "mysql"
-  url      = "mysql://root:prisma@0.0.0.0:3307/prisma@dev"
+  url      = "mysql://root@localhost:3306/prisma"
 }
 
 model Home {
-  createdAt DateTime
+  createdAt DateTime @default(now())
   id        Int      @default(autoincrement()) @id
-  updatedAt DateTime
-  User      User[]
+  updatedAt DateTime @updatedAt
+  users     User[]
 }
 
 model IdentificationDocument {
   documentNumber String
   expiresOn      DateTime
-  id             String   @id
+  id             String   @default(cuid()) @id
   issuedOn       DateTime
-  User           User[]
+  // should this be @mapTo("users")?
+  // - and maybe @mapTo("user")
+  User           User
 }
 
 model Tagline {
-  createdAt          DateTime
+  createdAt          DateTime             @default(now())
   description        String?
   excerpt            String
+  // maybe @default(cuid())
+  // - read document, (ideally introspection should pick this up)
   id                 String               @id
-  updatedAt          DateTime
+  updatedAt          DateTime             @updatedAt
+  // is this right?
+  // - read document, and potentially raise this issue (enum becomes 1:n)
   Tagline_visibility Tagline_visibility[]
+  // why is this here?
+  // - yes this is correct, maybe @mapTo("users")
   User               User[]
 }
 
+// as an enum, is this right?
+// - this is expected. would otherwise need to migrate the data.
 model Tagline_visibility {
   nodeId   String
   position Int
@@ -43,19 +53,23 @@ model TaxDocument {
   expiresOn      DateTime
   id             String    @id
   issuedOn       DateTime
-  lastChangedOn  DateTime?
-  User           User[]
+  lastChangedOn  DateTime? @updatedAt
+  // - raise issue. this might be an introspection bug
+  // - @mapTo("user")?
+  User           User
 }
 
+// verified, same issues as above.
 model Thought {
   baseIdea        String?
-  createdAt       DateTime
+  createdAt       DateTime          @default(now())
   id              String            @id
-  updatedAt       DateTime
+  updatedAt       DateTime          @updatedAt
   Thought_content Thought_content[]
   User            User[]            @relation(references: [id])
 }
 
+// String[] (same as enum above)
 model Thought_content {
   nodeId   String
   position Int
@@ -69,29 +83,35 @@ model Thought_content {
 model User {
   age                              Int
   bestFriend                       String?
-  createdAt                        DateTime
+  createdAt                        DateTime                @default(now())
   email                            String                  @unique
+  // probably @mapTo("nickName")
   friendlyName                     String?
   godFather                        String?
   home                             Int?
   id                               String                  @id
   identificationDocument           String?
-  isActive                         Boolean
-  meta                             String?
+  isActive                         Boolean                 @default(false)
+  meta                             Json?
   tagline                          String?
   taxDocument                      String?
   temperature                      Float?
-  type                             String
-  updatedAt                        DateTime
-  User_UserToUser_bestFriend       User?                   @relation("UserToUser_bestFriend", fields: [bestFriend], references: [id])
+  // This should be a UserType
+  type                             UserType
+  updatedAt                        DateTime                @updatedAt
+  // @mapTo("...")?
   User_UserToUser_godFather        User?                   @relation("UserToUser_godFather", fields: [godFather], references: [id])
   Home                             Home?                   @relation(fields: [home], references: [id])
   IdentificationDocument           IdentificationDocument? @relation(fields: [identificationDocument], references: [id])
   Tagline                          Tagline?                @relation(fields: [tagline], references: [id])
   TaxDocument                      TaxDocument?            @relation(fields: [taxDocument], references: [id])
-  other_User_UserToUser_bestFriend User[]                  @relation("UserToUser_bestFriend")
-  other_User_UserToUser_godFather  User[]                  @relation("UserToUser_godFather")
+  // @mapTo(...)
+  // self-relation 1:1. Raise as possible bug in introspection?
+  User_UserToUser_bestFriend       User?                   @relation("UserToUser_bestFriend", fields: [bestFriend], references: [id])
+  other_User_UserToUser_bestFriend User?                   @relation("UserToUser_bestFriend")
+  other_User_UserToUser_godFather  User                    @relation("UserToUser_godFather")
   Thought                          Thought[]               @relation(references: [id])
+  // Self-relation list creates a very confusing result from introspection
   User_A                           User[]                  @relation("UserFriends", references: [id])
   User_B                           User[]                  @relation("UserFriends", references: [id])
   Work                             Work[]                  @relation(references: [id])
@@ -102,6 +122,11 @@ model User {
   @@index([identificationDocument], name: "identificationDocument")
   @@index([tagline], name: "tagline")
   @@index([taxDocument], name: "taxDocument")
+}
+
+enum UserType {
+  NORMAL
+  AWESOME
 }
 
 model Work {

@@ -1,4 +1,5 @@
 import { Prompt } from '../prompter'
+import { console } from '../console'
 import * as api from '../api'
 import { bold } from 'kleur'
 import P1 from '../prisma1'

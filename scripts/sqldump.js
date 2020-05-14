@@ -22,7 +22,14 @@ async function main() {
     await sleep(20000)
     console.log(`${example}: deploying Prisma 1 schema`)
     const prismayml = path.join(fullpath, 'prisma.yml')
-    await exec(prisma1, ['deploy', '-p', prismayml], { cwd })
+    let stdio
+    try {
+      stdio = await exec(prisma1, ['deploy', '-p', prismayml], { cwd })
+    } catch (err) {
+      if (!~err.stdout.indexOf('Your Prisma endpoint is live')) {
+        throw err
+      }
+    }
     await sleep(20000)
     console.log(`${example}: dumping MySQL schema`)
     let dump = ''
@@ -35,7 +42,7 @@ async function main() {
         `3307`,
         `--host`,
         `0.0.0.0`,
-        `datamodel-v11@dev`,
+        `prisma@dev`,
         `--no-data`,
       ])
       dump = stdout
@@ -48,7 +55,7 @@ async function main() {
         `3307`,
         `--host`,
         `0.0.0.0`,
-        `datamodel-v11@dev`,
+        `prisma@dev`,
         `--no-data`,
       ])
       dump = stdout
@@ -63,7 +70,7 @@ async function main() {
       [
         'introspect',
         '--url',
-        `mysql://root:prisma@0.0.0.0:3307/datamodel-v11@dev`,
+        `mysql://root:prisma@0.0.0.0:3307/prisma@dev`,
         `--schema`,
         schemaPrisma,
       ],
