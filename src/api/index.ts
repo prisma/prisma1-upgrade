@@ -1,12 +1,12 @@
-import { Console, console } from '../console'
-import { Prompter } from '../prompter'
-import Prisma1 from '../prisma1'
-import Prisma2 from '../prisma2'
-import { parse, print as printP2 } from 'prismafile'
-import * as p2 from '../prisma2/ast'
+import Prisma2, { Datasource } from '../prisma2'
 import printPG from '../sql/postgres/print'
-import printMS from '../sql/mysql/print'
 import * as Graph from '../prisma1/graph'
+import printMS from '../sql/mysql/print'
+import { Prompter } from '../prompter'
+import { Console } from '../console'
+import { parse, print } from 'prismafile'
+import * as p2 from 'prismafile/dist/ast'
+import Prisma1 from '../prisma1'
 import * as sql from '../sql'
 import redent from 'redent'
 
@@ -31,18 +31,37 @@ function unsupported(msg: string): Error {
 }
 
 // Schema Op
-type Op = UpsertAttributeOp
+type Op = UpsertAttributeOp | RemoveAttributeOp
 
 type UpsertAttributeOp = {
   type: 'UpsertAttributeOp'
-  model: string
-  field: string
+  model: p2.Identifier
+  field: p2.Identifier
   attribute: p2.Attribute
 }
 
+type RemoveAttributeOp = {
+  type: 'RemoveAttributeOp'
+  model: p2.Identifier
+  field: p2.Identifier
+  attribute: p2.Attribute
+}
+
+const pos = { column: 0, line: 0, offset: 0 }
+
+function ident(name: string): p2.Identifier {
+  return {
+    type: 'identifier',
+    name: name,
+    end: pos,
+    start: pos,
+  }
+}
+
 // upgrade performs a set of rules
-export async function upgrade(input: UpgradeInput): Promise<void> {
+export async function upgrade(input: UpgradeInput): Promise<p2.Schema> {
   const { console, prompter, prisma1, prisma2, inspector } = input
+  const ops: Op[] = []
 
   // get the datasource
   const datasource = prisma2.datasources[0]
@@ -101,7 +120,7 @@ export async function upgrade(input: UpgradeInput): Promise<void> {
     message: `Are you ready to get started?`,
   })
   if (!result.welcome) {
-    return
+    return reintrospect(inspector, datasource)
   }
 
   let stmts: sql.Stmt[] = []
@@ -216,7 +235,7 @@ export async function upgrade(input: UpgradeInput): Promise<void> {
     })
     await console.log('')
     if (!result.default) {
-      return
+      return reintrospect(inspector, datasource)
     }
   }
 
@@ -263,7 +282,7 @@ export async function upgrade(input: UpgradeInput): Promise<void> {
       message: `Done migrating @createdAt? Press 'y' to continue`,
     })
     if (!result.createdAt) {
-      return
+      return reintrospect(inspector, datasource)
     }
   }
 
@@ -304,6 +323,33 @@ export async function upgrade(input: UpgradeInput): Promise<void> {
             },
           ],
         })
+        // replace @default(now()) with @updatedAt
+        ops.push(
+          {
+            type: 'UpsertAttributeOp',
+            model: ident(model.name),
+            field: ident(field.name),
+            attribute: {
+              type: 'attribute',
+              name: ident('updatedAt'),
+              arguments: [],
+              start: pos,
+              end: pos,
+            },
+          },
+          {
+            type: 'RemoveAttributeOp',
+            model: ident(model.name),
+            field: ident(field.name),
+            attribute: {
+              type: 'attribute',
+              name: ident('default'),
+              arguments: [],
+              start: pos,
+              end: pos,
+            },
+          }
+        )
       }
     }
   }
@@ -321,7 +367,7 @@ export async function upgrade(input: UpgradeInput): Promise<void> {
     })
     console.log('')
     if (!result.updatedAt) {
-      return
+      return reintrospect(inspector, datasource)
     }
   }
 
@@ -397,9 +443,9 @@ export async function upgrade(input: UpgradeInput): Promise<void> {
       type: 'confirm',
       message: `Done migrating your inline relations? Press 'y' to continue`,
     })
-    console.log('')
+    await console.log('')
     if (!result.inlineRelation) {
-      return
+      return reintrospect(inspector, datasource)
     }
   }
 
@@ -440,12 +486,11 @@ export async function upgrade(input: UpgradeInput): Promise<void> {
     })
     await console.log('')
     if (!result.json) {
-      return
+      return reintrospect(inspector, datasource)
     }
   }
 
   // next we'll find ID and UUID datatypes
-  const ops: Op[] = []
   for (let model of models) {
     const fields = model.fields
     for (let field of fields) {
@@ -453,18 +498,24 @@ export async function upgrade(input: UpgradeInput): Promise<void> {
       if (field.type.named() === 'ID') {
         ops.push({
           type: 'UpsertAttributeOp',
-          model: model.name,
-          field: field.name,
+          model: ident(model.name),
+          field: ident(field.name),
           attribute: {
             type: 'attribute',
-            name: 'default',
+            name: ident('default'),
+            end: pos,
+            start: pos,
             arguments: [
               {
                 type: 'unkeyed_argument',
+                end: pos,
+                start: pos,
                 value: {
                   type: 'function_value',
-                  name: 'cuid',
+                  name: ident('cuid'),
                   arguments: [],
+                  end: pos,
+                  start: pos,
                 },
               },
             ],
@@ -475,18 +526,24 @@ export async function upgrade(input: UpgradeInput): Promise<void> {
       if (field.type.named() === 'UUID') {
         ops.push({
           type: 'UpsertAttributeOp',
-          model: model.name,
-          field: field.name,
+          model: ident(model.name),
+          field: ident(field.name),
           attribute: {
             type: 'attribute',
-            name: 'default',
+            name: ident('default'),
+            end: pos,
+            start: pos,
             arguments: [
               {
                 type: 'unkeyed_argument',
+                end: pos,
+                start: pos,
                 value: {
                   type: 'function_value',
-                  name: 'uuid',
+                  name: ident('uuid'),
                   arguments: [],
+                  end: pos,
+                  start: pos,
                 },
               },
             ],
@@ -495,54 +552,88 @@ export async function upgrade(input: UpgradeInput): Promise<void> {
       }
     }
   }
-  if (ops.length) {
-    const { datamodel } = await inspector.introspect(`
-      datasource db {
-        provider = "${datasource.provider}"
-        url = "${datasource.url}"
-      }
-    `)
-    const schema = parse(datamodel)
-    for (let op of ops) {
-      switch (op.type) {
-        case 'UpsertAttributeOp':
-          for (let block of schema.blocks) {
-            if (block.type !== 'model' || block.name !== op.model) {
+
+  const schema = await reintrospect(inspector, datasource)
+  console.error('after introspection', print(schema))
+  for (let op of ops) {
+    switch (op.type) {
+      case 'UpsertAttributeOp':
+        for (let block of schema.blocks) {
+          if (block.type !== 'model' || block.name !== op.model) {
+            continue
+          }
+          for (let prop of block.properties) {
+            if (prop.type !== 'field' || prop.name !== op.field) {
               continue
             }
-            for (let prop of block.properties) {
-              if (prop.type !== 'field' || prop.name !== op.field) {
+            console.error(block.name, prop.name)
+            let found = false
+            for (let i = 0; i < prop.attributes.length; i++) {
+              const attr = prop.attributes[i]
+              if (
+                attr.name !== op.attribute.name ||
+                attr.group !== op.attribute.group
+              ) {
                 continue
               }
-              let found = false
-              for (let i = 0; i < prop.attributes.length; i++) {
-                const attr = prop.attributes[i]
-                if (
-                  attr.name !== op.attribute.name ||
-                  attr.group !== op.attribute.group
-                ) {
-                  continue
-                }
-                found = true
-                // update
-                prop.attributes[i] = op.attribute
-              }
-              // insert
-              if (!found) {
-                prop.attributes.push(op.attribute)
-              }
+              found = true
+              // update
+              prop.attributes[i] = op.attribute
+            }
+            // insert
+            if (!found) {
+              prop.attributes.push(op.attribute)
             }
           }
-          break
-        default:
-          throw new Error(`unhandled operation: "${op.type}"`)
-      }
+        }
+        break
+      case 'RemoveAttributeOp':
+        for (let block of schema.blocks) {
+          if (block.type !== 'model' || block.name !== op.model) {
+            continue
+          }
+          for (let prop of block.properties) {
+            if (prop.type !== 'field' || prop.name !== op.field) {
+              continue
+            }
+            let idx = -1
+            for (let i = 0; i < prop.attributes.length; i++) {
+              const attr = prop.attributes[i]
+              if (attr.name !== op.attribute.name) {
+                continue
+              }
+              idx = i
+            }
+            if (~idx) {
+              prop.attributes.splice(idx, 1)
+            }
+          }
+        }
+        break
+      default:
+        throw new Error(`unhandled operation: "${op!.type}"`)
     }
-    await console.log('')
-    await console.log(printP2(schema))
-    await console.log('')
   }
-
   await console.log(`You're all set. Thanks for using Prisma!`)
-  return
+
+  return schema
+}
+
+async function reintrospect(
+  inspector: Inspector,
+  ds: Datasource
+): Promise<p2.Schema> {
+  console.log(`
+    datasource db {
+      provider = "${ds.provider}"
+      url = "${ds.url}"
+    }
+  `)
+  const { datamodel } = await inspector.introspect(`
+    datasource db {
+      provider = "${ds.provider}"
+      url = "${ds.url}"
+    }
+  `)
+  return parse(datamodel)
 }

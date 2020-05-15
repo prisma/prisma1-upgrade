@@ -1,12 +1,15 @@
 import { IntrospectionEngine, uriToCredentials } from '@prisma/sdk'
 import { MockPrompt } from '../prompter'
 import { Console } from '../console'
+import { print } from 'prismafile'
 // import testaway from 'testaway'
 import mariadb from 'mariadb'
 import P1 from '../prisma1'
 import P2 from '../prisma2'
 import * as api from './'
+import chalk from 'chalk'
 // import execa from 'execa'
+import assert from 'assert'
 import path from 'path'
 import util from 'util'
 import fs from 'fs'
@@ -14,7 +17,6 @@ import fs from 'fs'
 
 // const tmpdir = path.join(os.tmpdir(), 'prisma-upgrade')
 const readFile = util.promisify(fs.readFile)
-const engine = new IntrospectionEngine()
 
 // it('module should load', async function() {
 //   this.timeout('10s')
@@ -28,10 +30,23 @@ const engine = new IntrospectionEngine()
 //   }
 // })
 
+class Inspector implements api.Inspector {
+  constructor(private readonly inspector: api.Inspector) {}
+  introspect(schema: string): Promise<{ datamodel: string }> {
+    schema = schema.replace(
+      'mysql://root:prisma@0.0.0.0:3307/prisma@dev',
+      `mysql://root@localhost:3306/prisma`
+    )
+    return this.inspector.introspect(schema)
+  }
+}
+
+const iengine = new IntrospectionEngine()
+const engine = new Inspector(iengine)
+
 let connectionString =
   process.env.TEST_MYSQL_URI || 'mysql://root@localhost:3306'
 const credentials = uriToCredentials(connectionString)
-
 const dir = path.join(__dirname, '..', '..', 'examples')
 const tests = fs.readdirSync(dir)
 
@@ -50,7 +65,7 @@ describe('mysql', () => {
 
   after(async () => {
     db && (await db.end())
-    engine.stop()
+    iengine.stop()
   })
 
   beforeEach(async () => {
@@ -90,12 +105,12 @@ describe('mysql', () => {
           console.log(sql)
           await db.query(sql)
         },
-        async error(..._args: any[]) {
-          // console.error(...args)
+        async error(...args: any[]) {
+          console.error(...args)
         },
       }
 
-      await api.upgrade({
+      const schema = await api.upgrade({
         console: con,
         inspector: engine,
         prompter: prompt,
@@ -103,15 +118,21 @@ describe('mysql', () => {
         prisma2: p2,
       })
 
-      const schema = await engine.introspect(`
-        datasource db {
-          provider = "${p2.datasources[0].provider}"
-          url = "${p2.datasources[0].url}"
-        }
-      `)
-
-      console.log(before)
-      console.log(schema.datamodel)
+      const expectedPath = path.join(abspath, 'expected.prisma')
+      const expected = await readFile(expectedPath, 'utf8')
+      const actual = print(schema)
+      if (expected !== actual) {
+        console.log('')
+        console.log('Actual:')
+        console.log('')
+        console.log(chalk.dim(actual))
+        console.log('')
+        console.log('Expected:')
+        console.log('')
+        console.log(chalk.dim(expected))
+        console.log('')
+        console.log(assert.equal(actual, expected))
+      }
 
       // console.log(dump)
       // console.log(schema)
