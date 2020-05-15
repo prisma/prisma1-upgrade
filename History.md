@@ -1,3 +1,8 @@
+# 0.0.5 / 2020-05-15
+
+- upgrade prismafile
+- fix @updatedAt, remove @default(now())
+
 # 0.0.4 / 2020-05-14
 
 - fix default enums. log the final p2 (temporary)
