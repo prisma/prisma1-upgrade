@@ -1,5 +1,6 @@
 import { Prompt } from '../prompter'
 import { console } from '../console'
+import { print } from 'prismafile'
 import * as api from '../api'
 import { bold } from 'kleur'
 import P1 from '../prisma1'
@@ -13,8 +14,9 @@ import fs from 'fs'
  * Constants
  */
 
-const exists = util.promisify(fs.exists)
+const writeFile = util.promisify(fs.writeFile)
 const readFile = util.promisify(fs.readFile)
+const exists = util.promisify(fs.exists)
 const cwd = process.cwd()
 
 /**
@@ -95,15 +97,33 @@ async function main(argv: string[]): Promise<void> {
     },
   }
 
-  await api.upgrade({
-    prompter: new Prompt(),
+  const prompter = new Prompt()
+
+  const schema = await api.upgrade({
+    prompter: prompter,
     console: console,
     prisma1,
     prisma2,
     inspector,
   })
 
+  const schemaFile = print(schema)
+  const { overwrite } = await prompter.prompt({
+    name: 'overwrite',
+    type: 'confirm',
+    message: `
+      We've made a few last adjustments to your prisma.schema file.
+
+      Would you like to override ${params[1]}?`,
+  })
+  const outfile = overwrite ? params[1] : bak(params[1])
+  await writeFile(outfile, schemaFile)
   return
+}
+
+function bak(p: string): string {
+  const ext = path.extname(p)
+  return path.join(path.dirname(p), path.basename(p, ext) + '.bak' + ext)
 }
 
 /**

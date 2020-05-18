@@ -1,11 +1,11 @@
 import Prisma2, { Datasource } from '../prisma2'
 import printPG from '../sql/postgres/print'
 import * as Graph from '../prisma1/graph'
+import * as p2 from 'prismafile/dist/ast'
 import printMS from '../sql/mysql/print'
 import { Prompter } from '../prompter'
 import { Console } from '../console'
-import { parse, print } from 'prismafile'
-import * as p2 from 'prismafile/dist/ast'
+import { parse } from 'prismafile'
 import Prisma1 from '../prisma1'
 import * as sql from '../sql'
 import redent from 'redent'
@@ -573,7 +573,6 @@ export async function upgrade(input: UpgradeInput): Promise<p2.Schema> {
             if (prop.type !== 'field' || prop.name.name !== op.field.name) {
               continue
             }
-            console.error(block.name, prop.name)
             let found = false
             for (let i = 0; i < prop.attributes.length; i++) {
               const attr = prop.attributes[i]
