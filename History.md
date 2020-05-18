@@ -1,3 +1,7 @@
+# 0.0.6 / 2020-05-18
+
+- fix @default(cuid()) and @default(uuid())
+
 # 0.0.5 / 2020-05-15
 
 - upgrade prismafile
