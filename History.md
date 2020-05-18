@@ -1,3 +1,7 @@
+# 0.0.7 / 2020-05-18
+
+- support writing out the final p2 schema
+
 # 0.0.6 / 2020-05-18
 
 - fix @default(cuid()) and @default(uuid())
