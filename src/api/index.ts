@@ -31,7 +31,7 @@ function unsupported(msg: string): Error {
 }
 
 // Schema Op
-type Op = UpsertAttributeOp | RemoveAttributeOp
+type Op = UpsertAttributeOp | RemoveAttributeOp |RenameFieldOp
 
 type UpsertAttributeOp = {
   type: 'UpsertAttributeOp'
@@ -45,6 +45,13 @@ type RemoveAttributeOp = {
   model: p2.Identifier
   field: p2.Identifier
   attribute: p2.Attribute
+}
+
+type RenameFieldOp = {
+  type: 'RenameFieldOp'
+  model: p2.Identifier
+  from: p2.Identifier
+  to: p2.Identifier
 }
 
 const pos = { column: 0, line: 0, offset: 0 }
@@ -490,7 +497,8 @@ export async function upgrade(input: UpgradeInput): Promise<p2.Schema> {
     }
   }
 
-  // next we'll find ID and UUID datatypes
+  // next we'll transform our re-introspected result
+  // into operations to perform on our P2 schema.
   for (let model of models) {
     const fields = model.fields
     for (let field of fields) {
@@ -554,16 +562,15 @@ export async function upgrade(input: UpgradeInput): Promise<p2.Schema> {
   }
 
   const schema = await reintrospect(inspector, datasource)
-  console.error('after introspection', print(schema))
   for (let op of ops) {
     switch (op.type) {
       case 'UpsertAttributeOp':
         for (let block of schema.blocks) {
-          if (block.type !== 'model' || block.name !== op.model) {
+          if (block.type !== 'model' || block.name.name !== op.model.name) {
             continue
           }
           for (let prop of block.properties) {
-            if (prop.type !== 'field' || prop.name !== op.field) {
+            if (prop.type !== 'field' || prop.name.name !== op.field.name) {
               continue
             }
             console.error(block.name, prop.name)
@@ -571,8 +578,8 @@ export async function upgrade(input: UpgradeInput): Promise<p2.Schema> {
             for (let i = 0; i < prop.attributes.length; i++) {
               const attr = prop.attributes[i]
               if (
-                attr.name !== op.attribute.name ||
-                attr.group !== op.attribute.group
+                attr.name.name !== op.attribute.name.name ||
+                attr.group?.name !== op.attribute.group?.name
               ) {
                 continue
               }
@@ -589,17 +596,17 @@ export async function upgrade(input: UpgradeInput): Promise<p2.Schema> {
         break
       case 'RemoveAttributeOp':
         for (let block of schema.blocks) {
-          if (block.type !== 'model' || block.name !== op.model) {
+          if (block.type !== 'model' || block.name.name !== op.model.name) {
             continue
           }
           for (let prop of block.properties) {
-            if (prop.type !== 'field' || prop.name !== op.field) {
+            if (prop.type !== 'field' || prop.name.name !== op.field.name) {
               continue
             }
             let idx = -1
             for (let i = 0; i < prop.attributes.length; i++) {
               const attr = prop.attributes[i]
-              if (attr.name !== op.attribute.name) {
+              if (attr.name.name !== op.attribute.name.name) {
                 continue
               }
               idx = i
