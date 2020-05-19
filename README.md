@@ -45,7 +45,7 @@ This table reflects the _current_ feature set of the upgrade CLI and will be upd
 | Scalar lists have extra table       | No    | No         | No            | No                  |
 | Cascading deletes                   | No    | No         | No            | No                  |
 | Maintain order of models and fields | n/a   | n/a        | No            | No                  |
-| "Maintain relation names "          | n/a   | n/a        | No            | No                  |
+| Maintain relation names             | n/a   | n/a        | No            | No                  |
 
 What do the columns mean?
 
