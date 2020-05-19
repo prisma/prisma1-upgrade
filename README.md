@@ -30,7 +30,7 @@ mysqladmin -h localhost -u root drop prisma -f
 
 ## Current features
 
-This table reflects the _current_ feature set of the upgrade CLI and will be updated continuously. Read below for a more detailled explanation of each column.
+This table reflects the _current_ feature set of the upgrade CLI and will be updated continuously. Read below for a more detailled explanation of each column. You can also find more info about each of these feautures in the [docs](https://www.prisma.io/docs/guides/upgrade-from-prisma-1/schema-incompatibilities).
 
 | Name                                | MySQL | PostgreSQL | Prisma schema | Prisma 1 compatible |
 | ----------------------------------- | ----- | ---------- | ------------- | ------------------- |
