@@ -1,2 +1,2 @@
-endpoint: http://localhost:4466/datamodel-v11/dev
+endpoint: http://localhost:4467/postgres-all-features-1-1/dev
 datamodel: datamodel.graphql
