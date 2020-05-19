@@ -32,20 +32,21 @@ mysqladmin -h localhost -u root drop prisma -f
 
 This table reflects the _current_ feature set of the upgrade CLI and will be updated continuously. Read below for a more detailled explanation of each column. You can also find more info about each of these feautures in the [docs](https://www.prisma.io/docs/guides/upgrade-from-prisma-1/schema-incompatibilities).
 
-| Name                                | MySQL | PostgreSQL | Prisma schema | Prisma 1 compatible |
-| ----------------------------------- | ----- | ---------- | ------------- | ------------------- |
-| Default values                      | Yes   | No         | No            | Yes                 |
-| @updatedAt                          | n/a   | No         | No            | Yes                 |
-| Missing UNIQUE for inline 1-1       | Yes   | No         | No            | Yes                 |
-| JSON                                | Yes   | No         | No            | Yes                 |
-| Enums                               | No    | No         | No            | Yes                 |
-| Generated IDs                       | n/a   | No         | Yes           | No                  |
-| Relation tables are all m-n         | No    | No         | No            | No                  |
-| @createdAt                          | Yes   | No         | No            | No                  |
-| Scalar lists have extra table       | No    | No         | No            | No                  |
-| Cascading deletes                   | No    | No         | No            | No                  |
-| Maintain order of models and fields | n/a   | n/a        | No            | No                  |
-| Maintain relation names             | n/a   | n/a        | No            | No                  |
+| Name                                | MySQL   | PostgreSQL | Prisma schema | Prisma 1 compatible |
+| ----------------------------------- | ------- | ---------- | ------------- | ------------------- |
+| Default values                      | Yes     | Not yet    | Not yet       | Yes                 |
+| @updatedAt                          | Not yet | n/a        | Not yet       | Yes                 |
+| Missing UNIQUE for inline 1-1       | Yes     | Not yet    | Not yet       | Yes                 |
+| JSON                                | Yes     | Not yet    | Not yet       | Yes                 |
+| Enums                               | Not yet | Not yet    | Not yet       | Yes                 |
+| Generated IDs                       | n/a     | Not yet    | Yes           | No                  |
+| Relation tables are all m-n         | Not yet | Not yet    | Not yet       | No                  |
+| @createdAt                          | Yes     | Not yet    | Not yet       | No                  |
+| Scalar lists have extra table       | Not yet | Not yet    | Not yet       | No                  |
+| Cascading deletes                   | Not yet | Not yet    | No            | No                  |
+| Maintain order of models and fields | n/a     | n/a        | Not yet       | No                  |
+| Maintain relation names             | n/a     | n/a        | Not yet       | No                  |
+
 
 What do the columns mean?
 
