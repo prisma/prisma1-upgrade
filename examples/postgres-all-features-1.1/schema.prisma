@@ -1,6 +1,6 @@
 datasource db {
-  provider = "mysql"
-  url      = "mysql://root:prisma@0.0.0.0:3307/datamodel-v11@dev"
+  provider = "postgresql"
+  url      = "postgres://root:prisma@0.0.0.0:5433/prisma?schema=postgres-all-features-1-1%24dev"
 }
 
 model Home {
@@ -35,7 +35,6 @@ model Tagline_visibility {
   Tagline  Tagline @relation(fields: [nodeId], references: [id])
 
   @@id([nodeId, position])
-  @@index([value], name: "value")
 }
 
 model TaxDocument {
@@ -63,7 +62,6 @@ model Thought_content {
   Thought  Thought @relation(fields: [nodeId], references: [id])
 
   @@id([nodeId, position])
-  @@index([value], name: "value")
 }
 
 model User {
@@ -95,13 +93,6 @@ model User {
   User_A                           User[]                  @relation("UserFriends", references: [id])
   User_B                           User[]                  @relation("UserFriends", references: [id])
   Work                             Work[]                  @relation(references: [id])
-
-  @@index([bestFriend], name: "bestFriend")
-  @@index([godFather], name: "godFather")
-  @@index([home], name: "home")
-  @@index([identificationDocument], name: "identificationDocument")
-  @@index([tagline], name: "tagline")
-  @@index([taxDocument], name: "taxDocument")
 }
 
 model Work {

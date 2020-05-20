@@ -44,9 +44,9 @@ async function main() {
         }
       }
       await sleep(20000)
-      console.log(`${example}: dumping MySQL schema`)
       let dump = ''
       if (~example.indexOf(`mysql-`)) {
+        console.log(`${example}: dumping MySQL schema`)
         const { stdout } = await exec(`mysqldump`, [
           `-u`,
           `root`,
@@ -60,37 +60,67 @@ async function main() {
         ])
         dump = stdout
       } else if (~example.indexOf(`postgres-`)) {
-        const { stdout } = await exec(`pg_dump`, [
-          `-U`,
-          `root`,
-          `PGPASSWORD=prisma`,
-          `-p`,
-          `5433`,
-          `-h`,
-          `0.0.0.0`,
-          `${slugify(example)}@dev`,
-          `--no-data`,
-        ])
+        console.log(`${example}: dumping Postgres schema`)
+        const { stdout } = await exec(
+          `pg_dump`,
+          [
+            '--dbname',
+            `prisma`, // prisma lives in a schema inside prisma db
+            '--host',
+            'localhost',
+            '--port',
+            '5433',
+            '--username',
+            'root',
+            '--no-privileges',
+            '--schema-only',
+            '--no-security-labels',
+          ],
+          {
+            env: {
+              PGPASSWORD: 'prisma',
+            },
+          }
+        )
         dump = stdout
       } else {
         throw new Error('unknown database type')
       }
       await fs.writeFile(path.join(fullpath, 'dump.sql'), dump)
       const schemaPrisma = path.join(fullpath, 'schema.prisma')
-      console.log(`${example}: introspecting MySQL database`)
-      await exec(
-        prisma2,
-        [
-          'introspect',
-          '--url',
-          `mysql://root:prisma@0.0.0.0:3307/${slugify(example)}@dev`,
-          `--schema`,
-          schemaPrisma,
-        ],
-        {
-          cwd,
-        },
-      )
+      if (~example.indexOf(`mysql-`)) {
+        console.log(`${example}: introspecting MySQL database`)
+        await exec(
+          prisma2,
+          [
+            'introspect',
+            '--url',
+            `mysql://root:prisma@0.0.0.0:3307/${slugify(example)}@dev`,
+            `--schema`,
+            schemaPrisma,
+          ],
+          {
+            cwd,
+          }
+        )
+      } else if (~example.indexOf(`postgres-`)) {
+        console.log(`${example}: introspecting Postgres database`)
+        await exec(
+          prisma2,
+          [
+            'introspect',
+            '--url',
+            `postgres://root:prisma@0.0.0.0:5433/prisma?schema=${encodeURIComponent(
+              slugify(example) + '$dev'
+            )}`,
+            `--schema`,
+            schemaPrisma,
+          ],
+          {
+            cwd,
+          }
+        )
+      }
     }
   } catch (e) {
     console.log(e)

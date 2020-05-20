@@ -1,6 +1,6 @@
 datasource db {
   provider = "mysql"
-  url      = "mysql://root:prisma@0.0.0.0:3307/prisma@dev"
+  url      = "mysql://root:prisma@0.0.0.0:3307/mysql-all-features-1-1@dev"
 }
 
 model Home {

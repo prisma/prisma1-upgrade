@@ -1,251 +1,585 @@
--- MySQL dump 10.13  Distrib 5.7.29, for osx10.15 (x86_64)
 --
--- Host: 0.0.0.0    Database: datamodel-v11@dev
--- ------------------------------------------------------
--- Server version	5.7.30
-
-/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
-/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
-/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
-/*!40101 SET NAMES utf8 */;
-/*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
-/*!40103 SET TIME_ZONE='+00:00' */;
-/*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
-/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
-/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
-/*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
-
---
--- Table structure for table `Home`
+-- PostgreSQL database dump
 --
 
-DROP TABLE IF EXISTS `Home`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `Home` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `createdAt` datetime(3) NOT NULL,
-  `updatedAt` datetime(3) NOT NULL,
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
+-- Dumped from database version 10.3 (Debian 10.3-1.pgdg90+1)
+-- Dumped by pg_dump version 11.5
+
+SET statement_timeout = 0;
+SET lock_timeout = 0;
+SET idle_in_transaction_session_timeout = 0;
+SET client_encoding = 'UTF8';
+SET standard_conforming_strings = on;
+SELECT pg_catalog.set_config('search_path', '', false);
+SET check_function_bodies = false;
+SET xmloption = content;
+SET client_min_messages = warning;
+SET row_security = off;
 
 --
--- Table structure for table `IdentificationDocument`
+-- Name: management; Type: SCHEMA; Schema: -; Owner: root
 --
 
-DROP TABLE IF EXISTS `IdentificationDocument`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `IdentificationDocument` (
-  `id` char(25) CHARACTER SET utf8 NOT NULL,
-  `documentNumber` mediumtext COLLATE utf8mb4_unicode_ci NOT NULL,
-  `issuedOn` datetime(3) NOT NULL,
-  `expiresOn` datetime(3) NOT NULL,
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
+CREATE SCHEMA management;
+
+
+ALTER SCHEMA management OWNER TO root;
 
 --
--- Table structure for table `Tagline`
+-- Name: postgres-all-features-1-1$dev; Type: SCHEMA; Schema: -; Owner: root
 --
 
-DROP TABLE IF EXISTS `Tagline`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `Tagline` (
-  `id` char(25) CHARACTER SET utf8 NOT NULL,
-  `createdAt` datetime(3) NOT NULL,
-  `updatedAt` datetime(3) NOT NULL,
-  `description` mediumtext COLLATE utf8mb4_unicode_ci,
-  `excerpt` mediumtext COLLATE utf8mb4_unicode_ci NOT NULL,
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
+CREATE SCHEMA "postgres-all-features-1-1$dev";
+
+
+ALTER SCHEMA "postgres-all-features-1-1$dev" OWNER TO root;
+
+SET default_tablespace = '';
+
+SET default_with_oids = false;
 
 --
--- Table structure for table `Tagline_visibility`
+-- Name: CloudSecret; Type: TABLE; Schema: management; Owner: root
 --
 
-DROP TABLE IF EXISTS `Tagline_visibility`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `Tagline_visibility` (
-  `nodeId` char(25) CHARACTER SET utf8 NOT NULL,
-  `position` int(4) NOT NULL,
-  `value` varchar(191) COLLATE utf8mb4_unicode_ci NOT NULL,
-  PRIMARY KEY (`nodeId`,`position`),
-  KEY `value` (`value`),
-  CONSTRAINT `Tagline_visibility_ibfk_1` FOREIGN KEY (`nodeId`) REFERENCES `Tagline` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
+CREATE TABLE management."CloudSecret" (
+    secret character varying(255) NOT NULL
+);
+
+
+ALTER TABLE management."CloudSecret" OWNER TO root;
 
 --
--- Table structure for table `TaxDocument`
+-- Name: InternalMigration; Type: TABLE; Schema: management; Owner: root
 --
 
-DROP TABLE IF EXISTS `TaxDocument`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `TaxDocument` (
-  `id` char(25) CHARACTER SET utf8 NOT NULL,
-  `documentNumber` mediumtext COLLATE utf8mb4_unicode_ci NOT NULL,
-  `issuedOn` datetime(3) NOT NULL,
-  `expiresOn` datetime(3) NOT NULL,
-  `lastChangedOn` datetime(3) DEFAULT NULL,
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
+CREATE TABLE management."InternalMigration" (
+    id character varying(255) NOT NULL,
+    "appliedAt" timestamp without time zone NOT NULL
+);
+
+
+ALTER TABLE management."InternalMigration" OWNER TO root;
 
 --
--- Table structure for table `Thought`
+-- Name: Migration; Type: TABLE; Schema: management; Owner: root
 --
 
-DROP TABLE IF EXISTS `Thought`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `Thought` (
-  `id` char(25) CHARACTER SET utf8 NOT NULL,
-  `createdAt` datetime(3) NOT NULL,
-  `updatedAt` datetime(3) NOT NULL,
-  `baseIdea` mediumtext COLLATE utf8mb4_unicode_ci,
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
+CREATE TABLE management."Migration" (
+    "projectId" character varying(200) DEFAULT ''::character varying NOT NULL,
+    revision integer DEFAULT 1 NOT NULL,
+    schema text,
+    functions text,
+    status character varying(20) DEFAULT 'PENDING'::character varying NOT NULL,
+    applied integer DEFAULT 0 NOT NULL,
+    "rolledBack" integer DEFAULT 0 NOT NULL,
+    steps text,
+    errors text,
+    "startedAt" timestamp without time zone,
+    "finishedAt" timestamp without time zone,
+    datamodel text,
+    CONSTRAINT "Migration_status_check" CHECK (((status)::text = ANY ((ARRAY['PENDING'::character varying, 'IN_PROGRESS'::character varying, 'SUCCESS'::character varying, 'ROLLING_BACK'::character varying, 'ROLLBACK_SUCCESS'::character varying, 'ROLLBACK_FAILURE'::character varying])::text[])))
+);
+
+
+ALTER TABLE management."Migration" OWNER TO root;
 
 --
--- Table structure for table `Thought_content`
+-- Name: Project; Type: TABLE; Schema: management; Owner: root
 --
 
-DROP TABLE IF EXISTS `Thought_content`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `Thought_content` (
-  `nodeId` char(25) CHARACTER SET utf8 NOT NULL,
-  `position` int(4) NOT NULL,
-  `value` mediumtext COLLATE utf8mb4_unicode_ci NOT NULL,
-  PRIMARY KEY (`nodeId`,`position`),
-  KEY `value` (`value`(191)),
-  CONSTRAINT `Thought_content_ibfk_1` FOREIGN KEY (`nodeId`) REFERENCES `Thought` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
+CREATE TABLE management."Project" (
+    id character varying(200) DEFAULT ''::character varying NOT NULL,
+    secrets text,
+    "allowQueries" boolean DEFAULT true NOT NULL,
+    "allowMutations" boolean DEFAULT true NOT NULL,
+    functions text
+);
+
+
+ALTER TABLE management."Project" OWNER TO root;
 
 --
--- Table structure for table `User`
+-- Name: TelemetryInfo; Type: TABLE; Schema: management; Owner: root
 --
 
-DROP TABLE IF EXISTS `User`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `User` (
-  `id` char(25) CHARACTER SET utf8 NOT NULL,
-  `createdAt` datetime(3) NOT NULL,
-  `updatedAt` datetime(3) NOT NULL,
-  `email` mediumtext COLLATE utf8mb4_unicode_ci NOT NULL,
-  `age` int(11) NOT NULL,
-  `type` varchar(191) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `isActive` tinyint(1) NOT NULL,
-  `temperature` decimal(65,30) DEFAULT NULL,
-  `meta` mediumtext COLLATE utf8mb4_unicode_ci,
-  `friendlyName` mediumtext COLLATE utf8mb4_unicode_ci,
-  `godFather` char(25) CHARACTER SET utf8 DEFAULT NULL,
-  `home` int(11) DEFAULT NULL,
-  `taxDocument` char(25) CHARACTER SET utf8 DEFAULT NULL,
-  `identificationDocument` char(25) CHARACTER SET utf8 DEFAULT NULL,
-  `bestFriend` char(25) CHARACTER SET utf8 DEFAULT NULL,
-  `tagline` char(25) CHARACTER SET utf8 DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `email_UNIQUE` (`email`(191)),
-  KEY `godFather` (`godFather`),
-  KEY `home` (`home`),
-  KEY `taxDocument` (`taxDocument`),
-  KEY `identificationDocument` (`identificationDocument`),
-  KEY `bestFriend` (`bestFriend`),
-  KEY `tagline` (`tagline`),
-  CONSTRAINT `User_ibfk_1` FOREIGN KEY (`godFather`) REFERENCES `User` (`id`) ON DELETE SET NULL,
-  CONSTRAINT `User_ibfk_2` FOREIGN KEY (`home`) REFERENCES `Home` (`id`) ON DELETE SET NULL,
-  CONSTRAINT `User_ibfk_3` FOREIGN KEY (`taxDocument`) REFERENCES `TaxDocument` (`id`) ON DELETE SET NULL,
-  CONSTRAINT `User_ibfk_4` FOREIGN KEY (`identificationDocument`) REFERENCES `IdentificationDocument` (`id`) ON DELETE SET NULL,
-  CONSTRAINT `User_ibfk_5` FOREIGN KEY (`bestFriend`) REFERENCES `User` (`id`) ON DELETE SET NULL,
-  CONSTRAINT `User_ibfk_6` FOREIGN KEY (`tagline`) REFERENCES `Tagline` (`id`) ON DELETE SET NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
+CREATE TABLE management."TelemetryInfo" (
+    id character varying(255) NOT NULL,
+    "lastPinged" timestamp without time zone
+);
+
+
+ALTER TABLE management."TelemetryInfo" OWNER TO root;
 
 --
--- Table structure for table `Work`
+-- Name: Home_id_seq; Type: SEQUENCE; Schema: postgres-all-features-1-1$dev; Owner: root
 --
 
-DROP TABLE IF EXISTS `Work`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `Work` (
-  `id` char(25) CHARACTER SET utf8 NOT NULL,
-  `createdAt` datetime(3) NOT NULL,
-  `updatedAt` datetime(3) NOT NULL,
-  `title` mediumtext COLLATE utf8mb4_unicode_ci,
-  `description` mediumtext COLLATE utf8mb4_unicode_ci,
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
+CREATE SEQUENCE "postgres-all-features-1-1$dev"."Home_id_seq"
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE "postgres-all-features-1-1$dev"."Home_id_seq" OWNER TO root;
 
 --
--- Table structure for table `_ThoughtToUser`
+-- Name: Home; Type: TABLE; Schema: postgres-all-features-1-1$dev; Owner: root
 --
 
-DROP TABLE IF EXISTS `_ThoughtToUser`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `_ThoughtToUser` (
-  `A` char(25) CHARACTER SET utf8 NOT NULL,
-  `B` char(25) CHARACTER SET utf8 NOT NULL,
-  UNIQUE KEY `ThoughtToUser_AB_unique` (`A`,`B`),
-  KEY `B` (`B`),
-  CONSTRAINT `_ThoughtToUser_ibfk_1` FOREIGN KEY (`A`) REFERENCES `Thought` (`id`) ON DELETE CASCADE,
-  CONSTRAINT `_ThoughtToUser_ibfk_2` FOREIGN KEY (`B`) REFERENCES `User` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
+CREATE TABLE "postgres-all-features-1-1$dev"."Home" (
+    id integer DEFAULT nextval('"postgres-all-features-1-1$dev"."Home_id_seq"'::regclass) NOT NULL,
+    "createdAt" timestamp(3) without time zone NOT NULL,
+    "updatedAt" timestamp(3) without time zone NOT NULL
+);
+
+
+ALTER TABLE "postgres-all-features-1-1$dev"."Home" OWNER TO root;
 
 --
--- Table structure for table `_UserFriends`
+-- Name: IdentificationDocument; Type: TABLE; Schema: postgres-all-features-1-1$dev; Owner: root
 --
 
-DROP TABLE IF EXISTS `_UserFriends`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `_UserFriends` (
-  `A` char(25) CHARACTER SET utf8 NOT NULL,
-  `B` char(25) CHARACTER SET utf8 NOT NULL,
-  UNIQUE KEY `UserFriends_AB_unique` (`A`,`B`),
-  KEY `B` (`B`),
-  CONSTRAINT `_UserFriends_ibfk_1` FOREIGN KEY (`A`) REFERENCES `User` (`id`) ON DELETE CASCADE,
-  CONSTRAINT `_UserFriends_ibfk_2` FOREIGN KEY (`B`) REFERENCES `User` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
+CREATE TABLE "postgres-all-features-1-1$dev"."IdentificationDocument" (
+    id character varying(25) NOT NULL,
+    "documentNumber" text NOT NULL,
+    "issuedOn" timestamp(3) without time zone NOT NULL,
+    "expiresOn" timestamp(3) without time zone NOT NULL
+);
+
+
+ALTER TABLE "postgres-all-features-1-1$dev"."IdentificationDocument" OWNER TO root;
 
 --
--- Table structure for table `_UserToWork`
+-- Name: Tagline; Type: TABLE; Schema: postgres-all-features-1-1$dev; Owner: root
 --
 
-DROP TABLE IF EXISTS `_UserToWork`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `_UserToWork` (
-  `A` char(25) CHARACTER SET utf8 NOT NULL,
-  `B` char(25) CHARACTER SET utf8 NOT NULL,
-  UNIQUE KEY `UserToWork_AB_unique` (`A`,`B`),
-  KEY `B` (`B`),
-  CONSTRAINT `_UserToWork_ibfk_1` FOREIGN KEY (`A`) REFERENCES `User` (`id`) ON DELETE CASCADE,
-  CONSTRAINT `_UserToWork_ibfk_2` FOREIGN KEY (`B`) REFERENCES `Work` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-/*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
+CREATE TABLE "postgres-all-features-1-1$dev"."Tagline" (
+    id character varying(25) NOT NULL,
+    "createdAt" timestamp(3) without time zone NOT NULL,
+    "updatedAt" timestamp(3) without time zone NOT NULL,
+    description text,
+    excerpt text NOT NULL
+);
 
-/*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
-/*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;
-/*!40014 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS */;
-/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
-/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
-/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
-/*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2020-04-29 17:43:08
+ALTER TABLE "postgres-all-features-1-1$dev"."Tagline" OWNER TO root;
+
+--
+-- Name: Tagline_visibility; Type: TABLE; Schema: postgres-all-features-1-1$dev; Owner: root
+--
+
+CREATE TABLE "postgres-all-features-1-1$dev"."Tagline_visibility" (
+    "nodeId" character varying(25) NOT NULL,
+    "position" integer NOT NULL,
+    value text NOT NULL
+);
+
+
+ALTER TABLE "postgres-all-features-1-1$dev"."Tagline_visibility" OWNER TO root;
+
+--
+-- Name: TaxDocument; Type: TABLE; Schema: postgres-all-features-1-1$dev; Owner: root
+--
+
+CREATE TABLE "postgres-all-features-1-1$dev"."TaxDocument" (
+    id character varying(25) NOT NULL,
+    "documentNumber" text NOT NULL,
+    "issuedOn" timestamp(3) without time zone NOT NULL,
+    "expiresOn" timestamp(3) without time zone NOT NULL,
+    "lastChangedOn" timestamp(3) without time zone
+);
+
+
+ALTER TABLE "postgres-all-features-1-1$dev"."TaxDocument" OWNER TO root;
+
+--
+-- Name: Thought; Type: TABLE; Schema: postgres-all-features-1-1$dev; Owner: root
+--
+
+CREATE TABLE "postgres-all-features-1-1$dev"."Thought" (
+    id character varying(25) NOT NULL,
+    "createdAt" timestamp(3) without time zone NOT NULL,
+    "updatedAt" timestamp(3) without time zone NOT NULL,
+    "baseIdea" text
+);
+
+
+ALTER TABLE "postgres-all-features-1-1$dev"."Thought" OWNER TO root;
+
+--
+-- Name: Thought_content; Type: TABLE; Schema: postgres-all-features-1-1$dev; Owner: root
+--
+
+CREATE TABLE "postgres-all-features-1-1$dev"."Thought_content" (
+    "nodeId" character varying(25) NOT NULL,
+    "position" integer NOT NULL,
+    value text NOT NULL
+);
+
+
+ALTER TABLE "postgres-all-features-1-1$dev"."Thought_content" OWNER TO root;
+
+--
+-- Name: User; Type: TABLE; Schema: postgres-all-features-1-1$dev; Owner: root
+--
+
+CREATE TABLE "postgres-all-features-1-1$dev"."User" (
+    id character varying(25) NOT NULL,
+    "createdAt" timestamp(3) without time zone NOT NULL,
+    "updatedAt" timestamp(3) without time zone NOT NULL,
+    email text NOT NULL,
+    age integer NOT NULL,
+    type text NOT NULL,
+    "isActive" boolean NOT NULL,
+    temperature numeric(65,30),
+    meta text,
+    "friendlyName" text,
+    "godFather" character varying(25),
+    home integer,
+    "taxDocument" character varying(25),
+    "identificationDocument" character varying(25),
+    "bestFriend" character varying(25),
+    tagline character varying(25)
+);
+
+
+ALTER TABLE "postgres-all-features-1-1$dev"."User" OWNER TO root;
+
+--
+-- Name: Work; Type: TABLE; Schema: postgres-all-features-1-1$dev; Owner: root
+--
+
+CREATE TABLE "postgres-all-features-1-1$dev"."Work" (
+    id character varying(25) NOT NULL,
+    "createdAt" timestamp(3) without time zone NOT NULL,
+    "updatedAt" timestamp(3) without time zone NOT NULL,
+    title text,
+    description text
+);
+
+
+ALTER TABLE "postgres-all-features-1-1$dev"."Work" OWNER TO root;
+
+--
+-- Name: _ThoughtToUser; Type: TABLE; Schema: postgres-all-features-1-1$dev; Owner: root
+--
+
+CREATE TABLE "postgres-all-features-1-1$dev"."_ThoughtToUser" (
+    "A" character varying(25) NOT NULL,
+    "B" character varying(25) NOT NULL
+);
+
+
+ALTER TABLE "postgres-all-features-1-1$dev"."_ThoughtToUser" OWNER TO root;
+
+--
+-- Name: _UserFriends; Type: TABLE; Schema: postgres-all-features-1-1$dev; Owner: root
+--
+
+CREATE TABLE "postgres-all-features-1-1$dev"."_UserFriends" (
+    "A" character varying(25) NOT NULL,
+    "B" character varying(25) NOT NULL
+);
+
+
+ALTER TABLE "postgres-all-features-1-1$dev"."_UserFriends" OWNER TO root;
+
+--
+-- Name: _UserToWork; Type: TABLE; Schema: postgres-all-features-1-1$dev; Owner: root
+--
+
+CREATE TABLE "postgres-all-features-1-1$dev"."_UserToWork" (
+    "A" character varying(25) NOT NULL,
+    "B" character varying(25) NOT NULL
+);
+
+
+ALTER TABLE "postgres-all-features-1-1$dev"."_UserToWork" OWNER TO root;
+
+--
+-- Name: CloudSecret CloudSecret_pkey; Type: CONSTRAINT; Schema: management; Owner: root
+--
+
+ALTER TABLE ONLY management."CloudSecret"
+    ADD CONSTRAINT "CloudSecret_pkey" PRIMARY KEY (secret);
+
+
+--
+-- Name: InternalMigration InternalMigration_pkey; Type: CONSTRAINT; Schema: management; Owner: root
+--
+
+ALTER TABLE ONLY management."InternalMigration"
+    ADD CONSTRAINT "InternalMigration_pkey" PRIMARY KEY (id);
+
+
+--
+-- Name: Migration Migration_pkey; Type: CONSTRAINT; Schema: management; Owner: root
+--
+
+ALTER TABLE ONLY management."Migration"
+    ADD CONSTRAINT "Migration_pkey" PRIMARY KEY ("projectId", revision);
+
+
+--
+-- Name: Project Project_pkey; Type: CONSTRAINT; Schema: management; Owner: root
+--
+
+ALTER TABLE ONLY management."Project"
+    ADD CONSTRAINT "Project_pkey" PRIMARY KEY (id);
+
+
+--
+-- Name: TelemetryInfo TelemetryInfo_pkey; Type: CONSTRAINT; Schema: management; Owner: root
+--
+
+ALTER TABLE ONLY management."TelemetryInfo"
+    ADD CONSTRAINT "TelemetryInfo_pkey" PRIMARY KEY (id);
+
+
+--
+-- Name: Home Home_pkey; Type: CONSTRAINT; Schema: postgres-all-features-1-1$dev; Owner: root
+--
+
+ALTER TABLE ONLY "postgres-all-features-1-1$dev"."Home"
+    ADD CONSTRAINT "Home_pkey" PRIMARY KEY (id);
+
+
+--
+-- Name: IdentificationDocument IdentificationDocument_pkey; Type: CONSTRAINT; Schema: postgres-all-features-1-1$dev; Owner: root
+--
+
+ALTER TABLE ONLY "postgres-all-features-1-1$dev"."IdentificationDocument"
+    ADD CONSTRAINT "IdentificationDocument_pkey" PRIMARY KEY (id);
+
+
+--
+-- Name: Tagline Tagline_pkey; Type: CONSTRAINT; Schema: postgres-all-features-1-1$dev; Owner: root
+--
+
+ALTER TABLE ONLY "postgres-all-features-1-1$dev"."Tagline"
+    ADD CONSTRAINT "Tagline_pkey" PRIMARY KEY (id);
+
+
+--
+-- Name: Tagline_visibility Tagline_visibility_pkey; Type: CONSTRAINT; Schema: postgres-all-features-1-1$dev; Owner: root
+--
+
+ALTER TABLE ONLY "postgres-all-features-1-1$dev"."Tagline_visibility"
+    ADD CONSTRAINT "Tagline_visibility_pkey" PRIMARY KEY ("nodeId", "position");
+
+
+--
+-- Name: TaxDocument TaxDocument_pkey; Type: CONSTRAINT; Schema: postgres-all-features-1-1$dev; Owner: root
+--
+
+ALTER TABLE ONLY "postgres-all-features-1-1$dev"."TaxDocument"
+    ADD CONSTRAINT "TaxDocument_pkey" PRIMARY KEY (id);
+
+
+--
+-- Name: Thought_content Thought_content_pkey; Type: CONSTRAINT; Schema: postgres-all-features-1-1$dev; Owner: root
+--
+
+ALTER TABLE ONLY "postgres-all-features-1-1$dev"."Thought_content"
+    ADD CONSTRAINT "Thought_content_pkey" PRIMARY KEY ("nodeId", "position");
+
+
+--
+-- Name: Thought Thought_pkey; Type: CONSTRAINT; Schema: postgres-all-features-1-1$dev; Owner: root
+--
+
+ALTER TABLE ONLY "postgres-all-features-1-1$dev"."Thought"
+    ADD CONSTRAINT "Thought_pkey" PRIMARY KEY (id);
+
+
+--
+-- Name: User User_pkey; Type: CONSTRAINT; Schema: postgres-all-features-1-1$dev; Owner: root
+--
+
+ALTER TABLE ONLY "postgres-all-features-1-1$dev"."User"
+    ADD CONSTRAINT "User_pkey" PRIMARY KEY (id);
+
+
+--
+-- Name: Work Work_pkey; Type: CONSTRAINT; Schema: postgres-all-features-1-1$dev; Owner: root
+--
+
+ALTER TABLE ONLY "postgres-all-features-1-1$dev"."Work"
+    ADD CONSTRAINT "Work_pkey" PRIMARY KEY (id);
+
+
+--
+-- Name: _ThoughtToUser_AB_unique; Type: INDEX; Schema: postgres-all-features-1-1$dev; Owner: root
+--
+
+CREATE UNIQUE INDEX "_ThoughtToUser_AB_unique" ON "postgres-all-features-1-1$dev"."_ThoughtToUser" USING btree ("A", "B");
+
+
+--
+-- Name: _ThoughtToUser_B; Type: INDEX; Schema: postgres-all-features-1-1$dev; Owner: root
+--
+
+CREATE INDEX "_ThoughtToUser_B" ON "postgres-all-features-1-1$dev"."_ThoughtToUser" USING btree ("B");
+
+
+--
+-- Name: _UserFriends_AB_unique; Type: INDEX; Schema: postgres-all-features-1-1$dev; Owner: root
+--
+
+CREATE UNIQUE INDEX "_UserFriends_AB_unique" ON "postgres-all-features-1-1$dev"."_UserFriends" USING btree ("A", "B");
+
+
+--
+-- Name: _UserFriends_B; Type: INDEX; Schema: postgres-all-features-1-1$dev; Owner: root
+--
+
+CREATE INDEX "_UserFriends_B" ON "postgres-all-features-1-1$dev"."_UserFriends" USING btree ("B");
+
+
+--
+-- Name: _UserToWork_AB_unique; Type: INDEX; Schema: postgres-all-features-1-1$dev; Owner: root
+--
+
+CREATE UNIQUE INDEX "_UserToWork_AB_unique" ON "postgres-all-features-1-1$dev"."_UserToWork" USING btree ("A", "B");
+
+
+--
+-- Name: _UserToWork_B; Type: INDEX; Schema: postgres-all-features-1-1$dev; Owner: root
+--
+
+CREATE INDEX "_UserToWork_B" ON "postgres-all-features-1-1$dev"."_UserToWork" USING btree ("B");
+
+
+--
+-- Name: postgres-all-features-1-1$dev.User.email._UNIQUE; Type: INDEX; Schema: postgres-all-features-1-1$dev; Owner: root
+--
+
+CREATE UNIQUE INDEX "postgres-all-features-1-1$dev.User.email._UNIQUE" ON "postgres-all-features-1-1$dev"."User" USING btree (email);
+
+
+--
+-- Name: Migration migrations_projectid_foreign; Type: FK CONSTRAINT; Schema: management; Owner: root
+--
+
+ALTER TABLE ONLY management."Migration"
+    ADD CONSTRAINT migrations_projectid_foreign FOREIGN KEY ("projectId") REFERENCES management."Project"(id) ON UPDATE CASCADE ON DELETE CASCADE;
+
+
+--
+-- Name: Tagline_visibility Tagline_visibility_nodeId_fkey; Type: FK CONSTRAINT; Schema: postgres-all-features-1-1$dev; Owner: root
+--
+
+ALTER TABLE ONLY "postgres-all-features-1-1$dev"."Tagline_visibility"
+    ADD CONSTRAINT "Tagline_visibility_nodeId_fkey" FOREIGN KEY ("nodeId") REFERENCES "postgres-all-features-1-1$dev"."Tagline"(id);
+
+
+--
+-- Name: Thought_content Thought_content_nodeId_fkey; Type: FK CONSTRAINT; Schema: postgres-all-features-1-1$dev; Owner: root
+--
+
+ALTER TABLE ONLY "postgres-all-features-1-1$dev"."Thought_content"
+    ADD CONSTRAINT "Thought_content_nodeId_fkey" FOREIGN KEY ("nodeId") REFERENCES "postgres-all-features-1-1$dev"."Thought"(id);
+
+
+--
+-- Name: User User_bestFriend_fkey; Type: FK CONSTRAINT; Schema: postgres-all-features-1-1$dev; Owner: root
+--
+
+ALTER TABLE ONLY "postgres-all-features-1-1$dev"."User"
+    ADD CONSTRAINT "User_bestFriend_fkey" FOREIGN KEY ("bestFriend") REFERENCES "postgres-all-features-1-1$dev"."User"(id) ON DELETE SET NULL;
+
+
+--
+-- Name: User User_godFather_fkey; Type: FK CONSTRAINT; Schema: postgres-all-features-1-1$dev; Owner: root
+--
+
+ALTER TABLE ONLY "postgres-all-features-1-1$dev"."User"
+    ADD CONSTRAINT "User_godFather_fkey" FOREIGN KEY ("godFather") REFERENCES "postgres-all-features-1-1$dev"."User"(id) ON DELETE SET NULL;
+
+
+--
+-- Name: User User_home_fkey; Type: FK CONSTRAINT; Schema: postgres-all-features-1-1$dev; Owner: root
+--
+
+ALTER TABLE ONLY "postgres-all-features-1-1$dev"."User"
+    ADD CONSTRAINT "User_home_fkey" FOREIGN KEY (home) REFERENCES "postgres-all-features-1-1$dev"."Home"(id) ON DELETE SET NULL;
+
+
+--
+-- Name: User User_identificationDocument_fkey; Type: FK CONSTRAINT; Schema: postgres-all-features-1-1$dev; Owner: root
+--
+
+ALTER TABLE ONLY "postgres-all-features-1-1$dev"."User"
+    ADD CONSTRAINT "User_identificationDocument_fkey" FOREIGN KEY ("identificationDocument") REFERENCES "postgres-all-features-1-1$dev"."IdentificationDocument"(id) ON DELETE SET NULL;
+
+
+--
+-- Name: User User_tagline_fkey; Type: FK CONSTRAINT; Schema: postgres-all-features-1-1$dev; Owner: root
+--
+
+ALTER TABLE ONLY "postgres-all-features-1-1$dev"."User"
+    ADD CONSTRAINT "User_tagline_fkey" FOREIGN KEY (tagline) REFERENCES "postgres-all-features-1-1$dev"."Tagline"(id) ON DELETE SET NULL;
+
+
+--
+-- Name: User User_taxDocument_fkey; Type: FK CONSTRAINT; Schema: postgres-all-features-1-1$dev; Owner: root
+--
+
+ALTER TABLE ONLY "postgres-all-features-1-1$dev"."User"
+    ADD CONSTRAINT "User_taxDocument_fkey" FOREIGN KEY ("taxDocument") REFERENCES "postgres-all-features-1-1$dev"."TaxDocument"(id) ON DELETE SET NULL;
+
+
+--
+-- Name: _ThoughtToUser _ThoughtToUser_A_fkey; Type: FK CONSTRAINT; Schema: postgres-all-features-1-1$dev; Owner: root
+--
+
+ALTER TABLE ONLY "postgres-all-features-1-1$dev"."_ThoughtToUser"
+    ADD CONSTRAINT "_ThoughtToUser_A_fkey" FOREIGN KEY ("A") REFERENCES "postgres-all-features-1-1$dev"."Thought"(id) ON DELETE CASCADE;
+
+
+--
+-- Name: _ThoughtToUser _ThoughtToUser_B_fkey; Type: FK CONSTRAINT; Schema: postgres-all-features-1-1$dev; Owner: root
+--
+
+ALTER TABLE ONLY "postgres-all-features-1-1$dev"."_ThoughtToUser"
+    ADD CONSTRAINT "_ThoughtToUser_B_fkey" FOREIGN KEY ("B") REFERENCES "postgres-all-features-1-1$dev"."User"(id) ON DELETE CASCADE;
+
+
+--
+-- Name: _UserFriends _UserFriends_A_fkey; Type: FK CONSTRAINT; Schema: postgres-all-features-1-1$dev; Owner: root
+--
+
+ALTER TABLE ONLY "postgres-all-features-1-1$dev"."_UserFriends"
+    ADD CONSTRAINT "_UserFriends_A_fkey" FOREIGN KEY ("A") REFERENCES "postgres-all-features-1-1$dev"."User"(id) ON DELETE CASCADE;
+
+
+--
+-- Name: _UserFriends _UserFriends_B_fkey; Type: FK CONSTRAINT; Schema: postgres-all-features-1-1$dev; Owner: root
+--
+
+ALTER TABLE ONLY "postgres-all-features-1-1$dev"."_UserFriends"
+    ADD CONSTRAINT "_UserFriends_B_fkey" FOREIGN KEY ("B") REFERENCES "postgres-all-features-1-1$dev"."User"(id) ON DELETE CASCADE;
+
+
+--
+-- Name: _UserToWork _UserToWork_A_fkey; Type: FK CONSTRAINT; Schema: postgres-all-features-1-1$dev; Owner: root
+--
+
+ALTER TABLE ONLY "postgres-all-features-1-1$dev"."_UserToWork"
+    ADD CONSTRAINT "_UserToWork_A_fkey" FOREIGN KEY ("A") REFERENCES "postgres-all-features-1-1$dev"."User"(id) ON DELETE CASCADE;
+
+
+--
+-- Name: _UserToWork _UserToWork_B_fkey; Type: FK CONSTRAINT; Schema: postgres-all-features-1-1$dev; Owner: root
+--
+
+ALTER TABLE ONLY "postgres-all-features-1-1$dev"."_UserToWork"
+    ADD CONSTRAINT "_UserToWork_B_fkey" FOREIGN KEY ("B") REFERENCES "postgres-all-features-1-1$dev"."Work"(id) ON DELETE CASCADE;
+
+
+--
+-- PostgreSQL database dump complete
+--

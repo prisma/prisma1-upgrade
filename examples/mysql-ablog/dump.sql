@@ -1,6 +1,6 @@
 -- MySQL dump 10.13  Distrib 5.7.29, for osx10.15 (x86_64)
 --
--- Host: 0.0.0.0    Database: prisma@dev
+-- Host: 0.0.0.0    Database: mysql-ablog@dev
 -- ------------------------------------------------------
 -- Server version	5.7.30
 
@@ -125,4 +125,4 @@ CREATE TABLE `_PostToUser` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2020-05-14 11:21:21
+-- Dump completed on 2020-05-20 18:10:36

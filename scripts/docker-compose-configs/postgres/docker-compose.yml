@@ -12,7 +12,7 @@ services:
           default:
             connector: postgres
             host: postgres
-            port: 5433
+            port: 5432
             user: root
             password: prisma
 
