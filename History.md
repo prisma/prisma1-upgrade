@@ -1,3 +1,8 @@
+# 0.0.8 / 2020-05-20
+
+- fix schema introspection
+- fix: build config
+
 # 0.0.7 / 2020-05-18
 
 - support writing out the final p2 schema
