@@ -1,3 +1,4 @@
+import Inspector from '../inspector'
 import { Prompt } from '../prompter'
 import { console } from '../console'
 import { print } from 'prismafile'
@@ -89,14 +90,7 @@ async function main(argv: string[]): Promise<void> {
   const prisma1 = P1.parse(await readFile(p1, 'utf8'))
   const prisma2String = await readFile(p2, 'utf8')
   const prisma2 = P2.parse(prisma2String)
-
-  // TODO: remove mock
-  const inspector: api.Inspector = {
-    introspect(_schema: string): Promise<{ datamodel: string }> {
-      return Promise.resolve({ datamodel: prisma2String })
-    },
-  }
-
+  const inspector = new Inspector()
   const prompter = new Prompt()
 
   const schema = await api.upgrade({
@@ -112,12 +106,17 @@ async function main(argv: string[]): Promise<void> {
     name: 'overwrite',
     type: 'confirm',
     message: `
-      We've made a few last adjustments to your prisma.schema file.
 
-      Would you like to override ${params[1]}?`,
+We've made a few last adjustments to your prisma.schema file.
+
+Would you like to override ${params[1]}?`,
   })
   const outfile = overwrite ? params[1] : bak(params[1])
   await writeFile(outfile, schemaFile)
+
+  // close the inspector process
+  inspector.close()
+
   return
 }
 

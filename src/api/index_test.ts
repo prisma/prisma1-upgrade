@@ -1,5 +1,6 @@
-import { IntrospectionEngine, uriToCredentials } from '@prisma/sdk'
+import { uriToCredentials } from '@prisma/sdk'
 import { MockPrompt } from '../prompter'
+import Inspector from '../inspector'
 import { Console } from '../console'
 import { print } from 'prismafile'
 // import testaway from 'testaway'
@@ -30,19 +31,7 @@ const readFile = util.promisify(fs.readFile)
 //   }
 // })
 
-class Inspector implements api.Inspector {
-  constructor(private readonly inspector: api.Inspector) {}
-  introspect(schema: string): Promise<{ datamodel: string }> {
-    schema = schema.replace(
-      'mysql://root:prisma@0.0.0.0:3307/prisma@dev',
-      `mysql://root@localhost:3306/prisma`
-    )
-    return this.inspector.introspect(schema)
-  }
-}
-
-const iengine = new IntrospectionEngine()
-const engine = new Inspector(iengine)
+const engine = new Inspector()
 
 let connectionString =
   process.env.TEST_MYSQL_URI || 'mysql://root@localhost:3306'
@@ -65,7 +54,7 @@ describe('mysql', () => {
 
   after(async () => {
     db && (await db.end())
-    iengine.stop()
+    engine.close()
   })
 
   beforeEach(async () => {

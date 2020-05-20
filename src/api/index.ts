@@ -3,6 +3,7 @@ import printPG from '../sql/postgres/print'
 import * as Graph from '../prisma1/graph'
 import * as p2 from 'prismafile/dist/ast'
 import printMS from '../sql/mysql/print'
+import {Inspector} from '../inspector'
 import { Prompter } from '../prompter'
 import { Console } from '../console'
 import { parse } from 'prismafile'
@@ -16,14 +17,6 @@ type UpgradeInput = {
   prisma1: Prisma1
   prisma2: Prisma2
   inspector: Inspector
-}
-
-export interface Inspector {
-  introspect(
-    schema: string
-  ): Promise<{
-    datamodel: string
-  }>
 }
 
 function unsupported(msg: string): Error {
@@ -635,7 +628,7 @@ async function reintrospect(
       url = "${ds.url}"
     }
   `)
-  const { datamodel } = await inspector.introspect(`
+  const datamodel = await inspector.inspect(`
     datasource db {
       provider = "${ds.provider}"
       url = "${ds.url}"
