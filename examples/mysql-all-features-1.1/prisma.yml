@@ -1,2 +1,2 @@
-endpoint: http://localhost:4466/prisma/dev
+endpoint: http://localhost:4466/mysql-all-features-1-1/dev
 datamodel: datamodel.graphql

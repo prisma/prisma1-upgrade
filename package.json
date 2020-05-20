@@ -42,7 +42,8 @@
     "prismafile": "1.0.6",
     "prompts": "2.3.2",
     "redent": "3.0.0",
-    "resolve": "1.15.1"
+    "resolve": "1.15.1",
+    "slugify": "1.4.0"
   },
   "devDependencies": {
     "@prisma/cli": "2.0.0-beta.3",
