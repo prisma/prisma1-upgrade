@@ -22,8 +22,8 @@ This table reflects the _current_ feature set of the upgrade CLI and will be upd
 | JSON                                | Yes     | Not yet    | Not yet       | Yes                 |
 | Enums                               | Not yet | Not yet    | Not yet       | Yes                 |
 | Generated IDs                       | n/a     | Not yet    | Yes           | Yes                 |
-| Relation tables are all m-n         | Not yet | Not yet    | Not yet       | No                  |
 | @createdAt                          | Yes     | Not yet    | Not yet       | Yes                 |
+| Relation tables are all m-n         | Not yet | Not yet    | Not yet       | No                  |
 | Scalar lists have extra table       | Not yet | Not yet    | Not yet       | No                  |
 | Cascading deletes                   | No      | No         | No            | No                  |
 | Maintain order of models and fields | n/a     | n/a        | Not yet       | No                  |
