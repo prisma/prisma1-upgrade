@@ -21,9 +21,9 @@ This table reflects the _current_ feature set of the upgrade CLI and will be upd
 | Missing UNIQUE for inline 1-1       | Yes     | Not yet    | Not yet       | Yes                 |
 | JSON                                | Yes     | Not yet    | Not yet       | Yes                 |
 | Enums                               | Not yet | Not yet    | Not yet       | Yes                 |
-| Generated IDs                       | n/a     | Not yet    | Yes           | No                  |
+| Generated IDs                       | n/a     | Not yet    | Yes           | Yes                 |
 | Relation tables are all m-n         | Not yet | Not yet    | Not yet       | No                  |
-| @createdAt                          | Yes     | Not yet    | Not yet       | No                  |
+| @createdAt                          | Yes     | Not yet    | Not yet       | Yes                 |
 | Scalar lists have extra table       | Not yet | Not yet    | Not yet       | No                  |
 | Cascading deletes                   | No      | No         | No            | No                  |
 | Maintain order of models and fields | n/a     | n/a        | Not yet       | No                  |
