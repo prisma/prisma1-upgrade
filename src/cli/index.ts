@@ -1,7 +1,6 @@
 import Inspector from '../inspector'
 import { Prompt } from '../prompter'
 import { console } from '../console'
-import { print } from 'prismafile'
 import * as p2 from '../prisma2'
 import * as p1 from '../prisma1'
 import * as api from '../api'
@@ -103,7 +102,7 @@ async function main(argv: string[]): Promise<void> {
     inspector,
   })
 
-  //   const schemaFile = schema.toString()
+  const schemaFile = schema.toString()
   //   const { overwrite } = await prompter.prompt({
   //     name: 'overwrite',
   //     type: 'confirm',
@@ -114,7 +113,7 @@ async function main(argv: string[]): Promise<void> {
   // Would you like to override ${params[1]}?`,
   //   })
   //   const outfile = overwrite ? params[1] : bak(params[1])
-  //   await writeFile(outfile, schemaFile)
+  await writeFile(params[1], schemaFile)
 
   //   // close the inspector process
   //   inspector.close()
@@ -122,10 +121,10 @@ async function main(argv: string[]): Promise<void> {
   return
 }
 
-function bak(p: string): string {
-  const ext = path.extname(p)
-  return path.join(path.dirname(p), path.basename(p, ext) + '.bak' + ext)
-}
+// function bak(p: string): string {
+//   const ext = path.extname(p)
+//   return path.join(path.dirname(p), path.basename(p, ext) + '.bak' + ext)
+// }
 
 /**
  * Run main

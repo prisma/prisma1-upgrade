@@ -378,6 +378,14 @@ export class Directive {
     if (!this.def.arguments) return []
     return this.def.arguments.map((arg) => new Argument(arg))
   }
+
+  findArgument(fn: (arg: Argument) => boolean): Argument | void {
+    for (let arg of this.arguments) {
+      if (fn(arg)) {
+        return arg
+      }
+    }
+  }
 }
 
 export class Argument {

@@ -2,15 +2,15 @@ import * as ast from 'prismafile/dist/ast'
 import { parse, print } from 'prismafile'
 
 export class Schema {
-  private readonly schema: ast.Schema
+  private readonly n: ast.Schema
 
   constructor(p2: string) {
-    this.schema = parse(p2)
+    this.n = parse(p2)
   }
 
   get datasources(): Datasource[] {
     let dss: ast.DataSource[] = []
-    for (let block of this.schema.blocks) {
+    for (let block of this.n.blocks) {
       if (block.type === 'datasource') {
         dss.push(block)
       }
@@ -20,7 +20,7 @@ export class Schema {
 
   get models(): Model[] {
     let dss: ast.Model[] = []
-    for (let block of this.schema.blocks) {
+    for (let block of this.n.blocks) {
       if (block.type === 'model') {
         dss.push(block)
       }
@@ -28,8 +28,40 @@ export class Schema {
     return dss.map((ds) => new Model(ds))
   }
 
+  findModel(fn: (m: Model) => boolean): Model | void {
+    for (let model of this.models) {
+      if (fn(model)) {
+        return model
+      }
+    }
+  }
+
+  findField(fn: (m: Model, f: Field) => boolean): Field | void {
+    for (let model of this.models) {
+      for (let field of model.fields) {
+        if (fn(model, field)) {
+          return field
+        }
+      }
+    }
+  }
+
+  findAttribute(
+    fn: (m: Model, f: Field, a: Attribute) => boolean
+  ): Attribute | void {
+    for (let model of this.models) {
+      for (let field of model.fields) {
+        for (let attr of field.attributes) {
+          if (fn(model, field, attr)) {
+            return attr
+          }
+        }
+      }
+    }
+  }
+
   toString(): string {
-    return print(this.schema)
+    return print(this.n)
   }
 }
 
@@ -86,12 +118,23 @@ export class Model {
     }
     return fields.map((n) => new Field(n))
   }
+
+  findField(fn: (f: Field) => boolean): Field | void {
+    for (let field of this.fields) {
+      if (fn(field)) {
+        return field
+      }
+    }
+  }
 }
 
 export class Field {
   constructor(private readonly n: ast.Field) {}
   get name(): string {
     return this.n.name.name
+  }
+  get type(): DataType {
+    return new DataType(this.n.datatype)
   }
   get attributes(): Attribute[] {
     return this.n.attributes.map((n) => new Attribute(n))
@@ -128,39 +171,29 @@ export class Field {
   }
 }
 
-export class Attribute {
-  constructor(private readonly n: ast.Attribute) {}
-  get name(): string {
-    return this.n.name.name
+export class DataType {
+  constructor(private readonly n: ast.DataType) {}
+
+  get optional(): boolean {
+    return this.n.type === 'optional_type'
+  }
+
+  innermost(): DataType {
+    switch (this.n.type) {
+      case 'optional_type':
+      case 'list_type':
+        return new DataType(this.n.inner)
+      default:
+        return this
+    }
   }
 
   toString(): string {
-    return this.FieldAttribute(this.n)
+    return this.DataType(this.n)
   }
 
-  // TODO: move all this into the printer
-  FieldAttribute(n: ast.Attribute): string {
-    const name = n.group
-      ? `${n.group}.${this.Identifier(n.name)}`
-      : this.Identifier(n.name)
-    if (!n.arguments.length) {
-      return `@${name}`
-    }
-    return `@${name}(${n.arguments
-      .map((a) => this.AttributeArgument(a))
-      .join(', ')})`
-  }
-  AttributeArgument(n: ast.AttributeArgument): string {
-    switch (n.type) {
-      case 'keyed_argument':
-        return this.KeyedArgument(n)
-      case 'unkeyed_argument':
-        return this.UnkeyedArgument(n)
-      default:
-        throw new Error(`unhandled attribute argument ${n!.type}`)
-    }
-  }
-  DataType(n: ast.DataType): string {
+  // datatype printer
+  private DataType(n: ast.DataType): string {
     switch (n.type) {
       case 'list_type':
         return `${this.DataType(n.inner)}[]`
@@ -184,34 +217,75 @@ export class Attribute {
         throw new Error(`Unhandled Datatype: ${n!.type}`)
     }
   }
-  ReferenceType(n: ast.ReferenceType): string {
+  private ReferenceType(n: ast.ReferenceType): string {
     return this.Identifier(n.name)
   }
-  StringType(n: ast.StringType): string {
+  private StringType(n: ast.StringType): string {
     return n.name
   }
-  BooleanType(n: ast.BooleanType): string {
+  private BooleanType(n: ast.BooleanType): string {
     return n.name
   }
-  DateTimeType(n: ast.DateTimeType): string {
+  private DateTimeType(n: ast.DateTimeType): string {
     return n.name
   }
-  IntType(n: ast.IntType): string {
+  private IntType(n: ast.IntType): string {
     return n.name
   }
-  FloatType(n: ast.FloatType): string {
+  private FloatType(n: ast.FloatType): string {
     return n.name
   }
-  JsonType(n: ast.JsonType): string {
+  private JsonType(n: ast.JsonType): string {
     return n.name
   }
-  KeyedArgument(n: ast.KeyedArgument): string {
+  private Identifier(n: ast.Identifier): string {
+    return n.name
+  }
+}
+
+export class Attribute {
+  constructor(private readonly n: ast.Attribute) {}
+  get name(): string {
+    return this.n.name.name
+  }
+
+  get arguments(): Argument[] {
+    return this.n.arguments.map((n) => new Argument(n))
+  }
+
+  toString(): string {
+    return this.FieldAttribute(this.n)
+  }
+
+  // TODO: move all this into the printer
+  private FieldAttribute(n: ast.Attribute): string {
+    const name = n.group
+      ? `${n.group}.${this.Identifier(n.name)}`
+      : this.Identifier(n.name)
+    if (!n.arguments.length) {
+      return `@${name}`
+    }
+    return `@${name}(${n.arguments
+      .map((a) => this.AttributeArgument(a))
+      .join(', ')})`
+  }
+  private AttributeArgument(n: ast.AttributeArgument): string {
+    switch (n.type) {
+      case 'keyed_argument':
+        return this.KeyedArgument(n)
+      case 'unkeyed_argument':
+        return this.UnkeyedArgument(n)
+      default:
+        throw new Error(`unhandled attribute argument ${n!.type}`)
+    }
+  }
+  private KeyedArgument(n: ast.KeyedArgument): string {
     return `${this.Identifier(n.name)}: ${this.Value(n.value)}`
   }
-  UnkeyedArgument(n: ast.UnkeyedArgument): string {
+  private UnkeyedArgument(n: ast.UnkeyedArgument): string {
     return `${this.Value(n.value)}`
   }
-  Value(n: ast.Value): string {
+  private Value(n: ast.Value): string {
     switch (n.type) {
       case 'boolean_value':
         return this.BooleanValue(n)
@@ -235,31 +309,30 @@ export class Attribute {
         throw new Error(`unhandled value ${n!.type}`)
     }
   }
-  BooleanValue(n: ast.BooleanValue): string {
+  private BooleanValue(n: ast.BooleanValue): string {
     return String(n.value)
   }
-  DateTimeValue(n: ast.DateTimeValue): string {
+  private DateTimeValue(n: ast.DateTimeValue): string {
     return n.value.toISOString()
   }
-  FloatValue(n: ast.FloatValue): string {
+  private FloatValue(n: ast.FloatValue): string {
     return String(n.value)
   }
-  FunctionValue(n: ast.FunctionValue): string {
+  private FunctionValue(n: ast.FunctionValue): string {
     return `${this.Identifier(n.name)}(${(n.arguments || [])
       .map((v) => this.Value(v))
       .join(', ')})`
   }
-
-  IntValue(n: ast.IntValue): string {
+  private IntValue(n: ast.IntValue): string {
     return String(n.value)
   }
-  ListValue(n: ast.ListValue): string {
+  private ListValue(n: ast.ListValue): string {
     let arr: string = '['
     arr += n.values.map((v) => this.Value(v)).join(', ')
     arr += ']'
     return arr
   }
-  MapValue(n: ast.MapValue): string {
+  private MapValue(n: ast.MapValue): string {
     let obj: string = '{'
     for (let k in n.map) {
       obj += `${k}: ${this.Value(n.map[k])},`
@@ -267,13 +340,27 @@ export class Attribute {
     obj += '}'
     return obj
   }
-  StringValue(n: ast.StringValue): string {
+  private StringValue(n: ast.StringValue): string {
     return '"' + n.value + '"'
   }
-  ReferenceValue(n: ast.ReferenceValue): string {
+  private ReferenceValue(n: ast.ReferenceValue): string {
     return this.Identifier(n.name)
   }
-  Identifier(n: ast.Identifier): string {
+  private Identifier(n: ast.Identifier): string {
     return n.name
+  }
+}
+
+export class Argument {
+  constructor(private readonly n: ast.AttributeArgument) {}
+  get value(): Value {
+    return new Value(this.n.value)
+  }
+}
+
+export class Value {
+  constructor(private readonly n: ast.Value) {}
+  get type(): ast.Value['type'] {
+    return this.n.type
   }
 }

@@ -1,15 +1,11 @@
 import * as p2ast from 'prismafile/dist/ast'
-import printPG from '../sql/postgres/print'
-import * as Graph from '../prisma1/graph'
-import * as p2 from '../prisma2'
-import printMS from '../sql/mysql/print'
+import * as graph from '../prisma1/graph'
 import { Inspector } from '../inspector'
 import { Prompter } from '../prompter'
 import { Console } from '../console'
+import * as p2 from '../prisma2'
 import * as p1 from '../prisma1'
-import * as sets from '../sets'
-import * as sql from '../sql2'
-import redent from 'redent'
+import * as sql from '../sql'
 
 type UpgradeInput = {
   console: Console
@@ -25,7 +21,8 @@ function unsupported(msg: string): Error {
 
 // upgrade performs a set of rules
 export async function upgrade(input: UpgradeInput): Promise<p2.Schema> {
-  const { console, prompter, prisma1, prisma2 } = input
+  const { console, prisma1, prisma2 } = input
+  // const { prompter } = input
 
   // get the datasource
   const datasource = prisma2.datasources[0]
@@ -127,54 +124,124 @@ export async function upgrade(input: UpgradeInput): Promise<p2.Schema> {
   const defaultOps: sql.Op[] = []
   const createdAtOps: sql.Op[] = []
   const updatedAtOps: sql.Op[] = []
+  const jsonOps: sql.Op[] = []
 
-  // get the models that are common between P1 and P2 schemas
-  const modelPairs = sets.intersectModels(prisma1.objects, prisma2.models)
-  for (let modelPair of modelPairs) {
-    const [p1Model, p2Model] = modelPair
-    // get the fields that are common between p1 model & p2 model
-    const fieldPairs = sets.intersectFields(p1Model.fields, p2Model.fields)
-    for (let fieldPair of fieldPairs) {
-      const [p1Field, p2Field] = fieldPair
-      // get P1 attributes missing from P2
-      const p1Attrs = sets.diffP1Attrs(p1Field.directives, p2Field.attributes)
-      for (let p1Attr of p1Attrs) {
+  for (let p1Model of prisma1.objects) {
+    const p2Model = prisma2.findModel((m) => m.name === p1Model.name)
+    if (!p2Model) {
+      continue
+    }
+    for (let p1Field of p1Model.fields) {
+      const p2Field = p2Model.findField((f) => f.name === p1Field.name)
+      if (!p2Field) {
+        continue
+      }
+
+      // handle the Json type
+      if (p1Field.type.named() === 'Json' && !isJsonType(p2Field)) {
+        jsonOps.push({
+          type: 'SetJsonTypeOp',
+          p1Model,
+          p1Field,
+        })
+      }
+
+      // loop over attributes
+      for (let p1Attr of p1Field.directives) {
         // we found a @default in P1
         if (p1Attr.name === 'default') {
+          const p1Arg = p1Attr.findArgument((a) => a.name === 'value')
+          if (!p1Arg) {
+            continue
+          }
+          const p2Attr = p2Field.findAttribute((a) => a.name === 'default')
+          // @default is already in P2
+          if (p2Attr && hasExpectedDefault(p1Arg, p2Attr.arguments[0])) {
+            continue
+          }
           defaultOps.push({
             type: 'SetDefaultOp',
             p1Model,
-            p2Model,
             p1Field,
-            p2Field,
             p1Attr,
           })
         }
-        // we found a @createdAt in P1
+        // we found a @createdAt in P1 and it's not in P2
         if (p1Attr.name === 'createdAt' && !hasDefaultNow(p2Field)) {
           createdAtOps.push({
             type: 'SetCreatedAtOp',
             p1Model,
-            p2Model,
             p1Field,
-            p2Field,
             p1Attr,
           })
         }
-
-        // we found a @updatedAt in P1
-        if (p1Attr.name === 'updatedAt' && !hasDefaultNow(p2Field)) {
+        // we found a @updatedAt in P1 and it's not in P2
+        if (p1Attr.name === 'updatedAt' && !hasUpdatedAt(p2Field)) {
           updatedAtOps.push({
             type: 'SetCreatedAtOp',
             p1Model,
-            p2Model,
             p1Field,
-            p2Field,
             p1Attr,
           })
         }
       }
     }
+  }
+
+  const addUniqueOps: sql.Op[] = []
+
+  // upgrade 1-1 relations Datamodel
+  // loop over edges and apply back-relation rules
+  // to break up cycles and place the fields in the proper place
+  const g = graph.load(prisma1)
+  const edges = g.edges()
+  const visited: { [name: string]: string[] } = {}
+  for (let i = 0; i < edges.length; i++) {
+    const src = g.node(edges[i].v)
+    const dst = g.node(edges[i].w)
+    const edge1: graph.Edge = g.edge(edges[i].v, edges[i].w)
+
+    // relation with a back-relation
+    for (let j = 0; j < edges.length; j++) {
+      // check for an edge going in the opposite direction
+      if (edges[i].v !== edges[j].w || edges[j].v !== edges[i].w) {
+        continue
+      } else if (visited[src.name] && ~visited[src.name].indexOf(dst.name)) {
+        continue
+      }
+
+      // mark as visited
+      visited[src.name] = visited[src.name] || []
+      visited[src.name].push(dst.name)
+      visited[dst.name] = visited[dst.name] || []
+      visited[dst.name].push(src.name)
+
+      const edge2: graph.Edge = g.edge(edges[j].v, edges[j].w)
+      // 1:1 relationship
+      if (edge1.type === 'hasOne' && edge2.type === 'hasOne') {
+        const uniqueEdge =
+          edge1.link === 'INLINE' // edge inline
+            ? edge1
+            : edge2.link === 'INLINE' // edge2 inline
+            ? edge2
+            : edge1.from < edge2.from // alphanumeric
+            ? edge1
+            : edge2
+
+        // add constraint if it's not a 1-to-1 already
+        if (!isOneToOne(prisma2, uniqueEdge)) {
+          addUniqueOps.push({
+            type: 'AddUniqueConstraintOp',
+            table: uniqueEdge.from,
+            column: uniqueEdge.field,
+          })
+        }
+      }
+    }
+  }
+
+  for (let op of jsonOps) {
+    await console.sql(printer.print(op))
   }
 
   for (let op of defaultOps) {
@@ -189,373 +256,9 @@ export async function upgrade(input: UpgradeInput): Promise<p2.Schema> {
     await console.sql(printer.print(op))
   }
 
-  // if (defaults.length){
-  // }
-
-  // let stmts: sql.Stmt[] = []
-  // // upgrade the defaults
-  // // const models = prisma1.objects
-  // for (let model of models) {
-  //   const fields = model.fields
-  //   for (let field of fields) {
-  //     const directive = field.findDirective((d) => d.name === 'default')
-  //     if (!directive) {
-  //       continue
-  //     }
-
-  //     for (let directive of field.directives) {
-  //       // skip anything but @default
-  //       if (directive.name !== 'default') {
-  //         continue
-  //       }
-  //       const arg = directive.arguments.find((arg) => arg.name === 'value')
-  //       if (!arg) {
-  //         continue
-  //       }
-  //       // add an alter table operation command
-  //       stmts.push({
-  //         type: 'alter_table_statement',
-  //         tableName: model.name,
-  //         actions: [
-  //           {
-  //             type: 'alter_column_definition',
-  //             columnName: field.name,
-  //             action: valueToDefault(model, field, arg.value),
-  //           },
-  //         ],
-  //       })
-  //     }
-  //   }
-  // }
-  // if (stmts.length) {
-  //   await console.log(
-  //     redent(`
-  //       Let's transition Prisma 1's @default's to default values backed by the database. Run the following SQL command against your database:
-  //     `)
-  //   )
-  //   await console.sql(redent(printSQL(stmts), 2))
-  //   result = await prompter.prompt({
-  //     name: 'default',
-  //     type: 'confirm',
-  //     message: `Done migrating @default? Press 'y' to continue`,
-  //   })
-  //   await console.log('')
-  //   if (!result.default) {
-  //     return prisma2
-  //   }
-  // }
-
-  // // upgrade @createdAt
-  // stmts = []
-  // for (let model of models) {
-  //   const fields = model.fields
-  //   for (let field of fields) {
-  //     for (let directive of field.directives) {
-  //       if (directive.name !== 'createdAt') {
-  //         continue
-  //       }
-  //       // add an alter table operation command
-  //       stmts.push({
-  //         type: 'alter_table_statement',
-  //         tableName: model.name,
-  //         actions: [
-  //           {
-  //             type: 'alter_column_definition',
-  //             columnName: field.name,
-  //             action: {
-  //               type: 'set_column_default_clause',
-  //               dataType: 'datetime',
-  //               default: {
-  //                 type: 'current_timestamp_value_function',
-  //               },
-  //             },
-  //           },
-  //         ],
-  //       })
-  //     }
-  //   }
-  // }
-  // if (stmts.length) {
-  //   await console.log(
-  //     redent(`
-  //       Let's transition Prisma 1's @createdAt to a datetime type with a default value of now. Run the following SQL command against your database:
-  //     `)
-  //   )
-  //   await console.sql(redent(printSQL(stmts), 2))
-  //   result = await prompter.prompt({
-  //     name: 'createdAt',
-  //     type: 'confirm',
-  //     message: `Done migrating @createdAt? Press 'y' to continue`,
-  //   })
-  //   if (!result.createdAt) {
-  //     return prisma2
-  //   }
-  // }
-
-  // // upgrade @updatedAt
-  // stmts = []
-  // for (let model of models) {
-  //   const fields = model.fields
-  //   for (let field of fields) {
-  //     for (let directive of field.directives) {
-  //       if (directive.name !== 'updatedAt') {
-  //         continue
-  //       }
-  //       // add an alter table operation command
-  //       stmts.push({
-  //         type: 'alter_table_statement',
-  //         tableName: model.name,
-  //         actions: [
-  //           // {
-  //           //   type: 'alter_column_definition',
-  //           //   columnName: field.name,
-  //           //   action: {
-  //           //     type: 'set_column_datatype_clause',
-  //           //     datatype: 'datetime',
-  //           //   },
-  //           // },
-  //           {
-  //             type: 'alter_column_definition',
-  //             columnName: field.name,
-  //             action: {
-  //               type: 'set_column_default_clause',
-  //               dataType: 'datetime',
-  //               // TODO: perhaps be smarter here.
-  //               nullable: !!~field.type.toString().indexOf('?'),
-  //               default: {
-  //                 type: 'current_timestamp_value_function',
-  //               },
-  //             },
-  //           },
-  //         ],
-  //       })
-  //       // replace @default(now()) with @updatedAt
-  //       // ops.push(
-  //       //   {
-  //       //     type: 'UpsertAttributeOp',
-  //       //     model: ident(model.name),
-  //       //     field: ident(field.name),
-  //       //     attribute: {
-  //       //       type: 'attribute',
-  //       //       name: ident('updatedAt'),
-  //       //       arguments: [],
-  //       //       start: pos,
-  //       //       end: pos,
-  //       //     },
-  //       //   },
-  //       //   {
-  //       //     type: 'RemoveAttributeOp',
-  //       //     model: ident(model.name),
-  //       //     field: ident(field.name),
-  //       //     attribute: {
-  //       //       type: 'attribute',
-  //       //       name: ident('default'),
-  //       //       arguments: [],
-  //       //       start: pos,
-  //       //       end: pos,
-  //       //     },
-  //       //   }
-  //       // )
-  //     }
-  //   }
-  // }
-  // if (stmts.length) {
-  //   await console.log(
-  //     redent(`
-  //       Let's transition Prisma 1's @updatedAt to a datetime type with a default value of now. Run the following SQL command against your database:
-  //     `)
-  //   )
-  //   await console.sql(redent(printSQL(stmts), 2))
-  //   result = await prompter.prompt({
-  //     name: 'updatedAt',
-  //     type: 'confirm',
-  //     message: `Done migrating @updatedAt? Press 'y' to continue`,
-  //   })
-  //   console.log('')
-  //   if (!result.updatedAt) {
-  //     return prisma2
-  //   }
-  // }
-
-  // // upgrade 1-1 relations Datamodel
-  // const graph = Graph.load(prisma1)
-
-  // // loop over edges and apply back-relation rules
-  // // to break up cycles and place the fields in the proper place
-  // stmts = []
-  // const edges = graph.edges()
-  // const visited: { [name: string]: string[] } = {}
-  // for (let i = 0; i < edges.length; i++) {
-  //   const src = graph.node(edges[i].v)
-  //   const dst = graph.node(edges[i].w)
-  //   const edge1: Graph.Edge = graph.edge(edges[i].v, edges[i].w)
-
-  //   // relation with a back-relation
-  //   for (let j = 0; j < edges.length; j++) {
-  //     // check for an edge going in the opposite direction
-  //     if (edges[i].v !== edges[j].w || edges[j].v !== edges[i].w) {
-  //       continue
-  //     } else if (visited[src.name] && ~visited[src.name].indexOf(dst.name)) {
-  //       continue
-  //     }
-
-  //     // mark as visited
-  //     visited[src.name] = visited[src.name] || []
-  //     visited[src.name].push(dst.name)
-  //     visited[dst.name] = visited[dst.name] || []
-  //     visited[dst.name].push(src.name)
-
-  //     const edge2: Graph.Edge = graph.edge(edges[j].v, edges[j].w)
-  //     // 1:1 relationship
-  //     if (edge1.type === 'hasOne' && edge2.type === 'hasOne') {
-  //       const uniqueEdge =
-  //         edge1.link === 'INLINE' // edge inline
-  //           ? edge1
-  //           : edge2.link === 'INLINE' // edge2 inline
-  //           ? edge2
-  //           : edge1.from < edge2.from // alphanumeric
-  //           ? edge1
-  //           : edge2
-
-  //       stmts.push({
-  //         type: 'alter_table_statement',
-  //         tableName: uniqueEdge.from,
-  //         actions: [
-  //           {
-  //             type: 'add_table_constraint_definition',
-  //             constraint: {
-  //               type: 'table_constraint_definition',
-  //               constraint: {
-  //                 type: 'unique_constraint_definition',
-  //                 spec: 'UNIQUE',
-  //                 columns: [uniqueEdge.field],
-  //               },
-  //             },
-  //           },
-  //         ],
-  //       })
-  //     }
-  //   }
-  // }
-  // if (stmts.length) {
-  //   await console.log(
-  //     redent(`
-  //       Let's transition Prisma 1's 1-to-1 relations with @relation or @relation(link:INLINE) to unique constraints on the database. Run the following SQL command against your database:
-  //     `)
-  //   )
-  //   await console.sql(redent(printSQL(stmts), 2))
-  //   result = await prompter.prompt({
-  //     name: 'inlineRelation',
-  //     type: 'confirm',
-  //     message: `Done migrating your inline relations? Press 'y' to continue`,
-  //   })
-  //   await console.log('')
-  //   if (!result.inlineRelation) {
-  //     return prisma2
-  //   }
-  // }
-
-  // // next handle the Json type
-  // stmts = []
-  // for (let model of models) {
-  //   const fields = model.fields
-  //   for (let field of fields) {
-  //     if (field.type.named() === 'Json') {
-  //       stmts.push({
-  //         type: 'alter_table_statement',
-  //         tableName: model.name,
-  //         actions: [
-  //           {
-  //             type: 'alter_column_definition',
-  //             columnName: field.name,
-  //             action: {
-  //               type: 'set_column_datatype_clause',
-  //               datatype: 'json',
-  //             },
-  //           },
-  //         ],
-  //       })
-  //     }
-  //   }
-  // }
-  // if (stmts.length) {
-  //   await console.log(
-  //     redent(`
-  //       Let's transition Prisma 1's Json type to a json type in the database. Run the following SQL command against your database:
-  //     `)
-  //   )
-  //   await console.sql(redent(printSQL(stmts), 2))
-  //   result = await prompter.prompt({
-  //     name: 'json',
-  //     type: 'confirm',
-  //     message: `Done migrating Json? Press 'y' to continue`,
-  //   })
-  //   await console.log('')
-  //   if (!result.json) {
-  //     return prisma2
-  //   }
-  // }
-
-  // const schema = await reintrospect(inspector, datasource)
-  // for (let op of ops) {
-  //   switch (op.type) {
-  //     case 'UpsertAttributeOp':
-  //       for (let block of schema.blocks) {
-  //         if (block.type !== 'model' || block.name.name !== op.model.name) {
-  //           continue
-  //         }
-  //         for (let prop of block.properties) {
-  //           if (prop.type !== 'field' || prop.name.name !== op.field.name) {
-  //             continue
-  //           }
-  //           let found = false
-  //           for (let i = 0; i < prop.attributes.length; i++) {
-  //             const attr = prop.attributes[i]
-  //             if (
-  //               attr.name.name !== op.attribute.name.name ||
-  //               attr.group?.name !== op.attribute.group?.name
-  //             ) {
-  //               continue
-  //             }
-  //             found = true
-  //             // update
-  //             prop.attributes[i] = op.attribute
-  //           }
-  //           // insert
-  //           if (!found) {
-  //             prop.attributes.push(op.attribute)
-  //           }
-  //         }
-  //       }
-  //       break
-  //     case 'RemoveAttributeOp':
-  //       for (let block of schema.blocks) {
-  //         if (block.type !== 'model' || block.name.name !== op.model.name) {
-  //           continue
-  //         }
-  //         for (let prop of block.properties) {
-  //           if (prop.type !== 'field' || prop.name.name !== op.field.name) {
-  //             continue
-  //           }
-  //           let idx = -1
-  //           for (let i = 0; i < prop.attributes.length; i++) {
-  //             const attr = prop.attributes[i]
-  //             if (attr.name.name !== op.attribute.name.name) {
-  //               continue
-  //             }
-  //             idx = i
-  //           }
-  //           if (~idx) {
-  //             prop.attributes.splice(idx, 1)
-  //           }
-  //         }
-  //       }
-  //       break
-  //     default:
-  //       throw new Error(`unhandled operation: "${op!.type}"`)
-  //   }
-  // }
-  await console.log(`You're all set. Thanks for using Prisma!`)
+  for (let op of addUniqueOps) {
+    await console.sql(printer.print(op))
+  }
 
   return prisma2
 }
@@ -620,87 +323,56 @@ function uuid(): p2ast.FunctionValue {
   }
 }
 
+function hasExpectedDefault(p1Arg: p1.Argument, p2Arg?: p2.Argument): boolean {
+  if (!p2Arg) return false
+  switch (p1Arg.value.kind) {
+    case 'BooleanValue':
+      return p2Arg.value.type === 'boolean_value'
+    case 'EnumValue':
+      return p2Arg.value.type === 'string_value'
+    case 'FloatValue':
+      return p2Arg.value.type === 'float_value'
+    case 'IntValue':
+      return p2Arg.value.type === 'int_value'
+    case 'ListValue':
+      return p2Arg.value.type === 'list_value'
+    case 'ObjectValue':
+      return p2Arg.value.type === 'map_value'
+    case 'StringValue':
+      return p2Arg.value.type === 'string_value'
+    case 'Variable':
+      return p2Arg.value.type === 'function_value'
+    // TODO: these are unhandled values
+    case 'NullValue':
+      return false
+  }
+}
+
 function hasDefaultNow(field: p2.Field): boolean {
   const attr = field.findAttribute((a) => a.name === 'default')
   if (!attr) return false
   return attr.toString() === '@default(now())'
 }
 
-// function valueToDefault(
-//   model: p1.ObjectTypeDefinition,
-//   field: p1.FieldDefinition,
-//   value: p1.Value
-// ): sql.AlterColumnAction {
-//   switch (value.kind) {
-//     case 'BooleanValue':
-//       return {
-//         type: 'set_column_default_clause',
-//         dataType: `tinyint(1)`,
-//         default: {
-//           type: 'boolean_literal',
-//           value: value.value,
-//         },
-//       }
-//     case 'EnumValue':
-//       return {
-//         type: 'set_column_default_clause',
-//         dataType: `varchar(191)`,
-//         default: {
-//           type: 'string_literal',
-//           value: value.value,
-//         },
-//       }
-//     case 'IntValue':
-//       return {
-//         type: 'set_column_default_clause',
-//         dataType: `int(11)`,
-//         default: {
-//           type: 'numeric_literal',
-//           value: value.value,
-//         },
-//       }
-//     case 'FloatValue':
-//       return {
-//         type: 'set_column_default_clause',
-//         dataType: `decimal(65,30)`,
-//         default: {
-//           type: 'numeric_literal',
-//           value: value.value,
-//         },
-//       }
-//     case 'StringValue':
-//       return {
-//         type: 'set_column_default_clause',
-//         dataType: `mediumtext`,
-//         default: {
-//           type: 'string_literal',
-//           value: value.value,
-//         },
-//       }
-//     default:
-//       throw unsupported(
-//         `default type ${value.kind} in ${model.name}.${
-//           field.name
-//         } is not supported.`
-//       )
-//   }
-// }
+function hasUpdatedAt(field: p2.Field): boolean {
+  return !!field.findAttribute((a) => a.name === 'updatedAt')
+}
 
-// async function reintrospect(
-//   inspector: Inspector,
-//   ds: Datasource
-// ): Promise<p2.Schema> {
-//   console.log(`
-//     datasource db {
-//       provider = "${ds.provider}"
-//       url = "${ds.url}"
-//     }
-//   `)
-//   const datamodel = await inspector.inspect(`
-//     datasource db {
-//       provider = "${ds.provider}"
-//       url = "${ds.url}"
-//     }
-//   `)
-//   return parse(datamodel)
-// }
+function isOneToOne(schema: p2.Schema, edge: graph.Edge): boolean {
+  const fromModel = schema.findModel((m) => m.name === edge.from)
+  if (!fromModel) return false
+  const fromField = fromModel.findField((f) => f.name === edge.field)
+  if (!fromField) return false
+  const uniqueAttr = fromField.findAttribute((a) => a.name === 'unique')
+  if (!uniqueAttr) return false
+  const toModel = schema.findModel((m) => m.name === edge.to)
+  if (!toModel) return false
+  const toField = toModel.findField((f) => f.name === edge.from)
+  if (!toField) return false
+  if (!toField.type.optional) return false
+  return true
+}
+
+function isJsonType(field: p2.Field): boolean {
+  return field.type.innermost().toString() === 'Json'
+}

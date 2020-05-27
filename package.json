@@ -46,7 +46,7 @@
     "slugify": "1.4.0"
   },
   "devDependencies": {
-    "@prisma/cli": "2.0.0-beta.3",
+    "@prisma/cli": "2.0.0-alpha.1257",
     "@rollup/plugin-commonjs": "11.0.2",
     "@rollup/plugin-node-resolve": "7.1.1",
     "@rollup/plugin-sucrase": "3.0.0",
