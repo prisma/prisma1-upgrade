@@ -2,10 +2,10 @@ import Inspector from '../inspector'
 import { Prompt } from '../prompter'
 import { console } from '../console'
 import { print } from 'prismafile'
+import * as p2 from '../prisma2'
+import * as p1 from '../prisma1'
 import * as api from '../api'
 import { bold } from 'kleur'
-import P1 from '../prisma1'
-import P2 from '../prisma2'
 import path from 'path'
 import util from 'util'
 import arg from 'arg'
@@ -76,20 +76,22 @@ async function main(argv: string[]): Promise<void> {
 
   // change the working directory
   const wd = args['--chdir'] ? path.resolve(cwd, args['--chdir']) : cwd
-  const p1 = path.resolve(wd, params[0])
-  if (!(await exists(p1))) {
-    console.error(`[!] Prisma 1 Datamodel doesn't exist "${p1}"\n\n${usage()}`)
+  const p1path = path.resolve(wd, params[0])
+  if (!(await exists(p1path))) {
+    console.error(
+      `[!] Prisma 1 Datamodel doesn't exist "${p1path}"\n\n${usage()}`
+    )
     process.exit(1)
   }
-  const p2 = path.resolve(wd, params[1])
-  if (!(await exists(p2))) {
-    console.error(`[!] Prisma 2 Schema doesn't exist "${p2}"\n\n${usage()}`)
+  const p2path = path.resolve(wd, params[1])
+  if (!(await exists(p2path))) {
+    console.error(`[!] Prisma 2 Schema doesn't exist "${p2path}"\n\n${usage()}`)
     process.exit(1)
   }
 
-  const prisma1 = P1.parse(await readFile(p1, 'utf8'))
-  const prisma2String = await readFile(p2, 'utf8')
-  const prisma2 = P2.parse(prisma2String)
+  const prisma1 = p1.parse(await readFile(p1path, 'utf8'))
+  const p2schema = await readFile(p2path, 'utf8')
+  const prisma2 = new p2.Schema(p2schema)
   const inspector = new Inspector()
   const prompter = new Prompt()
 
@@ -101,21 +103,21 @@ async function main(argv: string[]): Promise<void> {
     inspector,
   })
 
-  const schemaFile = print(schema)
-  const { overwrite } = await prompter.prompt({
-    name: 'overwrite',
-    type: 'confirm',
-    message: `
+  //   const schemaFile = schema.toString()
+  //   const { overwrite } = await prompter.prompt({
+  //     name: 'overwrite',
+  //     type: 'confirm',
+  //     message: `
 
-We've made a few last adjustments to your prisma.schema file.
+  // We've made a few last adjustments to your prisma.schema file.
 
-Would you like to override ${params[1]}?`,
-  })
-  const outfile = overwrite ? params[1] : bak(params[1])
-  await writeFile(outfile, schemaFile)
+  // Would you like to override ${params[1]}?`,
+  //   })
+  //   const outfile = overwrite ? params[1] : bak(params[1])
+  //   await writeFile(outfile, schemaFile)
 
-  // close the inspector process
-  inspector.close()
+  //   // close the inspector process
+  //   inspector.close()
 
   return
 }

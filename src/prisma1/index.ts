@@ -36,15 +36,15 @@ import {
   ObjectValueNode,
 } from 'graphql/language/ast'
 
-import { parse } from 'graphql/language/parser'
+import * as gql from 'graphql/language/parser'
 
-export default class P1 {
-  static parse(p1: string): P1 {
-    const doc = parse(p1)
-    return new P1(doc)
-  }
+export function parse(p1: string): Schema {
+  const doc = gql.parse(p1)
+  return new Schema(doc)
+}
 
-  private constructor(private readonly doc: DocumentNode) {}
+export class Schema {
+  constructor(private readonly doc: DocumentNode) {}
 
   get definitions(): Definition[] {
     return this.doc.definitions.map((def) => {
@@ -161,6 +161,9 @@ export class InputObjectTypeDefinition {
 
 export class DirectiveDefinition {
   constructor(private readonly def: DirectiveDefinitionNode) {}
+  get name(): string {
+    return this.def.name.value
+  }
   get kind() {
     return this.def.kind
   }
@@ -252,6 +255,14 @@ export class FieldDefinition {
   get directives(): Directive[] {
     if (!this.def.directives) return []
     return this.def.directives.map((dir) => new Directive(dir))
+  }
+
+  findDirective(fn: (n: Directive) => boolean): Directive | void {
+    for (let d of this.directives) {
+      if (fn(d)) {
+        return d
+      }
+    }
   }
 }
 
@@ -398,7 +409,7 @@ export class Argument {
   }
 }
 
-type Value =
+export type Value =
   | Variable
   | IntValue
   | FloatValue

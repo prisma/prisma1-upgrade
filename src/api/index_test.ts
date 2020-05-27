@@ -4,9 +4,9 @@ import Inspector from '../inspector'
 import { Console } from '../console'
 import { print } from 'prismafile'
 // import testaway from 'testaway'
+import * as p1 from '../prisma1'
+import * as p2 from '../prisma2'
 import mariadb from 'mariadb'
-import P1 from '../prisma1'
-import P2 from '../prisma2'
 import * as api from './'
 import chalk from 'chalk'
 // import execa from 'execa'
@@ -73,8 +73,8 @@ describe('mysql', () => {
       const dumpPath = path.join(abspath, 'dump.sql')
       const dump = await readFile(dumpPath, 'utf8')
       const before = await readFile(path.join(abspath, 'schema.prisma'), 'utf8')
-      const p2 = P2.parse(before)
-      const p1 = P1.parse(
+      const p2schema = new p2.Schema(before)
+      const p1schema = p1.parse(
         await readFile(path.join(abspath, 'datamodel.graphql'), 'utf8')
       )
       await db.query(dump)
@@ -87,8 +87,8 @@ describe('mysql', () => {
         json: 'y',
       })
       const con: Console = {
-        async log(..._args: any[]) {
-          // console.log(...args)
+        async log(...args: any[]) {
+          console.log(...args)
         },
         async sql(sql) {
           console.log(sql)
@@ -103,13 +103,13 @@ describe('mysql', () => {
         console: con,
         inspector: engine,
         prompter: prompt,
-        prisma1: p1,
-        prisma2: p2,
+        prisma1: p1schema,
+        prisma2: p2schema,
       })
 
       const expectedPath = path.join(abspath, 'expected.prisma')
       const expected = await readFile(expectedPath, 'utf8')
-      const actual = print(schema)
+      const actual = schema.toString()
       if (expected !== actual) {
         console.log('')
         console.log('Actual:')

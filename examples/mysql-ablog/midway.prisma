@@ -1,0 +1,40 @@
+datasource db {
+  provider = "mysql"
+  url      = "mysql://root@localhost:3306/prisma_mysql_test"
+}
+
+model Category {
+  id   String @id
+  name String
+  Post Post[] @relation(references: [id])
+}
+
+model Post {
+  content   String?
+  createdAt DateTime   @default(now())
+  id        String     @id
+  published Boolean    @default(false)
+  title     String
+  updatedAt DateTime   @default(now())
+  Category  Category[] @relation(references: [id])
+  User      User[]     @relation(references: [id])
+}
+
+model Profile {
+  bio  String?
+  id   String  @id
+  user String?
+  User User?   @relation(fields: [user], references: [id])
+
+  @@index([user], name: "user")
+}
+
+model User {
+  email    String?   @unique
+  id       String    @id
+  jsonData String?
+  name     String
+  role     String    @default("CUSTOMER")
+  Profile  Profile[]
+  Post     Post[]    @relation(references: [id])
+}
