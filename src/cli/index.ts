@@ -41,7 +41,7 @@ function usage() {
 
   ${bold('Usage')}
 
-    prisma-upgrade [flags] <datamodel.graphql> <schema.prisma>
+    prisma-upgrade [flags] <datamodel.graphql> [prisma/schema.prisma]
 
   ${bold('Flags')}
 
@@ -67,21 +67,32 @@ async function main(argv: string[]): Promise<void> {
   }
 
   const params = args._.slice(2)
-  if (params.length < 2) {
-    console.error(usage())
-    process.exit(1)
+  let p1rel = ''
+  let p2rel = ''
+  switch (params.length) {
+    case 1:
+      p1rel = params[0]
+      p2rel = 'prisma/schema.prisma'
+      break
+    case 2:
+      p1rel = params[0]
+      p2rel = params[1]
+      break
+    default:
+      console.error(usage())
+      process.exit(1)
   }
 
   // change the working directory
   const wd = args['--chdir'] ? path.resolve(cwd, args['--chdir']) : cwd
-  const p1path = path.resolve(wd, params[0])
+  const p1path = path.resolve(wd, p1rel)
   if (!(await exists(p1path))) {
     console.error(
       `[!] Prisma 1 Datamodel doesn't exist "${p1path}"\n\n${usage()}`
     )
     process.exit(1)
   }
-  const p2path = path.resolve(wd, params[1])
+  const p2path = path.resolve(wd, p2rel)
   if (!(await exists(p2path))) {
     console.error(`[!] Prisma 2 Schema doesn't exist "${p2path}"\n\n${usage()}`)
     process.exit(1)
@@ -111,7 +122,7 @@ async function main(argv: string[]): Promise<void> {
     return
   }
 
-  await writeFile(params[1], schema.toString())
+  await writeFile(p2path, schema.toString())
   console.log(`You're all set! `)
   return
 }
