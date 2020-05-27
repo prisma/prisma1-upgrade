@@ -2,34 +2,33 @@ import { uriToCredentials } from '@prisma/sdk'
 import { MockPrompt } from '../prompter'
 import Inspector from '../inspector'
 import { Console } from '../console'
-import { print } from 'prismafile'
-// import testaway from 'testaway'
+import testaway from 'testaway'
 import * as p1 from '../prisma1'
 import * as p2 from '../prisma2'
 import mariadb from 'mariadb'
 import * as api from './'
 import chalk from 'chalk'
-// import execa from 'execa'
+import execa from 'execa'
 import assert from 'assert'
 import path from 'path'
 import util from 'util'
 import fs from 'fs'
-// import os from 'os'
+import os from 'os'
 
-// const tmpdir = path.join(os.tmpdir(), 'prisma-upgrade')
+const tmpdir = path.join(os.tmpdir(), 'prisma-upgrade')
 const readFile = util.promisify(fs.readFile)
 
-// it('module should load', async function() {
-//   this.timeout('10s')
-//   await testaway(tmpdir, path.join(__dirname, '..', '..'))
-//   const result = await execa(
-//     path.join(tmpdir, 'node_modules', '.bin', 'prisma-upgrade'),
-//     ['-h']
-//   )
-//   if (!~result.stdout.indexOf('prisma-upgrade')) {
-//     throw new Error("module doesn't load")
-//   }
-// })
+it('importable', async function() {
+  this.timeout('60s')
+  await testaway(tmpdir, path.join(__dirname, '..', '..'))
+  const result = await execa(
+    path.join(tmpdir, 'node_modules', '.bin', 'prisma-upgrade'),
+    ['-h']
+  )
+  if (!~result.stdout.indexOf('prisma-upgrade')) {
+    throw new Error("module doesn't load")
+  }
+})
 
 const engine = new Inspector()
 
