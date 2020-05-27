@@ -28,6 +28,21 @@ export class Schema {
     return dss.map((ds) => new Model(ds))
   }
 
+  provider(): string {
+    const datasource = this.datasources[0]
+    if (!datasource) {
+      throw new Error(
+        'The Prisma 2 schema must contain a datasource configuration'
+      )
+    }
+    // find the prisma2 datasource provider
+    const provider = datasource.provider
+    if (!provider) {
+      throw new Error('The Prisma 2 datasource must contain a provider')
+    }
+    return provider
+  }
+
   findModel(fn: (m: Model) => boolean): Model | void {
     for (let model of this.models) {
       if (fn(model)) {

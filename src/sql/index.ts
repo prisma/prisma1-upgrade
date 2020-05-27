@@ -1,5 +1,26 @@
 import * as p1 from '../prisma1'
 
+export function translate(provider: string, ops: Op[]): string[] {
+  const printer = getTranslator(provider)
+  const out: string[] = []
+  for (let op of ops) {
+    out.push(printer.translate(op))
+  }
+  return out
+}
+
+function getTranslator(provider: string): Translator {
+  switch (provider) {
+    case 'mysql':
+      return new MySQL5()
+    case 'postgres':
+    case 'postgresql':
+      return new Postgres()
+    default:
+      throw new Error(`unsupported provider "${provider}"`)
+  }
+}
+
 export type Op =
   | SetDefaultOp
   | SetCreatedAtOp
@@ -32,12 +53,12 @@ export type SetJsonTypeOp = {
   p1Field: p1.FieldDefinition
 }
 
-export interface Printer {
-  print(op: Op): string
+export interface Translator {
+  translate(op: Op): string
 }
 
-export class Postgres implements Printer {
-  print(op: Op): string {
+export class Postgres implements Translator {
+  translate(op: Op): string {
     switch (op.type) {
       default:
         throw new Error('Postgres: unhandled op: ' + op!.type)
@@ -45,8 +66,8 @@ export class Postgres implements Printer {
   }
 }
 
-export class MySQL5 implements Printer {
-  print(op: Op): string {
+export class MySQL5 implements Translator {
+  translate(op: Op): string {
     switch (op.type) {
       case 'SetDefaultOp':
         return this.SetDefaultOp(op)

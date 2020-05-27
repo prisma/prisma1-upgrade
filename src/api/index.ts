@@ -1,56 +1,23 @@
 import * as p2ast from 'prismafile/dist/ast'
 import * as graph from '../prisma1/graph'
-import { Inspector } from '../inspector'
-import { Prompter } from '../prompter'
-import { Console } from '../console'
 import * as p2 from '../prisma2'
 import * as p1 from '../prisma1'
 import * as sql from '../sql'
 
-type UpgradeInput = {
-  console: Console
-  prompter: Prompter
+type Input = {
   prisma1: p1.Schema
   prisma2: p2.Schema
-  inspector: Inspector
 }
 
-function unsupported(msg: string): Error {
-  return new Error(msg)
+type Output = {
+  schema: p2.Schema
+  ops: sql.Op[]
 }
 
 // upgrade performs a set of rules
-export async function upgrade(input: UpgradeInput): Promise<p2.Schema> {
-  const { console, prisma1, prisma2 } = input
+export async function upgrade(input: Input): Promise<Output> {
+  const { prisma1, prisma2 } = input
   // const { prompter } = input
-
-  // get the datasource
-  const datasource = prisma2.datasources[0]
-  if (!datasource) {
-    throw unsupported(
-      'The Prisma 2 schema must contain a datasource configuration'
-    )
-  }
-
-  // find the prisma2 datasource provider
-  const provider = datasource.provider
-  if (!provider) {
-    throw unsupported('The Prisma 2 datasource must contain a provider')
-  }
-
-  // before we get started, check that we have a supported sql dialect
-  let printer: sql.Printer
-  switch (provider) {
-    case 'mysql':
-      printer = new sql.MySQL5()
-      break
-    case 'postgres':
-    case 'postgresql':
-      printer = new sql.Postgres()
-      break
-    default:
-      throw unsupported(`unsupported provider "${provider}"`)
-  }
 
   // await console.log(
   //   redent(`
@@ -121,10 +88,7 @@ export async function upgrade(input: UpgradeInput): Promise<p2.Schema> {
     }
   }
 
-  const defaultOps: sql.Op[] = []
-  const createdAtOps: sql.Op[] = []
-  const updatedAtOps: sql.Op[] = []
-  const jsonOps: sql.Op[] = []
+  const ops: sql.Op[] = []
 
   for (let p1Model of prisma1.objects) {
     const p2Model = prisma2.findModel((m) => m.name === p1Model.name)
@@ -139,7 +103,7 @@ export async function upgrade(input: UpgradeInput): Promise<p2.Schema> {
 
       // handle the Json type
       if (p1Field.type.named() === 'Json' && !isJsonType(p2Field)) {
-        jsonOps.push({
+        ops.push({
           type: 'SetJsonTypeOp',
           p1Model,
           p1Field,
@@ -159,7 +123,7 @@ export async function upgrade(input: UpgradeInput): Promise<p2.Schema> {
           if (p2Attr && hasExpectedDefault(p1Arg, p2Attr.arguments[0])) {
             continue
           }
-          defaultOps.push({
+          ops.push({
             type: 'SetDefaultOp',
             p1Model,
             p1Field,
@@ -168,7 +132,7 @@ export async function upgrade(input: UpgradeInput): Promise<p2.Schema> {
         }
         // we found a @createdAt in P1 and it's not in P2
         if (p1Attr.name === 'createdAt' && !hasDefaultNow(p2Field)) {
-          createdAtOps.push({
+          ops.push({
             type: 'SetCreatedAtOp',
             p1Model,
             p1Field,
@@ -177,7 +141,7 @@ export async function upgrade(input: UpgradeInput): Promise<p2.Schema> {
         }
         // we found a @updatedAt in P1 and it's not in P2
         if (p1Attr.name === 'updatedAt' && !hasUpdatedAt(p2Field)) {
-          updatedAtOps.push({
+          ops.push({
             type: 'SetCreatedAtOp',
             p1Model,
             p1Field,
@@ -187,8 +151,6 @@ export async function upgrade(input: UpgradeInput): Promise<p2.Schema> {
       }
     }
   }
-
-  const addUniqueOps: sql.Op[] = []
 
   // upgrade 1-1 relations Datamodel
   // loop over edges and apply back-relation rules
@@ -230,7 +192,7 @@ export async function upgrade(input: UpgradeInput): Promise<p2.Schema> {
 
         // add constraint if it's not a 1-to-1 already
         if (!isOneToOne(prisma2, uniqueEdge)) {
-          addUniqueOps.push({
+          ops.push({
             type: 'AddUniqueConstraintOp',
             table: uniqueEdge.from,
             column: uniqueEdge.field,
@@ -240,27 +202,10 @@ export async function upgrade(input: UpgradeInput): Promise<p2.Schema> {
     }
   }
 
-  for (let op of jsonOps) {
-    await console.sql(printer.print(op))
+  return {
+    schema: prisma2,
+    ops,
   }
-
-  for (let op of defaultOps) {
-    await console.sql(printer.print(op))
-  }
-
-  for (let op of createdAtOps) {
-    await console.sql(printer.print(op))
-  }
-
-  for (let op of updatedAtOps) {
-    await console.sql(printer.print(op))
-  }
-
-  for (let op of addUniqueOps) {
-    await console.sql(printer.print(op))
-  }
-
-  return prisma2
 }
 
 const pos = { column: 0, line: 0, offset: 0 }

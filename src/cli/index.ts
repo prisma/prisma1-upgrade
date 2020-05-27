@@ -1,8 +1,7 @@
-import Inspector from '../inspector'
-import { Prompt } from '../prompter'
 import { console } from '../console'
 import * as p2 from '../prisma2'
 import * as p1 from '../prisma1'
+import * as sql from '../sql'
 import * as api from '../api'
 import { bold } from 'kleur'
 import path from 'path'
@@ -91,33 +90,29 @@ async function main(argv: string[]): Promise<void> {
   const prisma1 = p1.parse(await readFile(p1path, 'utf8'))
   const p2schema = await readFile(p2path, 'utf8')
   const prisma2 = new p2.Schema(p2schema)
-  const inspector = new Inspector()
-  const prompter = new Prompt()
 
-  const schema = await api.upgrade({
-    prompter: prompter,
-    console: console,
+  const { ops, schema } = await api.upgrade({
     prisma1,
     prisma2,
-    inspector,
   })
 
-  const schemaFile = schema.toString()
-  //   const { overwrite } = await prompter.prompt({
-  //     name: 'overwrite',
-  //     type: 'confirm',
-  //     message: `
+  if (ops.length) {
+    const queries = sql.translate(schema.provider(), ops)
+    console.log('1. Please run the following commands on your database')
+    console.log()
+    // run the queries
+    for (let query of queries) {
+      console.log('    ' + query)
+    }
+    console.log()
+    console.log(`2. Run prisma introspect again`)
+    console.log(`3. Run prisma-upgrade one more time`)
 
-  // We've made a few last adjustments to your prisma.schema file.
+    return
+  }
 
-  // Would you like to override ${params[1]}?`,
-  //   })
-  //   const outfile = overwrite ? params[1] : bak(params[1])
-  await writeFile(params[1], schemaFile)
-
-  //   // close the inspector process
-  //   inspector.close()
-
+  await writeFile(params[1], schema.toString())
+  console.log(`You're all set! `)
   return
 }
 

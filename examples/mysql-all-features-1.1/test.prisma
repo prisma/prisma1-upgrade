@@ -1,0 +1,111 @@
+datasource db {
+  provider = "mysql"
+  url      = "mysql://root@localhost:3306/prisma"
+}
+
+model Home {
+  createdAt DateTime
+  id        Int      @default(autoincrement()) @id
+  updatedAt DateTime
+  User      User[]
+}
+
+model IdentificationDocument {
+  documentNumber String
+  expiresOn      DateTime
+  id             String   @default(cuid()) @id
+  issuedOn       DateTime
+  User           User[]
+}
+
+model Tagline {
+  createdAt          DateTime
+  description        String?
+  excerpt            String
+  id                 String               @default(cuid()) @id
+  updatedAt          DateTime
+  Tagline_visibility Tagline_visibility[]
+  User               User[]
+}
+
+model Tagline_visibility {
+  nodeId   String
+  position Int
+  value    String
+  Tagline  Tagline @relation(fields: [nodeId], references: [id])
+  @@id([nodeId, position])
+  @@index([value], name: "value")
+}
+
+model TaxDocument {
+  documentNumber String
+  expiresOn      DateTime
+  id             String    @default(cuid()) @id
+  issuedOn       DateTime
+  lastChangedOn  DateTime?
+  User           User[]
+}
+
+model Thought {
+  baseIdea        String?
+  createdAt       DateTime
+  id              String            @default(cuid()) @id
+  updatedAt       DateTime
+  Thought_content Thought_content[]
+  User            User[]            @relation(references: [id])
+}
+
+model Thought_content {
+  nodeId   String
+  position Int
+  value    String
+  Thought  Thought @relation(fields: [nodeId], references: [id])
+  @@id([nodeId, position])
+  @@index([value], name: "value")
+}
+
+model User {
+  age                              Int
+  bestFriend                       String?
+  createdAt                        DateTime
+  email                            String                  @unique
+  friendlyName                     String?
+  godFather                        String?
+  home                             Int?
+  id                               String                  @default(cuid()) @id
+  identificationDocument           String?
+  isActive                         Boolean
+  meta                             String?
+  tagline                          String?
+  taxDocument                      String?
+  temperature                      Float?
+  type                             String
+  updatedAt                        DateTime
+  User_UserToUser_bestFriend       User?                   @relation("UserToUser_bestFriend", fields: [bestFriend], references: [id])
+  User_UserToUser_godFather        User?                   @relation("UserToUser_godFather", fields: [godFather], references: [id])
+  Home                             Home?                   @relation(fields: [home], references: [id])
+  IdentificationDocument           IdentificationDocument? @relation(fields: [identificationDocument], references: [id])
+  Tagline                          Tagline?                @relation(fields: [tagline], references: [id])
+  TaxDocument                      TaxDocument?            @relation(fields: [taxDocument], references: [id])
+  other_User_UserToUser_bestFriend User[]                  @relation("UserToUser_bestFriend")
+  other_User_UserToUser_godFather  User[]                  @relation("UserToUser_godFather")
+  Thought                          Thought[]               @relation(references: [id])
+  User_A                           User[]                  @relation("UserFriends", references: [id])
+  User_B                           User[]                  @relation("UserFriends", references: [id])
+  Work                             Work[]                  @relation(references: [id])
+  @@index([bestFriend], name: "bestFriend")
+  @@index([godFather], name: "godFather")
+  @@index([home], name: "home")
+  @@index([identificationDocument], name: "identificationDocument")
+  @@index([tagline], name: "tagline")
+  @@index([taxDocument], name: "taxDocument")
+}
+
+model Work {
+  createdAt   DateTime
+  description String?
+  id          String   @default(cuid()) @id
+  title       String?
+  updatedAt   DateTime
+  User        User[]   @relation(references: [id])
+}

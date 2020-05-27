@@ -1,10 +1,9 @@
 import { uriToCredentials } from '@prisma/sdk'
-import { MockPrompt } from '../prompter'
 import Inspector from '../inspector'
-import { Console } from '../console'
 import testaway from 'testaway'
 import * as p1 from '../prisma1'
 import * as p2 from '../prisma2'
+import * as sql from '../sql'
 import mariadb from 'mariadb'
 import * as api from './'
 import chalk from 'chalk'
@@ -72,39 +71,34 @@ describe('mysql', () => {
       const dumpPath = path.join(abspath, 'dump.sql')
       const dump = await readFile(dumpPath, 'utf8')
       const before = await readFile(path.join(abspath, 'schema.prisma'), 'utf8')
-      const p2schema = new p2.Schema(before)
+      var p2schema = new p2.Schema(before)
       const p1schema = p1.parse(
         await readFile(path.join(abspath, 'datamodel.graphql'), 'utf8')
       )
       await db.query(dump)
-      const prompt = new MockPrompt({
-        welcome: 'y',
-        default: 'y',
-        createdAt: 'y',
-        updatedAt: 'y',
-        inlineRelation: 'y',
-        json: 'y',
-      })
-      const con: Console = {
-        async log(...args: any[]) {
-          console.log(...args)
-        },
-        async sql(sql) {
-          console.log(sql)
-          await db.query(sql)
-        },
-        async error(...args: any[]) {
-          console.error(...args)
-        },
-      }
 
-      const schema = await api.upgrade({
-        console: con,
-        inspector: engine,
-        prompter: prompt,
+      var { ops, schema } = await api.upgrade({
         prisma1: p1schema,
         prisma2: p2schema,
       })
+
+      // run the queries
+      const queries = sql.translate(schema.provider(), ops)
+      for (let query of queries) {
+        await db.query(query)
+      }
+
+      // re-introspect
+      const datamodel = await engine.inspect(schema.toString())
+
+      // apply p2schema again
+      var p2schema = new p2.Schema(datamodel)
+      var { ops, schema } = await api.upgrade({
+        prisma1: p1schema,
+        prisma2: p2schema,
+      })
+
+      assert.equal(0, ops.length, 'expected 0 ops the 2nd time around')
 
       const expectedPath = path.join(abspath, 'expected.prisma')
       const expected = await readFile(expectedPath, 'utf8')
@@ -121,10 +115,6 @@ describe('mysql', () => {
         console.log('')
         console.log(assert.equal(actual, expected))
       }
-
-      // console.log(dump)
-      // console.log(schema)
-      // console.log(db)
     })
   })
 })
