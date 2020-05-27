@@ -1,6 +1,6 @@
 {
-  "name": "prisma-upgrade",
-  "version": "0.0.8",
+  "name": "tmp-prisma-upgrade",
+  "version": "0.0.10",
   "description": "Upgrade is a CLI tool to help Prisma 1 users upgrade to Prisma 2.",
   "main": "dist/api/index.js",
   "files": [
@@ -30,7 +30,7 @@
   },
   "homepage": "https://github.com/prisma/upgrade#readme",
   "dependencies": {
-    "@prisma/sdk": "2.0.0-beta.3",
+    "@prisma/sdk": "2.0.0-beta.6",
     "@types/graphlib": "2.1.5",
     "arg": "4.1.3",
     "graphlib": "2.1.8",
@@ -46,7 +46,7 @@
     "slugify": "1.4.0"
   },
   "devDependencies": {
-    "@prisma/cli": "2.0.0-beta.3",
+    "@prisma/cli": "2.0.0-alpha.1257",
     "@rollup/plugin-commonjs": "11.0.2",
     "@rollup/plugin-node-resolve": "7.1.1",
     "@rollup/plugin-sucrase": "3.0.0",

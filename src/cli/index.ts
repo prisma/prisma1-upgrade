@@ -1,11 +1,9 @@
-import Inspector from '../inspector'
-import { Prompt } from '../prompter'
 import { console } from '../console'
-import { print } from 'prismafile'
+import * as p2 from '../prisma2'
+import * as p1 from '../prisma1'
+import * as sql from '../sql'
 import * as api from '../api'
 import { bold } from 'kleur'
-import P1 from '../prisma1'
-import P2 from '../prisma2'
 import path from 'path'
 import util from 'util'
 import arg from 'arg'
@@ -43,7 +41,7 @@ function usage() {
 
   ${bold('Usage')}
 
-    prisma-upgrade [flags] <datamodel.graphql> <schema.prisma>
+    prisma-upgrade [flags] <datamodel.graphql> [prisma/schema.prisma]
 
   ${bold('Flags')}
 
@@ -69,61 +67,70 @@ async function main(argv: string[]): Promise<void> {
   }
 
   const params = args._.slice(2)
-  if (params.length < 2) {
-    console.error(usage())
-    process.exit(1)
+  let p1rel = ''
+  let p2rel = ''
+  switch (params.length) {
+    case 1:
+      p1rel = params[0]
+      p2rel = 'prisma/schema.prisma'
+      break
+    case 2:
+      p1rel = params[0]
+      p2rel = params[1]
+      break
+    default:
+      console.error(usage())
+      process.exit(1)
   }
 
   // change the working directory
   const wd = args['--chdir'] ? path.resolve(cwd, args['--chdir']) : cwd
-  const p1 = path.resolve(wd, params[0])
-  if (!(await exists(p1))) {
-    console.error(`[!] Prisma 1 Datamodel doesn't exist "${p1}"\n\n${usage()}`)
+  const p1path = path.resolve(wd, p1rel)
+  if (!(await exists(p1path))) {
+    console.error(
+      `[!] Prisma 1 Datamodel doesn't exist "${p1path}"\n\n${usage()}`
+    )
     process.exit(1)
   }
-  const p2 = path.resolve(wd, params[1])
-  if (!(await exists(p2))) {
-    console.error(`[!] Prisma 2 Schema doesn't exist "${p2}"\n\n${usage()}`)
+  const p2path = path.resolve(wd, p2rel)
+  if (!(await exists(p2path))) {
+    console.error(`[!] Prisma 2 Schema doesn't exist "${p2path}"\n\n${usage()}`)
     process.exit(1)
   }
 
-  const prisma1 = P1.parse(await readFile(p1, 'utf8'))
-  const prisma2String = await readFile(p2, 'utf8')
-  const prisma2 = P2.parse(prisma2String)
-  const inspector = new Inspector()
-  const prompter = new Prompt()
+  const prisma1 = p1.parse(await readFile(p1path, 'utf8'))
+  const p2schema = await readFile(p2path, 'utf8')
+  const prisma2 = new p2.Schema(p2schema)
 
-  const schema = await api.upgrade({
-    prompter: prompter,
-    console: console,
+  const { ops, schema } = await api.upgrade({
     prisma1,
     prisma2,
-    inspector,
   })
 
-  const schemaFile = print(schema)
-  const { overwrite } = await prompter.prompt({
-    name: 'overwrite',
-    type: 'confirm',
-    message: `
+  if (ops.length) {
+    const queries = sql.translate(schema.provider(), ops)
+    console.log('1. Please run the following commands on your database')
+    console.log()
+    // run the queries
+    for (let query of queries) {
+      console.log('    ' + query)
+    }
+    console.log()
+    console.log(`2. Run prisma introspect again`)
+    console.log(`3. Run prisma-upgrade one more time`)
 
-We've made a few last adjustments to your prisma.schema file.
+    return
+  }
 
-Would you like to override ${params[1]}?`,
-  })
-  const outfile = overwrite ? params[1] : bak(params[1])
-  await writeFile(outfile, schemaFile)
-
-  // close the inspector process
-  inspector.close()
-
+  await writeFile(p2path, schema.toString())
+  console.log(`You're all set! `)
   return
 }
 
-function bak(p: string): string {
-  const ext = path.extname(p)
-  return path.join(path.dirname(p), path.basename(p, ext) + '.bak' + ext)
-}
+// function bak(p: string): string {
+//   const ext = path.extname(p)
+//   return path.join(path.dirname(p), path.basename(p, ext) + '.bak' + ext)
+// }
 
 /**
  * Run main

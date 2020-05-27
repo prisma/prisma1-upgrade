@@ -1,35 +1,33 @@
 import { uriToCredentials } from '@prisma/sdk'
-import { MockPrompt } from '../prompter'
 import Inspector from '../inspector'
-import { Console } from '../console'
-import { print } from 'prismafile'
-// import testaway from 'testaway'
+import testaway from 'testaway'
+import * as p1 from '../prisma1'
+import * as p2 from '../prisma2'
+import * as sql from '../sql'
 import mariadb from 'mariadb'
-import P1 from '../prisma1'
-import P2 from '../prisma2'
 import * as api from './'
 import chalk from 'chalk'
-// import execa from 'execa'
+import execa from 'execa'
 import assert from 'assert'
 import path from 'path'
 import util from 'util'
 import fs from 'fs'
-// import os from 'os'
+import os from 'os'
 
-// const tmpdir = path.join(os.tmpdir(), 'prisma-upgrade')
+const tmpdir = path.join(os.tmpdir(), 'prisma-upgrade')
 const readFile = util.promisify(fs.readFile)
 
-// it('module should load', async function() {
-//   this.timeout('10s')
-//   await testaway(tmpdir, path.join(__dirname, '..', '..'))
-//   const result = await execa(
-//     path.join(tmpdir, 'node_modules', '.bin', 'prisma-upgrade'),
-//     ['-h']
-//   )
-//   if (!~result.stdout.indexOf('prisma-upgrade')) {
-//     throw new Error("module doesn't load")
-//   }
-// })
+it('importable', async function() {
+  this.timeout('60s')
+  await testaway(tmpdir, path.join(__dirname, '..', '..'))
+  const result = await execa(
+    path.join(tmpdir, 'node_modules', '.bin', 'prisma-upgrade'),
+    ['-h']
+  )
+  if (!~result.stdout.indexOf('prisma-upgrade')) {
+    throw new Error("module doesn't load")
+  }
+})
 
 const engine = new Inspector()
 
@@ -73,43 +71,38 @@ describe('mysql', () => {
       const dumpPath = path.join(abspath, 'dump.sql')
       const dump = await readFile(dumpPath, 'utf8')
       const before = await readFile(path.join(abspath, 'schema.prisma'), 'utf8')
-      const p2 = P2.parse(before)
-      const p1 = P1.parse(
+      var p2schema = new p2.Schema(before)
+      const p1schema = p1.parse(
         await readFile(path.join(abspath, 'datamodel.graphql'), 'utf8')
       )
       await db.query(dump)
-      const prompt = new MockPrompt({
-        welcome: 'y',
-        default: 'y',
-        createdAt: 'y',
-        updatedAt: 'y',
-        inlineRelation: 'y',
-        json: 'y',
+
+      var { ops, schema } = await api.upgrade({
+        prisma1: p1schema,
+        prisma2: p2schema,
       })
-      const con: Console = {
-        async log(..._args: any[]) {
-          // console.log(...args)
-        },
-        async sql(sql) {
-          console.log(sql)
-          await db.query(sql)
-        },
-        async error(...args: any[]) {
-          console.error(...args)
-        },
+
+      // run the queries
+      const queries = sql.translate(schema.provider(), ops)
+      for (let query of queries) {
+        await db.query(query)
       }
 
-      const schema = await api.upgrade({
-        console: con,
-        inspector: engine,
-        prompter: prompt,
-        prisma1: p1,
-        prisma2: p2,
+      // re-introspect
+      const datamodel = await engine.inspect(schema.toString())
+
+      // apply p2schema again
+      var p2schema = new p2.Schema(datamodel)
+      var { ops, schema } = await api.upgrade({
+        prisma1: p1schema,
+        prisma2: p2schema,
       })
+
+      assert.equal(0, ops.length, 'expected 0 ops the 2nd time around')
 
       const expectedPath = path.join(abspath, 'expected.prisma')
       const expected = await readFile(expectedPath, 'utf8')
-      const actual = print(schema)
+      const actual = schema.toString()
       if (expected !== actual) {
         console.log('')
         console.log('Actual:')
@@ -122,10 +115,6 @@ describe('mysql', () => {
         console.log('')
         console.log(assert.equal(actual, expected))
       }
-
-      // console.log(dump)
-      // console.log(schema)
-      // console.log(db)
     })
   })
 })

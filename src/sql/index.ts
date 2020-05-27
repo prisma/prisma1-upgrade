@@ -1,212 +1,149 @@
-// Partial, hand-written grammar of the SQL:2003 grammar based on:
-// https://ronsavage.github.io/SQL/sql-2003-2.bnf.html#direct%20SQL%20statement
-//
-// This will get more flushed out as we need more of it.
+import * as p1 from '../prisma1'
 
-export type Todo = never
-export type Node = {
-  type: string
+export function translate(provider: string, ops: Op[]): string[] {
+  const printer = getTranslator(provider)
+  const out: string[] = []
+  for (let op of ops) {
+    out.push(printer.translate(op))
+  }
+  return out
 }
 
-export type Stmt = DataStmt | SchemaStmt
-export type DataStmt = InsertStmt | UpdateStmt
-export type SchemaStmt = SchemaDefStmt | SchemaManipulationStmt
-
-export type InsertStmt = {
-  type: 'insert_statement'
+function getTranslator(provider: string): Translator {
+  switch (provider) {
+    case 'mysql':
+      return new MySQL5()
+    case 'postgres':
+    case 'postgresql':
+      return new Postgres()
+    default:
+      throw new Error(`unsupported provider "${provider}"`)
+  }
 }
 
-export type UpdateStmt = {
-  type: 'update_statement'
+export type Op =
+  | SetDefaultOp
+  | SetCreatedAtOp
+  | AddUniqueConstraintOp
+  | SetJsonTypeOp
+
+export type SetDefaultOp = {
+  type: 'SetDefaultOp'
+  p1Model: p1.ObjectTypeDefinition
+  p1Field: p1.FieldDefinition
+  p1Attr: p1.Directive
 }
 
-export type SchemaDefStmt = SchemaDef | TableDef
-export type SchemaManipulationStmt =
-  | DropSchemaStmt
-  | AlterTableStmt
-  | DropTableStmt
-
-export type SchemaDef = {
-  type: 'schema_definition'
-  name: string
+export type SetCreatedAtOp = {
+  type: 'SetCreatedAtOp'
+  p1Model: p1.ObjectTypeDefinition
+  p1Field: p1.FieldDefinition
+  p1Attr: p1.Directive
 }
 
-export type TableDef = {
-  type: 'table_definition'
-  name: string
-  contents: TableContentsSource
+export type AddUniqueConstraintOp = {
+  type: 'AddUniqueConstraintOp'
+  table: string
+  column: string
 }
 
-export type DropSchemaStmt = Todo
-export type AlterTableStmt = {
-  type: 'alter_table_statement'
-  tableName: string
-  actions: AlterTableAction[]
-}
-export type DropTableStmt = Todo
-
-export type TableContentsSource = TableElementList
-
-export type TableElementList = {
-  elements: TableElement[]
+export type SetJsonTypeOp = {
+  type: 'SetJsonTypeOp'
+  p1Model: p1.ObjectTypeDefinition
+  p1Field: p1.FieldDefinition
 }
 
-export type TableElement = Todo
-
-export type AlterTableAction =
-  | AddColumnDef
-  | AlterColumnDef
-  | DropColumnDef
-  | AddTableConstraintDef
-  | DropTableConstraintDef
-
-export type AddColumnDef = {
-  type: 'add_column_definition'
+export interface Translator {
+  translate(op: Op): string
 }
 
-export type AlterColumnDef = {
-  type: 'alter_column_definition'
-  columnName: string
-  action: AlterColumnAction
+export class Postgres implements Translator {
+  translate(op: Op): string {
+    switch (op.type) {
+      default:
+        throw new Error('Postgres: unhandled op: ' + op!.type)
+    }
+  }
 }
 
-export type AlterColumnAction =
-  | SetColumnDefaultClause
-  | SetColumnDataTypeClause
-  | DropColumnDefaultClause
-  | AddColumnScopeClause
-  | DropColumnScopeClause
-  | AlterIdentityColumnSpec
+export class MySQL5 implements Translator {
+  translate(op: Op): string {
+    switch (op.type) {
+      case 'SetDefaultOp':
+        return this.SetDefaultOp(op)
+      case 'SetCreatedAtOp':
+        return this.SetCreatedAtOp(op)
+      case 'AddUniqueConstraintOp':
+        return this.AddUniqueConstraintOp(op)
+      case 'SetJsonTypeOp':
+        return this.SetJsonTypeOp(op)
+      default:
+        throw new Error('MySQL5: unhandled op: ' + op!.type)
+    }
+  }
 
-export type DropColumnDef = {
-  type: 'drop_column_definition'
+  private SetDefaultOp(op: SetDefaultOp): string {
+    const arg = op.p1Attr.arguments.find((arg) => arg.name === 'value')
+    if (!arg) return ''
+    const modelName = op.p1Model.name
+    const fieldName = op.p1Field.name
+    const dataType = this.dataType(arg.value)
+    const nullable = !!~op.p1Field.type.toString().indexOf('?')
+    const notNull = nullable ? '' : 'not null'
+    const defaultValue = this.defaultValue(arg.value)
+    return `alter table ${modelName} change ${fieldName} ${fieldName} ${dataType} ${notNull} default ${defaultValue};`
+  }
+
+  private dataType(value: p1.Value): string {
+    switch (value.kind) {
+      case 'BooleanValue':
+        return `tinyint(1)`
+      case 'EnumValue':
+        return `varchar(191)`
+      case 'IntValue':
+        return `int(11)`
+      case 'FloatValue':
+        return `decimal(65,30)`
+      case 'StringValue':
+        return `mediumtext`
+      default:
+        throw new Error('MySQL5: unhandled dataType: ' + value!.kind)
+    }
+  }
+
+  private defaultValue(value: p1.Value): string {
+    switch (value.kind) {
+      case 'BooleanValue':
+        return value.value ? '1' : '0'
+      case 'EnumValue':
+        return "'" + String(value.value) + "'"
+      case 'IntValue':
+        return String(value.value)
+      case 'FloatValue':
+        return String(value.value)
+      case 'StringValue':
+        return "'" + String(value.value) + "'"
+      default:
+        throw new Error('MySQL5: unhandled dataType: ' + value!.kind)
+    }
+  }
+
+  private SetCreatedAtOp(op: SetCreatedAtOp): string {
+    const modelName = op.p1Model.name
+    const fieldName = op.p1Field.name
+    const dataType = 'datetime'
+    const nullable = !!~op.p1Field.type.toString().indexOf('?')
+    const notNull = nullable ? '' : 'not null'
+    return `alter table ${modelName} change ${fieldName} ${fieldName} ${dataType} ${notNull} default current_timestamp;`
+  }
+
+  private AddUniqueConstraintOp(op: AddUniqueConstraintOp): string {
+    return `alter table ${op.table} add unique (${op.column});`
+  }
+
+  private SetJsonTypeOp(op: SetJsonTypeOp): string {
+    const modelName = op.p1Model.name
+    const fieldName = op.p1Field.name
+    return `alter table ${modelName} change ${fieldName} ${fieldName} json;`
+  }
 }
-export type AddTableConstraintDef = {
-  type: 'add_table_constraint_definition'
-  constraint: TableConstraintDef
-}
-
-export type TableConstraintDef = {
-  type: 'table_constraint_definition'
-  name?: ConstraintNameDef
-  constraint: TableConstraint
-  characteristics?: ConstraintCharacteristics
-}
-
-export type ConstraintNameDef = {
-  type: 'constraint_name_definition'
-  name: string
-}
-
-export type TableConstraint =
-  | UniqueConstraintDefinition
-  | ReferentialConstraintDefinition
-  | CheckConstraintDefinition
-
-export type UniqueConstraintDefinition = {
-  type: 'unique_constraint_definition'
-  spec: 'UNIQUE' | 'PRIMARY KEY'
-  columns: string[]
-}
-
-export type ReferentialConstraintDefinition = {
-  type: 'referential_constraint_definition'
-}
-
-export type CheckConstraintDefinition = {
-  type: 'check_constraint_definition'
-}
-
-export type ConstraintCharacteristics = Todo
-
-export type DropTableConstraintDef = {
-  type: 'drop_table_contraint_definition'
-}
-
-export type SetColumnDefaultClause = {
-  type: 'set_column_default_clause'
-  dataType?: string
-  nullable?: boolean
-  default: DefaultClause
-}
-
-// TODO: this seems to be missing from the grammar
-export type SetColumnDataTypeClause = {
-  type: 'set_column_datatype_clause'
-  datatype: string
-}
-
-export type DropColumnDefaultClause = Todo
-export type AddColumnScopeClause = Todo
-export type DropColumnScopeClause = Todo
-export type AlterIdentityColumnSpec = Todo
-
-export type DefaultClause = DefaultOption
-export type DefaultOption =
-  | Literal
-  | DateTimeValueFunction
-  | USER
-  | CURRENT_USER
-  | CURRENT_ROLE
-  | SESSION_USER
-  | SYSTEM_USER
-  | CURRENT_PATH
-  | ImplicitlyTypedValueSpec
-
-export type USER = Todo
-export type CURRENT_USER = Todo
-export type CURRENT_ROLE = Todo
-export type SESSION_USER = Todo
-export type SYSTEM_USER = Todo
-export type CURRENT_PATH = Todo
-
-export type Literal =
-  | NumericLiteral
-  | StringLiteral
-  | NationalStringLiteral
-  | UnicodeStringLiteral
-  | BinaryStringLiteral
-  | DateTimeLiteral
-  | IntervalLiteral
-  | BooleanLiteral
-
-export type NumericLiteral = {
-  type: 'numeric_literal'
-  value: number
-}
-
-export type StringLiteral = {
-  type: 'string_literal'
-  value: string
-}
-
-export type NullLiteral = {
-  type: 'null_literal'
-  value: null
-}
-
-export type ImplicitlyTypedValueSpec = NullLiteral | EmptySpec
-export type DateTimeValueFunction =
-  | CurrentDateValueFunction
-  | CurrentTimeValueFunction
-  | CurrentTimestampValueFunction
-  | CurrentLocalTimeValueFunction
-  | CurrentLocalTimestampValueFunction
-export type NationalStringLiteral = Todo
-export type UnicodeStringLiteral = Todo
-export type BinaryStringLiteral = Todo
-export type DateTimeLiteral = Todo
-export type IntervalLiteral = Todo
-export type BooleanLiteral = {
-  type: 'boolean_literal'
-  value: boolean
-}
-export type EmptySpec = Todo
-
-type CurrentDateValueFunction = Todo
-type CurrentTimeValueFunction = Todo
-type CurrentTimestampValueFunction = {
-  type: 'current_timestamp_value_function'
-}
-type CurrentLocalTimeValueFunction = Todo
-type CurrentLocalTimestampValueFunction = Todo

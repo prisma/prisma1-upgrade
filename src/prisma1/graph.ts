@@ -1,11 +1,4 @@
-import Prisma1, {
-  ObjectTypeDefinition,
-  EnumTypeDefinition,
-  Type,
-  ListType,
-  NonNullType,
-  NamedType,
-} from './'
+import * as p1 from './'
 
 import { Graph, json } from 'graphlib'
 
@@ -17,22 +10,22 @@ export type Edge = {
   field: string
 }
 
-export function load(p1: Prisma1): Graph {
+export function load(schema: p1.Schema): Graph {
   const graph = new Graph({ directed: true })
-  const defs = p1.definitions
+  const defs = schema.definitions
 
   // set all the nodes
   for (let def of defs) {
-    if (def instanceof ObjectTypeDefinition) {
+    if (def instanceof p1.ObjectTypeDefinition) {
       graph.setNode(def.name, def)
-    } else if (def instanceof EnumTypeDefinition) {
+    } else if (def instanceof p1.EnumTypeDefinition) {
       graph.setNode(def.name, def)
     }
   }
 
   for (let def of defs) {
     // connect models together via references
-    if (def instanceof ObjectTypeDefinition) {
+    if (def instanceof p1.ObjectTypeDefinition) {
       for (let field of def.fields) {
         if (!field.type.isReference()) {
           continue
@@ -46,7 +39,6 @@ export function load(p1: Prisma1): Graph {
         // if we have an @relation
         // then we either were explicit with link
         // or it's an inline relation
-        //
         // otherwise there's no specified link at all.
         let link: Edge['link'] = ''
         const relation = field.directives.find((d) => d.name === 'relation')
@@ -84,26 +76,6 @@ export function load(p1: Prisma1): Graph {
         }
       }
     }
-
-    // console.log('kind', def.kind)
-    // switch (def.kind) {
-    //   case 'ObjectTypeDefinition':
-    //     graph.setNode(def.name, def)
-    //     break
-    //   default:
-    // }
-    // switch (block.type) {
-    //   case 'enum':
-    //     graph.setNode(block.name, block)
-    //     break
-    //   case 'model':
-    //     graph.setNode(block.name, block)
-    //     models.push(block)
-    //     break
-    //   case 'type_alias':
-    //     graph.setNode(block.name, block)
-    //     break
-    // }
   }
 
   return graph
@@ -113,23 +85,23 @@ export function print(g: Graph): string {
   return JSON.stringify(json.write(g), null, '  ')
 }
 
-function hasOne(dt: Type): boolean {
-  if (dt instanceof ListType) {
+function hasOne(dt: p1.Type): boolean {
+  if (dt instanceof p1.ListType) {
     return false
-  } else if (dt instanceof NonNullType) {
+  } else if (dt instanceof p1.NonNullType) {
     return hasOne(dt.inner())
-  } else if (dt instanceof NamedType) {
+  } else if (dt instanceof p1.NamedType) {
     return true
   }
   throw new Error(`hasOne: unknown type ${dt.toString()}`)
 }
 
-function hasMany(dt: Type): boolean {
-  if (dt instanceof ListType) {
+function hasMany(dt: p1.Type): boolean {
+  if (dt instanceof p1.ListType) {
     return true
-  } else if (dt instanceof NonNullType) {
+  } else if (dt instanceof p1.NonNullType) {
     return hasMany(dt.inner())
-  } else if (dt instanceof NamedType) {
+  } else if (dt instanceof p1.NamedType) {
     return false
   }
   throw new Error(`hasOne: unknown type ${dt.toString()}`)

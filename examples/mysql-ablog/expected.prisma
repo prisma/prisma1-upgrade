@@ -4,20 +4,20 @@ datasource db {
 }
 
 model Category {
-  id    String @default(cuid()) @id
-  name  String
-  posts Post[] @relation(references: [id])
+  id   String @default(cuid()) @id
+  name String
+  Post Post[] @relation(references: [id])
 }
 
 model Post {
-  content    String?
-  createdAt  DateTime   @default(now())
-  id         String     @default(cuid()) @id
-  published  Boolean    @default(false)
-  title      String
-  updatedAt  DateTime   @updatedAt
-  categories Category[] @relation(references: [id])
-  users      User[]     @relation(references: [id])
+  content   String?
+  createdAt DateTime   @default(now())
+  id        String     @default(cuid()) @id
+  published Boolean    @default(false)
+  title     String
+  updatedAt DateTime   @updatedAt
+  Category  Category[] @relation(references: [id])
+  User      User[]     @relation(references: [id])
 }
 
 model Profile {
@@ -25,21 +25,15 @@ model Profile {
   id   String  @default(cuid()) @id
   user String? @unique
   User User?   @relation(fields: [user], references: [id])
-
   @@index([user], name: "user")
 }
 
-enum Role {
-  ADMIN
-  CUSTOMER
-}
-
 model User {
-  email    String? @unique
-  id       String  @default(cuid()) @id
+  email    String?  @unique
+  id       String   @default(cuid()) @id
   jsonData Json?
   name     String
-  role     Role    @default(CUSTOMER)
-  profile  Profile
-  posts    Post[]  @relation(references: [id])
+  role     String   @default("CUSTOMER")
+  Profile  Profile?
+  Post     Post[]   @relation(references: [id])
 }
