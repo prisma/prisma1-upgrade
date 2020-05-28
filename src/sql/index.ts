@@ -29,6 +29,7 @@ export type Op =
 
 export type SetDefaultOp = {
   type: 'SetDefaultOp'
+  schema: string
   p1Model: p1.ObjectTypeDefinition
   p1Field: p1.FieldDefinition
   p1Attr: p1.Directive
@@ -36,6 +37,7 @@ export type SetDefaultOp = {
 
 export type SetCreatedAtOp = {
   type: 'SetCreatedAtOp'
+  schema: string
   p1Model: p1.ObjectTypeDefinition
   p1Field: p1.FieldDefinition
   p1Attr: p1.Directive
@@ -43,12 +45,14 @@ export type SetCreatedAtOp = {
 
 export type AddUniqueConstraintOp = {
   type: 'AddUniqueConstraintOp'
+  schema: string
   table: string
   column: string
 }
 
 export type SetJsonTypeOp = {
   type: 'SetJsonTypeOp'
+  schema: string
   p1Model: p1.ObjectTypeDefinition
   p1Field: p1.FieldDefinition
 }
@@ -60,9 +64,61 @@ export interface Translator {
 export class Postgres implements Translator {
   translate(op: Op): string {
     switch (op.type) {
+      case 'SetCreatedAtOp':
+        return this.SetCreatedAtOp(op)
+      case 'SetDefaultOp':
+        return this.SetDefaultOp(op)
+      case 'SetJsonTypeOp':
+        return this.SetJsonTypeOp(op)
+      case 'AddUniqueConstraintOp':
+        return this.AddUniqueConstraintOp(op)
       default:
         throw new Error('Postgres: unhandled op: ' + op!.type)
     }
+  }
+
+  private SetCreatedAtOp(op: SetCreatedAtOp): string {
+    const tableName = `"${op.schema}"."${op.p1Model.name}"`
+    const fieldName = op.p1Field.name
+    return `alter table ${tableName} alter column "${fieldName}" set default current_timestamp;`
+  }
+
+  private SetDefaultOp(op: SetDefaultOp): string {
+    const arg = op.p1Attr.arguments.find((arg) => arg.name === 'value')
+    if (!arg) return ''
+    const tableName = `"${op.schema}"."${op.p1Model.name}"`
+    const fieldName = op.p1Field.name
+    const defaultValue = this.defaultValue(arg.value)
+    return `alter table ${tableName} alter column "${fieldName}" set default ${defaultValue};`
+  }
+
+  private defaultValue(value: p1.Value): string {
+    switch (value.kind) {
+      case 'BooleanValue':
+        return value.value ? 'true' : 'false'
+      case 'EnumValue':
+        return "'" + String(value.value) + "'"
+      case 'IntValue':
+        return String(value.value)
+      case 'FloatValue':
+        return String(value.value)
+      case 'StringValue':
+        return "'" + String(value.value) + "'"
+      default:
+        throw new Error('MySQL5: unhandled dataType: ' + value!.kind)
+    }
+  }
+
+  private SetJsonTypeOp(op: SetJsonTypeOp): string {
+    const tableName = `"${op.schema}"."${op.p1Model.name}"`
+    const fieldName = op.p1Field.name
+    return `alter table ${tableName} alter column "${fieldName}" set data type jsonb using "${fieldName}"::text::jsonb;`
+  }
+
+  private AddUniqueConstraintOp(op: AddUniqueConstraintOp): string {
+    const tableName = `"${op.schema}"."${op.table}"`
+    const fieldName = op.column
+    return `alter table ${tableName} add unique ("${fieldName}");`
   }
 }
 

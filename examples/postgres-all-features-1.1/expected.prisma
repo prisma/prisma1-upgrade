@@ -1,29 +1,29 @@
 datasource db {
   provider = "postgresql"
-  url      = "postgres://root@localhost:5432/prisma"
+  url      = "postgres://m@localhost:5432/prisma_test?schema=postgres-all-features-1-1%24dev"
 }
 
 model Home {
-  createdAt DateTime
+  createdAt DateTime @default(now())
   id        Int      @default(autoincrement()) @id
-  updatedAt DateTime
+  updatedAt DateTime @updatedAt
   User      User[]
 }
 
 model IdentificationDocument {
   documentNumber String
   expiresOn      DateTime
-  id             String   @id
+  id             String   @default(cuid()) @id
   issuedOn       DateTime
-  User           User[]
+  User           User?
 }
 
 model Tagline {
-  createdAt          DateTime
+  createdAt          DateTime             @default(now())
   description        String?
   excerpt            String
-  id                 String               @id
-  updatedAt          DateTime
+  id                 String               @default(cuid()) @id
+  updatedAt          DateTime             @updatedAt
   Tagline_visibility Tagline_visibility[]
   User               User[]
 }
@@ -33,24 +33,23 @@ model Tagline_visibility {
   position Int
   value    String
   Tagline  Tagline @relation(fields: [nodeId], references: [id])
-
   @@id([nodeId, position])
 }
 
 model TaxDocument {
   documentNumber String
   expiresOn      DateTime
-  id             String    @id
+  id             String    @default(cuid()) @id
   issuedOn       DateTime
-  lastChangedOn  DateTime?
-  User           User[]
+  lastChangedOn  DateTime? @updatedAt
+  User           User?
 }
 
 model Thought {
   baseIdea        String?
-  createdAt       DateTime
-  id              String            @id
-  updatedAt       DateTime
+  createdAt       DateTime          @default(now())
+  id              String            @default(cuid()) @id
+  updatedAt       DateTime          @updatedAt
   Thought_content Thought_content[]
   User            User[]            @relation(references: [id])
 }
@@ -60,27 +59,26 @@ model Thought_content {
   position Int
   value    String
   Thought  Thought @relation(fields: [nodeId], references: [id])
-
   @@id([nodeId, position])
 }
 
 model User {
   age                              Int
   bestFriend                       String?
-  createdAt                        DateTime
+  createdAt                        DateTime                @default(now())
   email                            String                  @unique
   friendlyName                     String?
   godFather                        String?
   home                             Int?
-  id                               String                  @id
-  identificationDocument           String?
-  isActive                         Boolean
-  meta                             String?
+  id                               String                  @default(cuid()) @id
+  identificationDocument           String?                 @unique
+  isActive                         Boolean                 @default(false)
+  meta                             Json?
   tagline                          String?
-  taxDocument                      String?
+  taxDocument                      String?                 @unique
   temperature                      Float?
   type                             String
-  updatedAt                        DateTime
+  updatedAt                        DateTime                @updatedAt
   User_UserToUser_bestFriend       User?                   @relation("UserToUser_bestFriend", fields: [bestFriend], references: [id])
   User_UserToUser_godFather        User?                   @relation("UserToUser_godFather", fields: [godFather], references: [id])
   Home                             Home?                   @relation(fields: [home], references: [id])
@@ -96,10 +94,10 @@ model User {
 }
 
 model Work {
-  createdAt   DateTime
+  createdAt   DateTime @default(now())
   description String?
-  id          String   @id
+  id          String   @default(cuid()) @id
   title       String?
-  updatedAt   DateTime
+  updatedAt   DateTime @updatedAt
   User        User[]   @relation(references: [id])
 }

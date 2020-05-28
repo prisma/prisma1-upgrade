@@ -1,6 +1,6 @@
 datasource db {
   provider = "mysql"
-  url      = "mysql://root@localhost:3306/prisma"
+  url      = "mysql://root@localhost:3306/prisma_test"
 }
 
 model Category {

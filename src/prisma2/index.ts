@@ -1,5 +1,12 @@
 import * as ast from 'prismafile/dist/ast'
 import { parse, print } from 'prismafile'
+import url from 'url'
+
+const pos = {
+  offset: 0,
+  line: 0,
+  column: 0,
+}
 
 export class Schema {
   private readonly n: ast.Schema
@@ -28,6 +35,7 @@ export class Schema {
     return dss.map((ds) => new Model(ds))
   }
 
+  // return the provider
   provider(): string {
     const datasource = this.datasources[0]
     if (!datasource) {
@@ -41,6 +49,39 @@ export class Schema {
       throw new Error('The Prisma 2 datasource must contain a provider')
     }
     return provider
+  }
+
+  // needed for adjusting the test database
+  setURL(url: string) {
+    const datasource = this.datasources[0]
+    if (!datasource) {
+      throw new Error(
+        'The Prisma 2 schema must contain a datasource configuration'
+      )
+    }
+    datasource.url = url
+  }
+
+  // return the first url
+  url(): string {
+    const datasource = this.datasources[0]
+    if (!datasource) {
+      throw new Error(
+        'The Prisma 2 schema must contain a datasource configuration'
+      )
+    }
+    const url = datasource.url
+    if (!url) {
+      throw new Error('The Prisma 2 datasource must contain a url')
+    }
+    return url
+  }
+
+  // primarily useful for postgres
+  schema(): string {
+    const u = this.url()
+    const o = url.parse(u, true)
+    return String(o.query['schema'] || '')
   }
 
   findModel(fn: (m: Model) => boolean): Model | void {
@@ -114,6 +155,37 @@ export class Datasource {
             this.node.name
           } "url" attribute must be a string, but got ${url.value.type}`
         )
+    }
+  }
+
+  set url(url: string | undefined) {
+    if (!url) return
+    const a = this.node.assignments.find((a) => a.key.name === 'url')
+    if (!a) {
+      this.node.assignments.push({
+        type: 'assignment',
+        start: pos,
+        end: pos,
+        key: {
+          type: 'identifier',
+          name: 'url',
+          start: pos,
+          end: pos,
+        },
+        value: {
+          type: 'string_value',
+          value: url,
+          start: pos,
+          end: pos,
+        },
+      })
+      return
+    }
+    a.value = {
+      type: 'string_value',
+      value: url,
+      start: a.value.start,
+      end: a.value.end,
     }
   }
 }

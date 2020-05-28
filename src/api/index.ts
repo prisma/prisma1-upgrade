@@ -17,6 +17,7 @@ type Output = {
 // upgrade performs a set of rules
 export async function upgrade(input: Input): Promise<Output> {
   const { prisma1, prisma2 } = input
+  const schema = prisma2.schema()
   // const { prompter } = input
 
   // await console.log(
@@ -105,6 +106,7 @@ export async function upgrade(input: Input): Promise<Output> {
       if (p1Field.type.named() === 'Json' && !isJsonType(p2Field)) {
         ops.push({
           type: 'SetJsonTypeOp',
+          schema,
           p1Model,
           p1Field,
         })
@@ -125,6 +127,7 @@ export async function upgrade(input: Input): Promise<Output> {
           }
           ops.push({
             type: 'SetDefaultOp',
+            schema,
             p1Model,
             p1Field,
             p1Attr,
@@ -134,6 +137,7 @@ export async function upgrade(input: Input): Promise<Output> {
         if (p1Attr.name === 'createdAt' && !hasDefaultNow(p2Field)) {
           ops.push({
             type: 'SetCreatedAtOp',
+            schema,
             p1Model,
             p1Field,
             p1Attr,
@@ -143,6 +147,7 @@ export async function upgrade(input: Input): Promise<Output> {
         if (p1Attr.name === 'updatedAt' && !hasUpdatedAt(p2Field)) {
           ops.push({
             type: 'SetCreatedAtOp',
+            schema,
             p1Model,
             p1Field,
             p1Attr,
@@ -194,6 +199,7 @@ export async function upgrade(input: Input): Promise<Output> {
         if (!isOneToOne(prisma2, uniqueEdge)) {
           ops.push({
             type: 'AddUniqueConstraintOp',
+            schema,
             table: uniqueEdge.from,
             column: uniqueEdge.field,
           })

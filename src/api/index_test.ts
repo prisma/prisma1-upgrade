@@ -11,11 +11,14 @@ import execa from 'execa'
 import assert from 'assert'
 import path from 'path'
 import util from 'util'
+import url from 'url'
 import fs from 'fs'
+import pg from 'pg'
 import os from 'os'
 
 const tmpdir = path.join(os.tmpdir(), 'prisma-upgrade')
 const readFile = util.promisify(fs.readFile)
+const userInfo = os.userInfo()
 
 // it('importable', async function() {
 //   this.timeout('60s')
@@ -29,63 +32,209 @@ const readFile = util.promisify(fs.readFile)
 //   }
 // })
 
-const engine = new Inspector()
-
-let connectionString =
-  process.env.TEST_MYSQL_URI || 'mysql://root@localhost:3306'
-const credentials = uriToCredentials(connectionString)
 const dir = path.join(__dirname, '..', '..', 'examples')
-const tests = fs.readdirSync(dir)
+const allTests = fs.readdirSync(dir)
 
 describe('mysql', () => {
-  let db: mariadb.Connection
-  before(async () => {
-    db = await mariadb.createConnection({
-      host: credentials.host,
-      port: credentials.port,
-      database: credentials.database,
-      user: credentials.user,
-      password: credentials.password,
-      multipleStatements: true,
-    })
-  })
+  const tests = allTests.filter((test) => test.startsWith('mysql'))
+  tests.forEach((name) => {
+    describe(name, () => {
+      let db: mariadb.Connection
+      let engine: Inspector
 
-  after(async () => {
-    db && (await db.end())
-    engine.close()
-  })
+      after(async () => {
+        db && (await db.end())
+        engine.close()
+      })
 
-  beforeEach(async () => {
-    await db.query(`create database prisma;`)
-    await db.query(`use prisma;`)
-  })
-
-  afterEach(async () => {
-    await db.query(`drop database prisma;`)
-  })
-
-  const mysqlTests = tests.filter((test) => test.startsWith('mysql'))
-  mysqlTests.forEach((name) => {
-    it(name, async () => {
-      await test(name, db)
+      it('test', async () => {
+        const abspath = path.join(dir, name)
+        const expected = await readFile(
+          path.join(abspath, 'expected.prisma'),
+          'utf8'
+        )
+        const p2schema = new p2.Schema(
+          await readFile(path.join(abspath, 'schema.prisma'), 'utf8')
+        )
+        const p1schema = p1.parse(
+          await readFile(path.join(abspath, 'datamodel.graphql'), 'utf8')
+        )
+        // NOTE: this assumes you have a local mysql instance running
+        p2schema.setURL('mysql://root@localhost:3306/prisma_test')
+        const credentials = uriToCredentials(p2schema.url())
+        db = await mariadb.createConnection({
+          host: credentials.host,
+          port: credentials.port,
+          user: credentials.user,
+          password: credentials.password,
+          multipleStatements: true,
+        })
+        engine = new Inspector()
+        try {
+          await db.query(`drop database prisma_test;`)
+        } catch (e) {
+          // do nothing
+        }
+        await db.query(`create database prisma_test;`)
+        await db.query(`use prisma_test;`)
+        db.query(await readFile(path.join(abspath, 'dump.sql'), 'utf8'))
+        await test(db, engine, expected, p1schema, p2schema)
+      })
     })
   })
 })
+
+describe('postgres', () => {
+  const tests = allTests.filter((test) => test.startsWith('postgres'))
+  tests.forEach((name) => {
+    describe(name, () => {
+      let db: pg.Client
+      let engine: Inspector
+
+      after(async () => {
+        db && (await db.end())
+        engine.close()
+      })
+
+      it('test', async () => {
+        const abspath = path.join(dir, name)
+        const expected = await readFile(
+          path.join(abspath, 'expected.prisma'),
+          'utf8'
+        )
+        const p2schema = new p2.Schema(
+          await readFile(path.join(abspath, 'schema.prisma'), 'utf8')
+        )
+        const p1schema = p1.parse(
+          await readFile(path.join(abspath, 'datamodel.graphql'), 'utf8')
+        )
+        // NOTE: this assumes you have a local postgres instance running
+        const uo = url.parse(p2schema.url(), true)
+        const schema = uo.query['schema'] || ''
+        const pgo = url.parse('postgres://localhost:5432/prisma_test', true)
+        pgo.auth = userInfo.username
+        if (schema) {
+          pgo.query['schema'] = schema
+        }
+        p2schema.setURL(url.format(pgo))
+        const credentials = uriToCredentials(p2schema.url())
+        const initialDB = new pg.Client({
+          host: credentials.host,
+          port: credentials.port,
+          database: 'postgres',
+          password: credentials.password,
+        })
+        await initialDB.connect()
+        try {
+          await initialDB.query(`drop database prisma_test;`)
+        } catch (e) {
+          // do nothing
+        }
+        await initialDB.query(`create database prisma_test;`)
+        await initialDB.query(`drop role if exists root;`)
+        await initialDB.query(`create role root;`)
+        await initialDB.end()
+        // create actual DB connect
+        db = new pg.Client({
+          host: credentials.host,
+          port: credentials.port,
+          database: 'prisma_test',
+          password: credentials.password,
+        })
+        await db.connect()
+        engine = new Inspector()
+        await db.query(await readFile(path.join(abspath, 'dump.sql'), 'utf8'))
+        await test(db, engine, expected, p1schema, p2schema)
+      })
+    })
+  })
+})
+
+// describe('postgres', () => {
+//   let engine: Inspector
+
+//   after(async () => {
+//     engine.close()
+//   })
+
+//   const tests = allTests.filter((test) => test.startsWith('postgres'))
+//   tests.forEach((name) => {
+//     // const db = new pg.Client({})
+//     // let connString =
+//     //   process.env.TEST_MYSQL_URI || 'postgres://root@localhost:3306'
+//     // const credentials = uriToCredentials(connString)
+//     // before(async () => {
+//     //   let connString =
+//     //     process.env.TEST_MYSQL_URI || 'mysql://root@localhost:3306'
+//     //   const credentials = uriToCredentials(connString)
+//     //   db = await pg.Client({
+//     //     host: credentials.host,
+//     //     port: credentials.port,
+//     //     database: credentials.database,
+//     //     user: credentials.user,
+//     //     password: credentials.password,
+//     //     multipleStatements: true,
+//     //   })
+//     // })
+
+//     describe(name, () => {
+//       after(async () => {
+//         // db && (await db.end())
+//         // engine.close()
+//       })
+
+//       it('test', async () => {
+//         console.log()
+//       })
+//     })
+//   })
+
+//   // beforeEach(async () => {
+//   // try {
+//   //   await db.query(`drop database prisma;`)
+//   // } catch (e) {
+//   //   // do nothing
+//   // }
+//   // await db.query(`create database prisma;`)
+//   // await db.query(`use prisma;`)
+//   // })
+
+//   // afterEach(async () => {})
+
+//   // const tests = allTests.filter((test) => test.startsWith('postgres'))
+//   // tests.forEach((name) => {
+//   //   it(name, async () => {
+//   //     // await test(name, db)
+//   //   })
+//   // })
+// })
 
 interface DB {
   query(query: string): Promise<any>
 }
 
-async function test(name: string, db: DB) {
-  const abspath = path.join(dir, name)
-  const dumpPath = path.join(abspath, 'dump.sql')
-  const dump = await readFile(dumpPath, 'utf8')
-  const before = await readFile(path.join(abspath, 'schema.prisma'), 'utf8')
-  var p2schema = new p2.Schema(before)
-  const p1schema = p1.parse(
-    await readFile(path.join(abspath, 'datamodel.graphql'), 'utf8')
-  )
-  await db.query(dump)
+async function test(
+  db: DB,
+  engine: Inspector,
+  expected: string,
+  p1schema: p1.Schema,
+  p2schema: p2.Schema
+) {
+  // const abspath = path.join(dir, name)
+  // const dumpPath = path.join(abspath, 'dump.sql')
+  // const dump = await readFile(dumpPath, 'utf8')
+  // const schemaPrisma = await readFile(
+  //   path.join(abspath, 'schema.prisma'),
+  //   'utf8'
+  // )
+  // const datamodelGraphQL = await readFile(
+  //   path.join(abspath, 'datamodel.graphql'),
+  //   'utf8'
+  // )
+  // const p1schema = p1.parse(datamodelGraphQL)
+  // var p2schema = new p2.Schema(schemaPrisma)
+
+  // await db.query(dump)
 
   var { ops, schema } = await api.upgrade({
     prisma1: p1schema,
@@ -95,7 +244,12 @@ async function test(name: string, db: DB) {
   // run the queries
   const queries = sql.translate(schema.provider(), ops)
   for (let query of queries) {
-    await db.query(query)
+    try {
+      await db.query(query)
+    } catch (e) {
+      console.log(query)
+      throw e
+    }
   }
 
   // re-introspect
@@ -114,8 +268,7 @@ async function test(name: string, db: DB) {
     assert.equal(0, ops.length, 'expected 0 ops the 2nd time around')
   }
 
-  const expectedPath = path.join(abspath, 'expected.prisma')
-  const expected = await readFile(expectedPath, 'utf8')
+  // schema
   const actual = schema.toString()
   if (expected !== actual) {
     console.log('')

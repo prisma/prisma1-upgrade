@@ -53,6 +53,7 @@
     "@types/execa": "2.0.0",
     "@types/mocha": "7.0.2",
     "@types/mysql2": "github:types/mysql2",
+    "@types/pg": "7.14.3",
     "@types/prompts": "2.0.5",
     "chalk": "4.0.0",
     "diffie": "1.0.4",
@@ -61,6 +62,8 @@
     "mocha": "7.1.1",
     "mysql2": "2.1.0",
     "pegjs": "0.10.0",
+    "pg": "8.2.1",
+    "pgtools": "0.3.0",
     "rollup": "2.3.3",
     "testaway": "2.0.1",
     "typescript": "3.8.3"
