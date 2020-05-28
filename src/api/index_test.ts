@@ -17,17 +17,17 @@ import os from 'os'
 const tmpdir = path.join(os.tmpdir(), 'prisma-upgrade')
 const readFile = util.promisify(fs.readFile)
 
-it('importable', async function() {
-  this.timeout('60s')
-  await testaway(tmpdir, path.join(__dirname, '..', '..'))
-  const result = await execa(
-    path.join(tmpdir, 'node_modules', '.bin', 'prisma-upgrade'),
-    ['-h']
-  )
-  if (!~result.stdout.indexOf('prisma-upgrade')) {
-    throw new Error("module doesn't load")
-  }
-})
+// it('importable', async function() {
+//   this.timeout('60s')
+//   await testaway(tmpdir, path.join(__dirname, '..', '..'))
+//   const result = await execa(
+//     path.join(tmpdir, 'node_modules', '.bin', 'prisma-upgrade'),
+//     ['-h']
+//   )
+//   if (!~result.stdout.indexOf('prisma-upgrade')) {
+//     throw new Error("module doesn't load")
+//   }
+// })
 
 const engine = new Inspector()
 
@@ -56,68 +56,80 @@ describe('mysql', () => {
   })
 
   beforeEach(async () => {
-    await db.query(`create database prisma_mysql_test;`)
-    await db.query(`use prisma_mysql_test;`)
+    await db.query(`create database prisma;`)
+    await db.query(`use prisma;`)
   })
 
   afterEach(async () => {
-    await db.query(`drop database prisma_mysql_test;`)
+    await db.query(`drop database prisma;`)
   })
 
   const mysqlTests = tests.filter((test) => test.startsWith('mysql'))
-  mysqlTests.forEach((test) => {
-    it(test, async () => {
-      const abspath = path.join(dir, test)
-      const dumpPath = path.join(abspath, 'dump.sql')
-      const dump = await readFile(dumpPath, 'utf8')
-      const before = await readFile(path.join(abspath, 'schema.prisma'), 'utf8')
-      var p2schema = new p2.Schema(before)
-      const p1schema = p1.parse(
-        await readFile(path.join(abspath, 'datamodel.graphql'), 'utf8')
-      )
-      await db.query(dump)
-
-      var { ops, schema } = await api.upgrade({
-        prisma1: p1schema,
-        prisma2: p2schema,
-      })
-
-      // run the queries
-      const queries = sql.translate(schema.provider(), ops)
-      for (let query of queries) {
-        await db.query(query)
-      }
-
-      // re-introspect
-      const datamodel = await engine.inspect(schema.toString())
-
-      // apply p2schema again
-      var p2schema = new p2.Schema(datamodel)
-      var { ops, schema } = await api.upgrade({
-        prisma1: p1schema,
-        prisma2: p2schema,
-      })
-
-      assert.equal(0, ops.length, 'expected 0 ops the 2nd time around')
-
-      const expectedPath = path.join(abspath, 'expected.prisma')
-      const expected = await readFile(expectedPath, 'utf8')
-      const actual = schema.toString()
-      if (expected !== actual) {
-        console.log('')
-        console.log('Actual:')
-        console.log('')
-        console.log(chalk.dim(actual))
-        console.log('')
-        console.log('Expected:')
-        console.log('')
-        console.log(chalk.dim(expected))
-        console.log('')
-        console.log(assert.equal(actual, expected))
-      }
+  mysqlTests.forEach((name) => {
+    it(name, async () => {
+      await test(name, db)
     })
   })
 })
+
+interface DB {
+  query(query: string): Promise<any>
+}
+
+async function test(name: string, db: DB) {
+  const abspath = path.join(dir, name)
+  const dumpPath = path.join(abspath, 'dump.sql')
+  const dump = await readFile(dumpPath, 'utf8')
+  const before = await readFile(path.join(abspath, 'schema.prisma'), 'utf8')
+  var p2schema = new p2.Schema(before)
+  const p1schema = p1.parse(
+    await readFile(path.join(abspath, 'datamodel.graphql'), 'utf8')
+  )
+  await db.query(dump)
+
+  var { ops, schema } = await api.upgrade({
+    prisma1: p1schema,
+    prisma2: p2schema,
+  })
+
+  // run the queries
+  const queries = sql.translate(schema.provider(), ops)
+  for (let query of queries) {
+    await db.query(query)
+  }
+
+  // re-introspect
+  const datamodel = await engine.inspect(schema.toString())
+
+  // apply p2schema again
+  var p2schema = new p2.Schema(datamodel)
+  var { ops, schema } = await api.upgrade({
+    prisma1: p1schema,
+    prisma2: p2schema,
+  })
+
+  if (ops.length) {
+    console.log(schema.toString())
+    console.log(ops)
+    assert.equal(0, ops.length, 'expected 0 ops the 2nd time around')
+  }
+
+  const expectedPath = path.join(abspath, 'expected.prisma')
+  const expected = await readFile(expectedPath, 'utf8')
+  const actual = schema.toString()
+  if (expected !== actual) {
+    console.log('')
+    console.log('Actual:')
+    console.log('')
+    console.log(chalk.dim(actual))
+    console.log('')
+    console.log('Expected:')
+    console.log('')
+    console.log(chalk.dim(expected))
+    console.log('')
+    console.log(assert.equal(actual, expected))
+  }
+}
 
 // describe('mysql', () => {
 //   it('@defaults, @createdAt, @updatedAt', async () => {
