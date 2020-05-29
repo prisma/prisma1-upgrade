@@ -5,6 +5,7 @@ import * as p1 from '../prisma1'
 import * as p2 from '../prisma2'
 import * as sql from '../sql'
 import mariadb from 'mariadb'
+import yaml from 'js-yaml'
 import * as api from './'
 import chalk from 'chalk'
 import execa from 'execa'
@@ -53,12 +54,13 @@ describe('mysql', () => {
           path.join(abspath, 'expected.prisma'),
           'utf8'
         )
+        const prismaYaml = path.join(abspath, 'prisma.yml')
+        const yml = yaml.safeLoad(await readFile(prismaYaml, 'utf8'))
+        const datamodel = await concatDatamodels(path.dirname(prismaYaml), yml)
         const p2schema = new p2.Schema(
           await readFile(path.join(abspath, 'schema.prisma'), 'utf8')
         )
-        const p1schema = p1.parse(
-          await readFile(path.join(abspath, 'datamodel.graphql'), 'utf8')
-        )
+        const p1schema = p1.parse(datamodel)
         // NOTE: this assumes you have a local mysql instance running
         p2schema.setURL('mysql://root@localhost:3306/prisma_test')
         const credentials = uriToCredentials(p2schema.url())
@@ -78,7 +80,7 @@ describe('mysql', () => {
         await db.query(`create database prisma_test;`)
         await db.query(`use prisma_test;`)
         db.query(await readFile(path.join(abspath, 'dump.sql'), 'utf8'))
-        await test(db, engine, expected, p1schema, p2schema)
+        await test(db, engine, expected, undefined, p1schema, p2schema)
       })
     })
   })
@@ -93,7 +95,7 @@ describe('postgres', () => {
 
       after(async () => {
         db && (await db.end())
-        engine.close()
+        engine && engine.close()
       })
 
       it('test', async () => {
@@ -102,22 +104,26 @@ describe('postgres', () => {
           path.join(abspath, 'expected.prisma'),
           'utf8'
         )
+        const prismaYaml = path.join(abspath, 'prisma.yml')
+        const yml = yaml.safeLoad(await readFile(prismaYaml, 'utf8'))
+        const datamodel = await concatDatamodels(path.dirname(prismaYaml), yml)
+        const pathname = url.parse(yml.endpoint).pathname || ''
+        const pgschema = pathname.slice(1)
+          ? pathname.slice(1).replace(/\//g, '$')
+          : 'default$default'
+
         const p2schema = new p2.Schema(
           await readFile(path.join(abspath, 'schema.prisma'), 'utf8')
         )
-        const p1schema = p1.parse(
-          await readFile(path.join(abspath, 'datamodel.graphql'), 'utf8')
-        )
+        const p1schema = p1.parse(datamodel)
         // NOTE: this assumes you have a local postgres instance running
-        const uo = url.parse(p2schema.url(), true)
-        const schema = uo.query['schema'] || ''
         const pgo = url.parse('postgres://localhost:5432/prisma_test', true)
         pgo.auth = userInfo.username
-        if (schema) {
-          pgo.query['schema'] = schema
+        if (pgschema) {
+          pgo.query['schema'] = pgschema
         }
         p2schema.setURL(url.format(pgo))
-        const credentials = uriToCredentials(p2schema.url())
+        const credentials = uriToCredentials(url.format(pgo))
         const initialDB = new pg.Client({
           host: credentials.host,
           port: credentials.port,
@@ -144,7 +150,7 @@ describe('postgres', () => {
         await db.connect()
         engine = new Inspector()
         await db.query(await readFile(path.join(abspath, 'dump.sql'), 'utf8'))
-        await test(db, engine, expected, p1schema, p2schema)
+        await test(db, engine, expected, pgschema, p1schema, p2schema)
       })
     })
   })
@@ -217,6 +223,7 @@ async function test(
   db: DB,
   engine: Inspector,
   expected: string,
+  pgschema: string | undefined,
   p1schema: p1.Schema,
   p2schema: p2.Schema
 ) {
@@ -237,6 +244,7 @@ async function test(
   // await db.query(dump)
 
   var { ops, schema } = await api.upgrade({
+    pgschema: pgschema,
     prisma1: p1schema,
     prisma2: p2schema,
   })
@@ -503,3 +511,15 @@ async function test(
 //     // TODO: buffer commands and run against the actual database
 //   })
 // })
+
+async function concatDatamodels(wd: string, yml: any): Promise<string> {
+  if (!('datamodel' in yml)) {
+    return ''
+  }
+  const datamodels = [].concat(yml.datamodel)
+  const models: string[] = []
+  for (let dm of datamodels) {
+    models.push(await readFile(path.join(wd, dm), 'utf8'))
+  }
+  return models.join('\n\n')
+}

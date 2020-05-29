@@ -1,4 +1,4 @@
-const fs = require('fs').promises
+const fs = require('fs')
 const exec = require('execa')
 const path = require('path')
 
@@ -20,7 +20,7 @@ function sleep(ms) {
 }
 
 async function main() {
-  const dcConfigDirs = await fs.readdir(dcConfigPath)
+  const dcConfigDirs = await fs.readdirSync(dcConfigPath)
   try {
     for (dcConfigDir of dcConfigDirs) {
       const fullpath = path.join(dcConfigPath, dcConfigDir)
@@ -30,9 +30,13 @@ async function main() {
       await sleep(20000)
     }
 
-    const exampleDirs = await fs.readdir(examples)
+    const exampleDirs = await fs.readdirSync(examples)
     for (let example of exampleDirs) {
       const fullpath = path.join(examples, example)
+      // TODO: comment out if you want to run anew
+      if (fs.existsSync(path.join(fullpath, 'dump.sql'))) {
+        continue
+      }
       console.log(`${example}: deploying Prisma 1 schema`)
       const prismayml = path.join(fullpath, 'prisma.yml')
       let stdio
@@ -86,8 +90,9 @@ async function main() {
       } else {
         throw new Error('unknown database type')
       }
-      await fs.writeFile(path.join(fullpath, 'dump.sql'), dump)
+      await fs.writeFileSync(path.join(fullpath, 'dump.sql'), dump)
       const schemaPrisma = path.join(fullpath, 'schema.prisma')
+      fs.closeSync(fs.openSync(schemaPrisma, 'w'))
       if (~example.indexOf(`mysql-`)) {
         console.log(`${example}: introspecting MySQL database`)
         await exec(

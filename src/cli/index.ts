@@ -4,8 +4,10 @@ import * as p1 from '../prisma1'
 import * as sql from '../sql'
 import * as api from '../api'
 import { bold } from 'kleur'
+import yaml from 'js-yaml'
 import path from 'path'
 import util from 'util'
+import url from 'url'
 import arg from 'arg'
 import fs from 'fs'
 
@@ -41,7 +43,12 @@ function usage() {
 
   ${bold('Usage')}
 
-    prisma-upgrade [flags] <datamodel.graphql> [prisma/schema.prisma]
+    prisma-upgrade [flags] [path-to-prisma-yml] [path-to-prisma-schema]
+
+  ${bold('Arguments')}
+
+    [path-to-prisma-yml]     Path to prisma.yml file. Defaults to prisma/prisma.yml.
+    [path-to-prisma-schema]  Path to schema.prisma file. Defaults to prisma/schema.prisma.
 
   ${bold('Flags')}
 
@@ -67,16 +74,20 @@ async function main(argv: string[]): Promise<void> {
   }
 
   const params = args._.slice(2)
-  let p1rel = ''
-  let p2rel = ''
+  let prismaYaml = ''
+  let schemaPrisma = ''
   switch (params.length) {
+    case 0:
+      prismaYaml = 'prisma/prisma.yml'
+      schemaPrisma = 'prisma/schema.prisma'
+      break
     case 1:
-      p1rel = params[0]
-      p2rel = 'prisma/schema.prisma'
+      prismaYaml = params[0]
+      schemaPrisma = 'prisma/schema.prisma'
       break
     case 2:
-      p1rel = params[0]
-      p2rel = params[1]
+      prismaYaml = params[0]
+      schemaPrisma = params[1]
       break
     default:
       console.error(usage())
@@ -85,24 +96,38 @@ async function main(argv: string[]): Promise<void> {
 
   // change the working directory
   const wd = args['--chdir'] ? path.resolve(cwd, args['--chdir']) : cwd
-  const p1path = path.resolve(wd, p1rel)
-  if (!(await exists(p1path))) {
+  prismaYaml = path.resolve(wd, prismaYaml)
+  if (!(await exists(prismaYaml))) {
     console.error(
-      `[!] Prisma 1 Datamodel doesn't exist "${p1path}"\n\n${usage()}`
+      `[!] Prisma 1 Datamodel doesn't exist "${prismaYaml}"\n\n${usage()}`
     )
     process.exit(1)
   }
-  const p2path = path.resolve(wd, p2rel)
-  if (!(await exists(p2path))) {
-    console.error(`[!] Prisma 2 Schema doesn't exist "${p2path}"\n\n${usage()}`)
+  schemaPrisma = path.resolve(wd, schemaPrisma)
+  if (!(await exists(schemaPrisma))) {
+    console.error(
+      `[!] Prisma 2 Schema doesn't exist "${schemaPrisma}"\n\n${usage()}`
+    )
     process.exit(1)
   }
 
-  const prisma1 = p1.parse(await readFile(p1path, 'utf8'))
-  const p2schema = await readFile(p2path, 'utf8')
-  const prisma2 = new p2.Schema(p2schema)
+  const yml = yaml.safeLoad(await readFile(prismaYaml, 'utf8'))
+  if (!yml.endpoint) {
+    throw new Error(`prisma.yml must have an endpoint parameter`)
+  }
+  if (!yml.datamodel) {
+    throw new Error(`prisma.yml must have an datamodel parameter`)
+  }
+  const datamodel = await concatDatamodels(path.dirname(prismaYaml), yml)
+  const pathname = url.parse(yml.endpoint).pathname || ''
+  const schemaName = pathname.slice(1)
+    ? pathname.slice(1).replace(/\//g, '$')
+    : 'default$default'
+  const prisma1 = p1.parse(datamodel)
+  const prisma2 = new p2.Schema(await readFile(schemaPrisma, 'utf8'))
 
   const { ops, schema } = await api.upgrade({
+    pgschema: schemaName,
     prisma1,
     prisma2,
   })
@@ -122,15 +147,23 @@ async function main(argv: string[]): Promise<void> {
     return
   }
 
-  await writeFile(p2path, schema.toString())
+  // overwrite the schema.prisma file if there's no remaining operations
+  await writeFile(schemaPrisma, schema.toString())
   console.log(`You're all set! `)
   return
 }
 
-// function bak(p: string): string {
-//   const ext = path.extname(p)
-//   return path.join(path.dirname(p), path.basename(p, ext) + '.bak' + ext)
-// }
+async function concatDatamodels(wd: string, yml: any): Promise<string> {
+  if (!('datamodel' in yml)) {
+    return ''
+  }
+  const datamodels = [].concat(yml.datamodel)
+  const models: string[] = []
+  for (let dm of datamodels) {
+    models.push(await readFile(path.join(wd, dm), 'utf8'))
+  }
+  return models.join('\n\n')
+}
 
 /**
  * Run main

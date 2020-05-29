@@ -29,7 +29,7 @@ export type Op =
 
 export type SetDefaultOp = {
   type: 'SetDefaultOp'
-  schema: string
+  schema?: string
   p1Model: p1.ObjectTypeDefinition
   p1Field: p1.FieldDefinition
   p1Attr: p1.Directive
@@ -37,7 +37,7 @@ export type SetDefaultOp = {
 
 export type SetCreatedAtOp = {
   type: 'SetCreatedAtOp'
-  schema: string
+  schema?: string
   p1Model: p1.ObjectTypeDefinition
   p1Field: p1.FieldDefinition
   p1Attr: p1.Directive
@@ -45,14 +45,14 @@ export type SetCreatedAtOp = {
 
 export type AddUniqueConstraintOp = {
   type: 'AddUniqueConstraintOp'
-  schema: string
+  schema?: string
   table: string
   column: string
 }
 
 export type SetJsonTypeOp = {
   type: 'SetJsonTypeOp'
-  schema: string
+  schema?: string
   p1Model: p1.ObjectTypeDefinition
   p1Field: p1.FieldDefinition
 }
@@ -77,8 +77,12 @@ export class Postgres implements Translator {
     }
   }
 
+  private schema(schema: string | undefined, table: string): string {
+    return schema ? `"${schema}"."${table}"` : `"${table}"`
+  }
+
   private SetCreatedAtOp(op: SetCreatedAtOp): string {
-    const tableName = `"${op.schema}"."${op.p1Model.name}"`
+    const tableName = this.schema(op.schema, op.p1Model.name)
     const fieldName = op.p1Field.name
     return `alter table ${tableName} alter column "${fieldName}" set default current_timestamp;`
   }
@@ -86,7 +90,7 @@ export class Postgres implements Translator {
   private SetDefaultOp(op: SetDefaultOp): string {
     const arg = op.p1Attr.arguments.find((arg) => arg.name === 'value')
     if (!arg) return ''
-    const tableName = `"${op.schema}"."${op.p1Model.name}"`
+    const tableName = this.schema(op.schema, op.p1Model.name)
     const fieldName = op.p1Field.name
     const defaultValue = this.defaultValue(arg.value)
     return `alter table ${tableName} alter column "${fieldName}" set default ${defaultValue};`
@@ -110,13 +114,13 @@ export class Postgres implements Translator {
   }
 
   private SetJsonTypeOp(op: SetJsonTypeOp): string {
-    const tableName = `"${op.schema}"."${op.p1Model.name}"`
+    const tableName = this.schema(op.schema, op.p1Model.name)
     const fieldName = op.p1Field.name
     return `alter table ${tableName} alter column "${fieldName}" set data type jsonb using "${fieldName}"::text::jsonb;`
   }
 
   private AddUniqueConstraintOp(op: AddUniqueConstraintOp): string {
-    const tableName = `"${op.schema}"."${op.table}"`
+    const tableName = this.schema(op.schema, op.table)
     const fieldName = op.column
     return `alter table ${tableName} add unique ("${fieldName}");`
   }
@@ -138,11 +142,15 @@ export class MySQL5 implements Translator {
     }
   }
 
+  private backtick(ident: string): string {
+    return '`' + ident + '`'
+  }
+
   private SetDefaultOp(op: SetDefaultOp): string {
     const arg = op.p1Attr.arguments.find((arg) => arg.name === 'value')
     if (!arg) return ''
-    const modelName = op.p1Model.name
-    const fieldName = op.p1Field.name
+    const modelName = this.backtick(op.p1Model.name)
+    const fieldName = this.backtick(op.p1Field.name)
     const dataType = this.dataType(arg.value)
     const nullable = !!~op.p1Field.type.toString().indexOf('?')
     const notNull = nullable ? '' : 'not null'
@@ -185,8 +193,8 @@ export class MySQL5 implements Translator {
   }
 
   private SetCreatedAtOp(op: SetCreatedAtOp): string {
-    const modelName = op.p1Model.name
-    const fieldName = op.p1Field.name
+    const modelName = this.backtick(op.p1Model.name)
+    const fieldName = this.backtick(op.p1Field.name)
     const dataType = 'datetime'
     const nullable = !!~op.p1Field.type.toString().indexOf('?')
     const notNull = nullable ? '' : 'not null'
@@ -194,12 +202,14 @@ export class MySQL5 implements Translator {
   }
 
   private AddUniqueConstraintOp(op: AddUniqueConstraintOp): string {
-    return `alter table ${op.table} add unique (${op.column});`
+    const modelName = this.backtick(op.table)
+    const fieldName = this.backtick(op.column)
+    return `alter table ${modelName} add unique (${fieldName});`
   }
 
   private SetJsonTypeOp(op: SetJsonTypeOp): string {
-    const modelName = op.p1Model.name
-    const fieldName = op.p1Field.name
+    const modelName = this.backtick(op.p1Model.name)
+    const fieldName = this.backtick(op.p1Field.name)
     return `alter table ${modelName} change ${fieldName} ${fieldName} json;`
   }
 }

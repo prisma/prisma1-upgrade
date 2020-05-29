@@ -146,9 +146,10 @@ export class Datasource {
   get url(): string | undefined {
     const url = this.node.assignments.find((a) => a.key.name === 'url')
     if (!url) return
-    switch (url.value.type) {
+    const value = url.value
+    switch (value.type) {
       case 'string_value':
-        return url.value.value
+        return value.value
       default:
         throw new Error(
           `datasource ${
@@ -188,6 +189,81 @@ export class Datasource {
       end: a.value.end,
     }
   }
+
+  // private Value(n: ast.Value): string {
+  //   switch (n.type) {
+  //     case 'boolean_value':
+  //       return this.BooleanValue(n)
+  //     case 'datetime_value':
+  //       return this.DateTimeValue(n)
+  //     case 'float_value':
+  //       return this.FloatValue(n)
+  //     case 'function_value':
+  //       return this.FunctionValue(n)
+  //     case 'int_value':
+  //       return this.IntValue(n)
+  //     case 'list_value':
+  //       return this.ListValue(n)
+  //     case 'map_value':
+  //       return this.MapValue(n)
+  //     case 'string_value':
+  //       return this.StringValue(n)
+  //     case 'reference_value':
+  //       return this.ReferenceValue(n)
+  //     default:
+  //       throw new Error(`unhandled value ${n!.type}`)
+  //   }
+  // }
+
+  // private BooleanValue(n: ast.BooleanValue): string {
+  //   return String(n.value)
+  // }
+
+  // private DateTimeValue(n: ast.DateTimeValue): string {
+  //   return n.value.toISOString()
+  // }
+
+  // private FloatValue(n: ast.FloatValue): string {
+  //   return String(n.value)
+  // }
+
+  // private FunctionValue(n: ast.FunctionValue): string {
+  //   return `${this.Identifier(n.name)}(${(n.arguments || [])
+  //     .map((n) => this.Value(n))
+  //     .join(', ')})`
+  // }
+
+  // private IntValue(n: ast.IntValue): string {
+  //   return String(n.value)
+  // }
+
+  // private ListValue(n: ast.ListValue): string {
+  //   let arr: string = '['
+  //   arr += n.values.map((v) => this.Value(v)).join(', ')
+  //   arr += ']'
+  //   return arr
+  // }
+
+  // private MapValue(n: ast.MapValue): string {
+  //   let obj: string = '{'
+  //   for (let k in n.map) {
+  //     obj += `${k}: ${this.Value(n.map[k])},`
+  //   }
+  //   obj += '}'
+  //   return obj
+  // }
+
+  // private StringValue(n: ast.StringValue): string {
+  //   return '"' + n.value + '"'
+  // }
+
+  // private ReferenceValue(n: ast.ReferenceValue): string {
+  //   return this.Identifier(n.name)
+  // }
+
+  // private Identifier(n: ast.Identifier): string {
+  //   return n.name
+  // }
 }
 
 export class Model {
@@ -238,12 +314,13 @@ export class Field {
   upsertAttribute(a: ast.Attribute) {
     for (let i = 0; i < this.n.attributes.length; i++) {
       const attr = this.n.attributes[i]
-      if (attr.name !== a.name) {
+      if (attr.name.name !== a.name.name) {
         continue
       }
       this.n.attributes[i] = a
       return
     }
+    // console.log('inserting', a.name)
     this.n.attributes.push(a)
     return
   }
