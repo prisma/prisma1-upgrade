@@ -84,7 +84,7 @@ export class Postgres implements Translator {
   private SetCreatedAtOp(op: SetCreatedAtOp): string {
     const tableName = this.schema(op.schema, op.p1Model.name)
     const fieldName = op.p1Field.name
-    return `alter table ${tableName} alter column "${fieldName}" set default current_timestamp;`
+    return `ALTER TABLE ${tableName} ALTER COLUMN "${fieldName}" SET DEFAULT CURRENT_TIMESTAMP;`
   }
 
   private SetDefaultOp(op: SetDefaultOp): string {
@@ -93,7 +93,7 @@ export class Postgres implements Translator {
     const tableName = this.schema(op.schema, op.p1Model.name)
     const fieldName = op.p1Field.name
     const defaultValue = this.defaultValue(arg.value)
-    return `alter table ${tableName} alter column "${fieldName}" set default ${defaultValue};`
+    return `ALTER TABLE ${tableName} ALTER COLUMN "${fieldName}" SET DEFAULT ${defaultValue};`
   }
 
   private defaultValue(value: p1.Value): string {
@@ -116,13 +116,13 @@ export class Postgres implements Translator {
   private SetJsonTypeOp(op: SetJsonTypeOp): string {
     const tableName = this.schema(op.schema, op.p1Model.name)
     const fieldName = op.p1Field.name
-    return `alter table ${tableName} alter column "${fieldName}" set data type jsonb using "${fieldName}"::text::jsonb;`
+    return `ALTER TABLE ${tableName} ALTER COLUMN "${fieldName}" SET DATA TYPE JSONB USING "${fieldName}"::TEXT::JSONB;`
   }
 
   private AddUniqueConstraintOp(op: AddUniqueConstraintOp): string {
     const tableName = this.schema(op.schema, op.table)
     const fieldName = op.column
-    return `alter table ${tableName} add unique ("${fieldName}");`
+    return `ALTER TABLE ${tableName} ADD UNIQUE ("${fieldName}");`
   }
 }
 
@@ -153,23 +153,23 @@ export class MySQL5 implements Translator {
     const fieldName = this.backtick(op.p1Field.name)
     const dataType = this.dataType(arg.value)
     const nullable = !!~op.p1Field.type.toString().indexOf('?')
-    const notNull = nullable ? '' : 'not null'
+    const notNull = nullable ? '' : 'NOT NULL'
     const defaultValue = this.defaultValue(arg.value)
-    return `alter table ${modelName} change ${fieldName} ${fieldName} ${dataType} ${notNull} default ${defaultValue};`
+    return `ALTER TABLE ${modelName} CHANGE ${fieldName} ${fieldName} ${dataType} ${notNull} DEFAULT ${defaultValue};`
   }
 
   private dataType(value: p1.Value): string {
     switch (value.kind) {
       case 'BooleanValue':
-        return `tinyint(1)`
+        return `TINYINT(1)`
       case 'EnumValue':
-        return `varchar(191)`
+        return `VARCHAR(191)`
       case 'IntValue':
-        return `int(11)`
+        return `INT(11)`
       case 'FloatValue':
-        return `decimal(65,30)`
+        return `DECIMAL(65,30)`
       case 'StringValue':
-        return `mediumtext`
+        return `MEDIUMTEXT`
       default:
         throw new Error('MySQL5: unhandled dataType: ' + value!.kind)
     }
@@ -195,21 +195,21 @@ export class MySQL5 implements Translator {
   private SetCreatedAtOp(op: SetCreatedAtOp): string {
     const modelName = this.backtick(op.p1Model.name)
     const fieldName = this.backtick(op.p1Field.name)
-    const dataType = 'datetime'
+    const dataType = 'DATETIME'
     const nullable = !!~op.p1Field.type.toString().indexOf('?')
-    const notNull = nullable ? '' : 'not null'
-    return `alter table ${modelName} change ${fieldName} ${fieldName} ${dataType} ${notNull} default current_timestamp;`
+    const notNull = nullable ? '' : 'NOT NULL'
+    return `ALTER TABLE ${modelName} CHANGE ${fieldName} ${fieldName} ${dataType} ${notNull} DEFAULT CURRENT_TIMESTAMP;`
   }
 
   private AddUniqueConstraintOp(op: AddUniqueConstraintOp): string {
     const modelName = this.backtick(op.table)
     const fieldName = this.backtick(op.column)
-    return `alter table ${modelName} add unique (${fieldName});`
+    return `ALTER TABLE ${modelName} ADD UNIQUE (${fieldName});`
   }
 
   private SetJsonTypeOp(op: SetJsonTypeOp): string {
     const modelName = this.backtick(op.p1Model.name)
     const fieldName = this.backtick(op.p1Field.name)
-    return `alter table ${modelName} change ${fieldName} ${fieldName} json;`
+    return `ALTER TABLE ${modelName} CHANGE ${fieldName} ${fieldName} JSON;`
   }
 }

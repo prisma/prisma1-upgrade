@@ -1,6 +1,5 @@
 import * as ast from 'prismafile/dist/ast'
 import { parse, print } from 'prismafile'
-import url from 'url'
 
 const pos = {
   offset: 0,
@@ -63,26 +62,24 @@ export class Schema {
   }
 
   // return the first url
-  url(): string {
+  url(): string | void {
     const datasource = this.datasources[0]
     if (!datasource) {
-      throw new Error(
-        'The Prisma 2 schema must contain a datasource configuration'
-      )
+      return
     }
     const url = datasource.url
     if (!url) {
-      throw new Error('The Prisma 2 datasource must contain a url')
+      return
     }
     return url
   }
 
   // primarily useful for postgres
-  schema(): string {
-    const u = this.url()
-    const o = url.parse(u, true)
-    return String(o.query['schema'] || '')
-  }
+  // schema(): string {
+  //   const u = this.url()
+  //   const o = url.parse(u, true)
+  //   return String(o.query['schema'] || '')
+  // }
 
   findModel(fn: (m: Model) => boolean): Model | void {
     for (let model of this.models) {
@@ -151,11 +148,7 @@ export class Datasource {
       case 'string_value':
         return value.value
       default:
-        throw new Error(
-          `datasource ${
-            this.node.name
-          } "url" attribute must be a string, but got ${url.value.type}`
-        )
+        return
     }
   }
 

@@ -2,13 +2,14 @@ import * as p2ast from 'prismafile/dist/ast'
 import * as graph from '../prisma1/graph'
 import * as p2 from '../prisma2'
 import * as p1 from '../prisma1'
+import * as uri from 'url'
 import * as sql from '../sql'
 
 type Input = {
   prisma1: p1.Schema
   prisma2: p2.Schema
   // needed for postgres
-  pgschema?: string
+  url: string
 }
 
 type Output = {
@@ -18,39 +19,8 @@ type Output = {
 
 // upgrade performs a set of rules
 export async function upgrade(input: Input): Promise<Output> {
-  const { prisma1, prisma2, pgschema } = input
-  // const { prompter } = input
-
-  // await console.log(
-  //   redent(`
-  //     Welcome to the Prisma 1 to Prisma 2 upgrade tool.
-
-  //     This tool is designed to help you transition your ${provider} database from Prisma 1 to Prisma 2.
-
-  //     Here's how it works:
-
-  //       1. We inspect the contents of your Prisma 1 and Prisma 2 schema files.
-  //       2. We apply any Prisma-specific changes to your Prisma 2 schema file.
-  //       3. We generate SQL commands for you to run on your database.
-
-  //     We will not try to migrate your database for you. You are in full control
-  //     over the changes to your ${provider} database.
-
-  //     We suggest you first run the subsequent SQL commands on your testing or staging ${provider} database.
-  //     Then when you're confident with the transition you can migrate your production database.
-
-  //     If you have any questions along the way, please reach out to hi@prisma.io.
-  //   `)
-  // )
-
-  // let result = await prompter.prompt({
-  //   name: 'welcome',
-  //   type: 'confirm',
-  //   message: `Are you ready to get started?`,
-  // })
-  // if (!result.welcome) {
-  //   return prisma2
-  // }
+  const { prisma1, prisma2, url } = input
+  const pgSchema = getPGSchema(url)
 
   // first we'll transform P2 schema to make up for temporary re-introspection limitations.
   const models = prisma1.objects
@@ -107,7 +77,7 @@ export async function upgrade(input: Input): Promise<Output> {
       if (p1Field.type.named() === 'Json' && !isJsonType(p2Field)) {
         ops.push({
           type: 'SetJsonTypeOp',
-          schema: pgschema,
+          schema: pgSchema,
           p1Model,
           p1Field,
         })
@@ -128,7 +98,7 @@ export async function upgrade(input: Input): Promise<Output> {
           }
           ops.push({
             type: 'SetDefaultOp',
-            schema: pgschema,
+            schema: pgSchema,
             p1Model,
             p1Field,
             p1Attr,
@@ -138,7 +108,7 @@ export async function upgrade(input: Input): Promise<Output> {
         if (p1Attr.name === 'createdAt' && !hasDefaultNow(p2Field)) {
           ops.push({
             type: 'SetCreatedAtOp',
-            schema: pgschema,
+            schema: pgSchema,
             p1Model,
             p1Field,
             p1Attr,
@@ -148,7 +118,7 @@ export async function upgrade(input: Input): Promise<Output> {
         if (p1Attr.name === 'updatedAt' && !hasUpdatedAt(p2Field)) {
           ops.push({
             type: 'SetCreatedAtOp',
-            schema: pgschema,
+            schema: pgSchema,
             p1Model,
             p1Field,
             p1Attr,
@@ -200,7 +170,7 @@ export async function upgrade(input: Input): Promise<Output> {
         if (!isOneToOne(prisma2, uniqueEdge)) {
           ops.push({
             type: 'AddUniqueConstraintOp',
-            schema: pgschema,
+            schema: pgSchema,
             table: uniqueEdge.from,
             column: uniqueEdge.field,
           })
@@ -327,4 +297,16 @@ function isOneToOne(schema: p2.Schema, edge: graph.Edge): boolean {
 
 function isJsonType(field: p2.Field): boolean {
   return field.type.innermost().toString() === 'Json'
+}
+
+function getPGSchema(url: string): string {
+  const obj = uri.parse(url, true)
+  if (obj.query['schema']) {
+    return Array.isArray(obj.query['schema'])
+      ? obj.query['schema'].join('')
+      : obj.query['schema']
+  }
+  let pathname = obj.pathname || ''
+  pathname = pathname.replace(/^\//, '')
+  return pathname ? pathname.replace(/\//g, '$') : 'default$default'
 }

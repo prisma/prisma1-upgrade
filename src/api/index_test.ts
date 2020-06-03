@@ -21,17 +21,17 @@ const tmpdir = path.join(os.tmpdir(), 'prisma-upgrade')
 const readFile = util.promisify(fs.readFile)
 const userInfo = os.userInfo()
 
-// it('importable', async function() {
-//   this.timeout('60s')
-//   await testaway(tmpdir, path.join(__dirname, '..', '..'))
-//   const result = await execa(
-//     path.join(tmpdir, 'node_modules', '.bin', 'prisma-upgrade'),
-//     ['-h']
-//   )
-//   if (!~result.stdout.indexOf('prisma-upgrade')) {
-//     throw new Error("module doesn't load")
-//   }
-// })
+it('import-able', async function() {
+  this.timeout('60s')
+  await testaway(tmpdir, path.join(__dirname, '..', '..'))
+  const result = await execa(
+    path.join(tmpdir, 'node_modules', '.bin', 'prisma-upgrade'),
+    ['-h']
+  )
+  if (!~result.stdout.indexOf('prisma-upgrade')) {
+    throw new Error("module doesn't load")
+  }
+})
 
 const dir = path.join(__dirname, '..', '..', 'examples')
 const allTests = fs.readdirSync(dir)
@@ -63,7 +63,11 @@ describe('mysql', () => {
         const p1schema = p1.parse(datamodel)
         // NOTE: this assumes you have a local mysql instance running
         p2schema.setURL('mysql://root@localhost:3306/prisma_test')
-        const credentials = uriToCredentials(p2schema.url())
+        const url = p2schema.url()
+        if (!url) {
+          throw new Error('Expected url to not be void')
+        }
+        const credentials = uriToCredentials(url)
         db = await mariadb.createConnection({
           host: credentials.host,
           port: credentials.port,
@@ -80,7 +84,7 @@ describe('mysql', () => {
         await db.query(`create database prisma_test;`)
         await db.query(`use prisma_test;`)
         db.query(await readFile(path.join(abspath, 'dump.sql'), 'utf8'))
-        await test(db, engine, expected, undefined, p1schema, p2schema)
+        await test(db, engine, expected, url, p1schema, p2schema)
       })
     })
   })
@@ -223,7 +227,7 @@ async function test(
   db: DB,
   engine: Inspector,
   expected: string,
-  pgschema: string | undefined,
+  url: string,
   p1schema: p1.Schema,
   p2schema: p2.Schema
 ) {
@@ -244,7 +248,7 @@ async function test(
   // await db.query(dump)
 
   var { ops, schema } = await api.upgrade({
-    pgschema: pgschema,
+    url: url,
     prisma1: p1schema,
     prisma2: p2schema,
   })
@@ -266,6 +270,7 @@ async function test(
   // apply p2schema again
   var p2schema = new p2.Schema(datamodel)
   var { ops, schema } = await api.upgrade({
+    url: url,
     prisma1: p1schema,
     prisma2: p2schema,
   })
