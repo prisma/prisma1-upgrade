@@ -1,3 +1,9 @@
+# 0.0.9 / 2020-06-03
+
+- added a bunch of writing into the tool. uppercase SQL. support env variables inmside prisma.yml
+- added multiple datamodel support, support env(...), adjusted signature to prisma.yml schema.prisma, wrapped mysql commands in backticks
+- **BREAKING:** We now ask for the `prisma.yml` instead of `datamodel.graphql`
+
 # 0.0.8 / 2020-05-20
 
 - fix schema introspection
