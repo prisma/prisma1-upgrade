@@ -1,3 +1,7 @@
+# 0.0.10 / 2020-06-03
+
+- fix version
+
 # 0.0.9 / 2020-06-03
 
 - added a bunch of writing into the tool. uppercase SQL. support env variables inmside prisma.yml

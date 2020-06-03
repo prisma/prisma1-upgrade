@@ -42,6 +42,7 @@ const flags = {
 
   // version
   '--version': Boolean,
+  '-v': '--version',
 }
 
 function usage() {
@@ -62,7 +63,7 @@ function usage() {
       -u, --url <url>      Connection string to your database.
       -C, --chdir <dir>    Change the working directory.
       -h, --help           Output usage information.
-          --version        Show the version.
+      -v, --version        Show the version.
 
     ${bold('Examples')}
 
@@ -88,7 +89,7 @@ async function main(argv: string[]): Promise<void> {
 
   // print the version
   if (args['--version']) {
-    console.log(require('../package.json').version)
+    console.log(require('../../package.json').version)
     return
   }
 
