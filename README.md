@@ -16,10 +16,10 @@ This table reflects the _current_ feature set of the upgrade CLI and will be upd
 
 | Name                                | MySQL   | PostgreSQL | Prisma schema | Prisma 1 compatible |
 | ----------------------------------- | ------- | ---------- | ------------- | ------------------- |
-| Default values                      | Yes     | Not yet    | Yes           | Yes                 |
+| Default values                      | Yes     | Yes        | Yes           | Yes                 |
 | @updatedAt                          | Not yet | n/a        | Yes           | Yes                 |
-| Missing UNIQUE for inline 1-1       | Yes     | Not yet    | Yes           | Yes                 |
-| JSON                                | Yes     | Not yet    | Yes           | Yes                 |
+| Missing UNIQUE for inline 1-1       | Yes     | Yes        | Yes           | Yes                 |
+| JSON                                | Yes     | Yes        | Yes           | Yes                 |
 | Enums                               | Not yet | Not yet    | Not yet       | Yes                 |
 | Generated IDs                       | n/a     | n/a        | Yes           | Yes                 |
 | @createdAt                          | Yes     | Yes        | Yes           | Yes                 |
@@ -28,6 +28,7 @@ This table reflects the _current_ feature set of the upgrade CLI and will be upd
 | Cascading deletes                   | No      | No         | No            | No                  |
 | Maintain order of models and fields | n/a     | n/a        | Not yet       | No                  |
 | Maintain relation names             | n/a     | n/a        | Not yet       | No                  |
+
 
 
 What do the columns mean?
