@@ -17,7 +17,7 @@ This table reflects the _current_ feature set of the upgrade CLI and will be upd
 | Name                                | MySQL   | PostgreSQL | Prisma schema | Prisma 1 compatible |
 | ----------------------------------- | ------- | ---------- | ------------- | ------------------- |
 | Default values                      | Yes     | Yes        | Yes           | Yes                 |
-| @updatedAt                          | Not yet | n/a        | Yes           | Yes                 |
+| @updatedAt                          | n/a     | n/a        | Yes           | Yes                 |
 | Missing UNIQUE for inline 1-1       | Yes     | Yes        | Yes           | Yes                 |
 | JSON                                | Yes     | Yes        | Yes           | Yes                 |
 | Enums                               | Not yet | Not yet    | Not yet       | Yes                 |
