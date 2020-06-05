@@ -172,7 +172,7 @@ async function main(argv: string[]): Promise<void> {
       with the upgrade process from Prisma 1 to Prisma 2.0.
 
       Please read the docs to learn more about the upgrade process:
-      https://pris.ly/d/how-to-upgrade'
+      https://pris.ly/d/how-to-upgrade
 
       ${bold('Goal')}
       The Upgrade CLI helps you resolve the schema incompatibilities 
@@ -190,16 +190,14 @@ async function main(argv: string[]): Promise<void> {
 
       These are the different steps of the upgrade processs:
     
-        1. The Upgrade CLI inspects the contents of your Prisma 1 and Prisma 2.0 files.
-        2. The Upgrade CLI generates SQL commands for you to run on your database.
-        3. You run the SQL commands against your database.
-        4. You run the \`prisma introspect\` command again.
-        5. You run the \`prisma-upgrade\` tool again.
-        6. The Upgrade CLI checks the Prisma 2.0 schema to ensure everything has been applied.
-        7. The Upgrade CLI adjusts the Prisma 2.0 schema with the missing Prisma 2.0 attributes.
+        1. The Upgrade CLI generates SQL commands for you to run on your database.
+        2. You run the SQL commands against your database.
+        3. You run the \`prisma introspect\` command again.
+        4. You run the \`prisma-upgrade\` command again.
+        5. The Upgrade CLI adjusts the Prisma 2.0 schema with the missing Prisma 2.0 attributes.
 
       ${bold('Warning')}
-      It is recommended that youmake a full backup of your existing data before starting 
+      It is recommended that you make a full backup of your existing data before starting 
       the upgrade process. If possible, the migration should be performed in a staging 
       environment before executed against a production environment.
 
@@ -214,7 +212,7 @@ async function main(argv: string[]): Promise<void> {
 
     console.log()
     console.log(
-      `2. We've generated the following commands to be run on your database.`
+      `2. Run the following SQL statements against your database.`
     )
     console.log()
 
@@ -223,29 +221,33 @@ async function main(argv: string[]): Promise<void> {
       const queries = sql.translate(provider, ops)
       switch (type) {
         case 'SetDefaultOp':
-          console.log(`  Move Prisma-level @default values into the database.`)
+          console.log(`  Add missing \`DEFAULT\` constraints to the database`)
+          console.log(`  ${gray(`https://pris.ly/d/schema-incompatibilities#default-values-arent-represented-in-database`)}`)
           console.log()
           console.log('    ' + queries.join('\n    '))
           console.log()
           break
         case 'SetCreatedAtOp':
           console.log(
-            `  Move Prisma-level @createdAt as a default expression in the database.`
+            `  Replicate \`@createdAt\` behavior in Prisma 2.0`
           )
+          console.log(`  ${gray(`https://pris.ly/d/schema-incompatibilities#createdat-isnt-represented-in-database`)}`)
           console.log()
           console.log('    ' + queries.join('\n    '))
           console.log()
           break
         case 'AddUniqueConstraintOp':
-          console.log(`  Apply a unique constraint to one-to-one relations.`)
+          console.log(`  Fix 1-1 relations by adding \`UNIQUE\` constraints`)
+          console.log(`  ${gray(`https://pris.ly/d/schema-incompatibilities#inline-1-1-relations-are-recognized-as-1-n-missing-unique-constraint`)}`)
           console.log()
           console.log('    ' + queries.join('\n    '))
           console.log()
           break
         case 'SetJsonTypeOp':
           console.log(
-            `  Turn the columns string type into a json type for Json fields.`
+            `  Fixing columns with JSON data types`
           )
+          console.log(`  ${gray(`https://pris.ly/d/schema-incompatibilities##json-type-is-represented-as-text-in-database`)}`)
           console.log()
           console.log('    ' + queries.join('\n    '))
           console.log()
@@ -253,16 +255,17 @@ async function main(argv: string[]): Promise<void> {
       }
     }
 
-    console.log(`3. Run the above SQL commands against your database`)
+    console.log(`3. Run the above SQL commands against your database.`)
     console.log(
       redent(`
-      If you've made all the SQL changes you're comfortable with
-      you can skip to the end where we upgrade your Prisma 2.0 schema.
+      If you've made all the SQL changes you're comfortable with,
+      you can skip to the end where the Upgrade CLI makes some final
+      adjustments to your Prisma 2.0 schema.
 
       Otherwise the next steps are to:
 
-        4. Run \`prisma introspect\` again to refresh your Prisma 2.0 schema
-        5. Run \`prisma-upgrade\` again
+        4. Run \`prisma introspect\` again to refresh your Prisma 2.0 schema.
+        5. Run \`prisma-upgrade\` again.
     `)
     )
     const yes = await prompt.confirm(`Skip to the last step? [Y/n]? `)
@@ -275,14 +278,15 @@ async function main(argv: string[]): Promise<void> {
   // overwrite the schema.prisma file if there's no remaining operations
   console.log(
     redent(`
-      Congrats! You've fully upgraded your Prisma Schema.
+      Congratulations! You've fully upgraded your Prisma schema.
 
-      As a last step, we need to adjust your Prisma 2.0 schema
-      to carry-over some Prisma-level attributes that aren't
-      picked up by introspection.
+      As a last step, some final adjustments will be made to your Prisma 2.0 
+      schema to carry over some Prisma-level attributes that aren't picked 
+      up by introspection.
 
-      We will overwrite your existing Prisma 2.0 schema so please
-      make sure you have a backup.
+      ${bold('Warning')}
+      Your current Prisma 2.0 schema will be overwritten, so please
+      make sure you have a backup!
   `)
   )
   await confirm(`Are you ready? [Y/n] `)
@@ -294,15 +298,19 @@ async function main(argv: string[]): Promise<void> {
   console.log(`Updated ${relpath}.`)
   console.log(
     redent(`
-      You're all set!
+      ✔ You're all set!
 
-      Please diff your backup to make sure the adjustments match your
-      expectations.
+      ${bold('Notes')}
+      The Upgrade CLI doesn't resolve all of the schema incompatibilities.
+      If you want to resolve the remaining ones, you can follow this guide:
+      https://pris.ly/d/upgrading-the-prisma-layer
 
-      As always, if you have any questions or concerns you can find us
-      in Slack at https://prisma.slack.com.
+      ${bold('Next steps')}
+      You can continue your upgrade process by installing Prisma Client 2.0:
+      npm install @prisma/client
 
-      Happy data modeling!
+      You can find guides for different upgrade scenarios in the docs:
+      https://pris.ly/d/upgrade-from-prisma-1
   `)
   )
   return
