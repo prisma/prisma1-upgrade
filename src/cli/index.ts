@@ -126,10 +126,10 @@ async function main(argv: string[]): Promise<void> {
 
   const yml = yaml.safeLoad(await readFile(prismaYaml, 'utf8'))
   if (!yml.endpoint) {
-    return fatal(`prisma.yml must have an endpoint parameter`)
+    return fatal(`prisma.yml must have an \`endpoint\` parameter`)
   }
   if (!yml.datamodel) {
-    return fatal(`prisma.yml must have an datamodel parameter`)
+    return fatal(`prisma.yml must have an \`endpoint\` parameter`)
   }
 
   const datamodel = await concatDatamodels(path.dirname(prismaYaml), yml)
@@ -138,13 +138,13 @@ async function main(argv: string[]): Promise<void> {
   const url = isURL(args['--url'] || '') ? args['--url'] : findURL(yml, prisma2)
   if (!url) {
     return fatal(
-      `No url found. Please use the --url flag. We don't use this url to connect to your database, only to determine the schema name. Run \`prisma-upgrade -h\` for more details.`
+      `No url found. Please use the --url flag. The url is not used to connect to your database, only to determine the schema name. Run \`prisma-upgrade -h\` for more details.`
     )
   }
   // no models
   if (prisma2.models.length === 0) {
     return fatal(
-      `Your Prisma 2.0 schema doesn't have any models. Run \`prisma introspect\`, then run this tool again.`
+      `Your Prisma 2.0 schema doesn't have any models. Run \`prisma introspect\`, then run \`prisma-upgrade\`  again.`
     )
   }
 
@@ -194,7 +194,7 @@ async function main(argv: string[]): Promise<void> {
         2. You run the SQL commands against your database.
         3. You run the \`prisma introspect\` command again.
         4. You run the \`prisma-upgrade\` command again.
-        5. The Upgrade CLI adjusts the Prisma 2.0 schema with the missing Prisma 2.0 attributes.
+        5. The Upgrade CLI adjusts the Prisma 2.0 schema by adding missing attributes.
 
       ${bold('Warning')}
       It is recommended that you make a full backup of your existing data before starting 
