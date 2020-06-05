@@ -110,31 +110,26 @@ async function main(argv: string[]): Promise<void> {
       schemaPrisma = params[1]
       break
     default:
-      fatal('Too many arguments.')
-      process.exit(1)
+      return fatal('Too many arguments. Run `prisma-upgrade -h` for details.')
   }
 
   // change the working directory
   const wd = args['--chdir'] ? path.resolve(cwd, args['--chdir']) : cwd
   prismaYaml = path.resolve(wd, prismaYaml)
   if (!(await exists(prismaYaml))) {
-    fatal(`Prisma 1 datamodel doesn't exist in "${prismaYaml}"`)
-    process.exit(1)
+    return fatal(`Prisma 1 datamodel doesn't exist in "${prismaYaml}"`)
   }
   schemaPrisma = path.resolve(wd, schemaPrisma)
   if (!(await exists(schemaPrisma))) {
-    fatal(`Prisma 2 schema doesn't exist in "${schemaPrisma}"`)
-    process.exit(1)
+    return fatal(`Prisma 2 schema doesn't exist in "${schemaPrisma}"`)
   }
 
   const yml = yaml.safeLoad(await readFile(prismaYaml, 'utf8'))
   if (!yml.endpoint) {
-    fatal(`prisma.yml must have an endpoint parameter`)
-    process.exit(1)
+    return fatal(`prisma.yml must have an endpoint parameter`)
   }
   if (!yml.datamodel) {
-    fatal(`prisma.yml must have an datamodel parameter`)
-    process.exit(1)
+    return fatal(`prisma.yml must have an datamodel parameter`)
   }
 
   const datamodel = await concatDatamodels(path.dirname(prismaYaml), yml)
@@ -142,10 +137,15 @@ async function main(argv: string[]): Promise<void> {
   const prisma2 = new p2.Schema(await readFile(schemaPrisma, 'utf8'))
   const url = isURL(args['--url'] || '') ? args['--url'] : findURL(yml, prisma2)
   if (!url) {
-    fatal(
-      `No url found. Please use the --url flag. We don't use this url to connect to your database, only to determine the schema name.`
+    return fatal(
+      `No url found. Please use the --url flag. We don't use this url to connect to your database, only to determine the schema name. Run \`prisma-upgrade -h\` for more details.`
     )
-    process.exit(1)
+  }
+  // no models
+  if (prisma2.models.length === 0) {
+    return fatal(
+      `Your Prisma 2 schema doesn't have any models. Run \`prisma introspect\`, then run this tool again.`
+    )
   }
 
   const { ops, schema } = await api.upgrade({
@@ -195,6 +195,7 @@ async function main(argv: string[]): Promise<void> {
     `)
     )
     await confirm(`Are you ready? [Y/n] `)
+    clear(true)
 
     console.log()
     console.log(
@@ -238,12 +239,23 @@ async function main(argv: string[]): Promise<void> {
     }
 
     console.log(`3. Run the above SQL commands against your database`)
-    console.log(
-      `4. Run \`prisma introspect\` again to refresh your Prisma 2 schema`
-    )
-    console.log(`5. Run \`prisma-upgrade\` again`)
     console.log()
-    return
+    console.log(
+      redent(`
+      If you've made all the SQL changes you're comfortable with
+      you can skip to the end where we upgrade your Prisma 2 schema.
+
+      Otherwise the next steps are to:
+
+        4. Run \`prisma introspect\` again to refresh your Prisma 2 schema
+        5. Run \`prisma-upgrade\` again
+    `)
+    )
+    const yes = await prompt.confirm(`Skip to the last step? [Y/n]? `)
+    if (!yes) {
+      return
+    }
+    clear(true)
   }
 
   // overwrite the schema.prisma file if there's no remaining operations
@@ -260,11 +272,12 @@ async function main(argv: string[]): Promise<void> {
   `)
   )
   await confirm(`Are you ready? [Y/n] `)
+  clear(true)
   console.log()
   const relpath = path.relative(process.cwd(), schemaPrisma)
-  console.log(`  Updating ${relpath}...`)
+  console.log(`Updating ${relpath}...`)
   await writeFile(schemaPrisma, schema.toString())
-  console.log(`  Updated ${relpath}.`)
+  console.log(`Updated ${relpath}.`)
   console.log(
     redent(`
       You're all set!
@@ -281,6 +294,10 @@ async function main(argv: string[]): Promise<void> {
   return
 }
 
+/**
+ * Concatenate all the datamodels together
+ */
+
 async function concatDatamodels(wd: string, yml: any): Promise<string> {
   if (!('datamodel' in yml)) {
     return ''
@@ -293,6 +310,10 @@ async function concatDatamodels(wd: string, yml: any): Promise<string> {
   return models.join('\n\n')
 }
 
+/**
+ * Find the URL from prisma.yml or prisma 2 schema
+ */
+
 function findURL(yml: any, p2: p2.Schema): string | void {
   if (isURL(yml.endpoint)) {
     return yml.endpoint
@@ -304,6 +325,10 @@ function findURL(yml: any, p2: p2.Schema): string | void {
   return
 }
 
+/**
+ * Confirm or exit
+ */
+
 async function confirm(message: string): Promise<void> {
   const yes = await prompt.confirm(message)
   if (!yes) {
@@ -311,12 +336,25 @@ async function confirm(message: string): Promise<void> {
   }
 }
 
+/**
+ * Fatal message and exit
+ */
+
 function fatal(message: string) {
   console.error(
     `\n${red(
       `${bold(`Error`)} ${redent(message).trim()}`
-    )}\n${usage()}\nIf you have any questions or run into any problems along the way, please create an issue at https://github.com/prisma/upgrade/issues/new.`
+    )}\n\nIf you have any questions or run into any problems along the way, please create an issue at https://github.com/prisma/upgrade/issues/new.\n`
   )
+  process.exit(1)
+}
+
+/**
+ * Clear the console. Optionally maintain scrollback
+ */
+
+function clear(isSoft: boolean): void {
+  process.stdout.write(isSoft ? '\x1B[H\x1B[2J' : '\x1B[2J\x1B[3J\x1B[H\x1Bc')
 }
 
 /**
