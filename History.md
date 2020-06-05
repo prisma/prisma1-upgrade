@@ -1,3 +1,10 @@
+# 0.0.11 / 2020-06-05
+
+- cleanup dependencies.
+- add ability to skip sql.
+- add more commentary.
+- add soft clear.
+
 # 0.0.10 / 2020-06-03
 
 - fix version
