@@ -48,6 +48,7 @@
     "mariadb": "2.4.0",
     "mocha": "7.2.0",
     "pg": "8.2.1",
+    "prettier": "2.0.5",
     "testaway": "2.0.1",
     "typescript": "3.9.5"
   }

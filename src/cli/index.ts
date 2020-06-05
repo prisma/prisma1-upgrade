@@ -185,7 +185,7 @@ async function main(argv: string[]): Promise<void> {
       We will not try to migrate your database for you. You are in full control
       over the changes to your ${provider} database.
 
-      We suggest you first run the subsequent SQL commands on your testing or
+      We suggest you first run the generated SQL commands on your testing or
       staging ${provider} database. Then when you're confident with the
       transition you can migrate your production database. We encourage you to
       backup your database before performing any of these actions.
@@ -239,7 +239,6 @@ async function main(argv: string[]): Promise<void> {
     }
 
     console.log(`3. Run the above SQL commands against your database`)
-    console.log()
     console.log(
       redent(`
       If you've made all the SQL changes you're comfortable with
