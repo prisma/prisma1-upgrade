@@ -186,10 +186,12 @@ async function main(argv: string[]): Promise<void> {
       Note that the Upgrade CLI never makes changes to your database, 
       you are in full control over any operations that are executed against it.
 
+      You can stop and re-run the Upgrade CLI at any time.
+
       These are the different steps of the upgrade processs:
     
         1. The Upgrade CLI inspects the contents of your Prisma 1 and Prisma 2.0 files.
-        2. The Upgrade CLI generates specific SQL commands for you to run on your database.
+        2. The Upgrade CLI generates SQL commands for you to run on your database.
         3. You run the SQL commands against your database.
         4. You run the \`prisma introspect\` command again.
         5. You run the \`prisma-upgrade\` tool again.
@@ -204,7 +206,7 @@ async function main(argv: string[]): Promise<void> {
       ${bold('Help')}
       If you have any questions or run into any problems along the way,
       please create an issue at:
-      https://github.com/prisma/upgrade/issues/new.
+      https://github.com/prisma/upgrade/issues/new
     `)
     )
     await confirm(`Are you ready? [Y/n] `)
