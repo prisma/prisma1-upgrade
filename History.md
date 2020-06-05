@@ -1,3 +1,8 @@
+# 0.0.12 / 2020-06-05
+
+- remove @updatedAt setting a default timestamp
+- add prettier
+
 # 0.0.11 / 2020-06-05
 
 - cleanup dependencies.
