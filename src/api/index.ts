@@ -50,8 +50,7 @@ export async function upgrade(input: Input): Promise<Output> {
           // next, we'll loop over the P1 attributes
           for (let p1Attr of p1Field.directives) {
             // Rule 3: when we see an @updatedAt in P1, replace @default(now()) with @updatedAt
-            if (p1Attr.name === 'updatedAt' && hasDefaultNow(p2Field)) {
-              p2Field.removeAttribute((attr) => attr.name === 'default')
+            if (p1Attr.name === 'updatedAt') {
               p2Field.upsertAttribute(updatedAt())
             }
           }
@@ -106,16 +105,6 @@ export async function upgrade(input: Input): Promise<Output> {
         }
         // we found a @createdAt in P1 and it's not in P2
         if (p1Attr.name === 'createdAt' && !hasDefaultNow(p2Field)) {
-          ops.push({
-            type: 'SetCreatedAtOp',
-            schema: pgSchema,
-            p1Model,
-            p1Field,
-            p1Attr,
-          })
-        }
-        // we found a @updatedAt in P1 and it's not in P2
-        if (p1Attr.name === 'updatedAt' && !hasUpdatedAt(p2Field)) {
           ops.push({
             type: 'SetCreatedAtOp',
             schema: pgSchema,

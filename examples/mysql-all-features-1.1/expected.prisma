@@ -40,9 +40,9 @@ model Tagline_visibility {
 model TaxDocument {
   documentNumber String
   expiresOn      DateTime
-  id             String   @default(cuid()) @id
+  id             String    @default(cuid()) @id
   issuedOn       DateTime
-  lastChangedOn  DateTime @updatedAt
+  lastChangedOn  DateTime? @updatedAt
   User           User?
 }
 
