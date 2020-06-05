@@ -1,4 +1,4 @@
-import { bold, red, gray } from 'kleur'
+import { bold, red, gray, underline, black, green } from 'kleur'
 import { console } from '../console'
 import * as prompt from '../prompt'
 import * as p2 from '../prisma2'
@@ -168,18 +168,18 @@ async function main(argv: string[]): Promise<void> {
 
     console.log(
       redent(`
-      Welcome to the interactive Prisma Upgrade CLI that helps 
-      with the upgrade process from Prisma 1 to Prisma 2.0.
+      ◮ Welcome to the interactive Prisma Upgrade CLI that helps with the 
+      upgrade process from Prisma 1 to Prisma 2.0.
 
       Please read the docs to learn more about the upgrade process:
-      https://pris.ly/d/how-to-upgrade
+      ${gray(underline('https://pris.ly/d/how-to-upgrade'))}
 
-      ${bold('Goal')}
+      ${bold('➤ Goal')}
       The Upgrade CLI helps you resolve the schema incompatibilities 
-      betweeen Prisma 1 and Prisma 2. Learn more: 
-      https://pris.ly/d/schema-incompatibilities
+      betweeen Prisma 1 and Prisma 2.0. Learn more in the docs: 
+      ${gray(underline('https://pris.ly/d/schema-incompatibilities'))}
 
-      ${bold('How it works')}
+      ${bold('➤ How it works')}
       Troughout the process, you'll need to adjust your database schema by sending
       SQL statements to it. The SQL statements are provided by the Upgrade CLI. 
 
@@ -192,19 +192,19 @@ async function main(argv: string[]): Promise<void> {
     
         1. The Upgrade CLI generates SQL commands for you to run on your database.
         2. You run the SQL commands against your database.
-        3. You run the \`prisma introspect\` command again.
-        4. You run the \`prisma-upgrade\` command again.
+        3. You run the ${green(`\`prisma introspect\``)} command again.
+        4. You run the ${green(`\`prisma-upgrade\``)} command again.
         5. The Upgrade CLI adjusts the Prisma 2.0 schema by adding missing attributes.
 
-      ${bold('Warning')}
+      ${bold('➤ Note')}
       It is recommended that you make a full backup of your existing data before starting 
       the upgrade process. If possible, the migration should be performed in a staging 
       environment before executed against a production environment.
 
-      ${bold('Help')}
+      ${bold('➤ Help')}
       If you have any questions or run into any problems along the way,
       please create an issue at:
-      https://github.com/prisma/upgrade/issues/new
+      ${gray(underline('https://github.com/prisma/upgrade/issues/new'))}
     `)
     )
     await confirm(`Are you ready? [Y/n] `)
@@ -212,7 +212,7 @@ async function main(argv: string[]): Promise<void> {
 
     console.log()
     console.log(
-      `2. Run the following SQL statements against your database.`
+      `Run the following SQL statements against your database:`
     )
     console.log()
 
@@ -221,32 +221,28 @@ async function main(argv: string[]): Promise<void> {
       const queries = sql.translate(provider, ops)
       switch (type) {
         case 'SetDefaultOp':
-          console.log(`  Add missing \`DEFAULT\` constraints to the database`)
+          console.log(`  ${bold(`Add missing \`DEFAULT\` constraints to the database`)}`)
           console.log(`  ${gray(`https://pris.ly/d/schema-incompatibilities#default-values-arent-represented-in-database`)}`)
           console.log()
           console.log('    ' + queries.join('\n    '))
           console.log()
           break
         case 'SetCreatedAtOp':
-          console.log(
-            `  Replicate \`@createdAt\` behavior in Prisma 2.0`
-          )
+          console.log(`  ${bold(`Replicate \`@createdAt\` behavior in Prisma 2.0`)}`)
           console.log(`  ${gray(`https://pris.ly/d/schema-incompatibilities#createdat-isnt-represented-in-database`)}`)
           console.log()
           console.log('    ' + queries.join('\n    '))
           console.log()
           break
         case 'AddUniqueConstraintOp':
-          console.log(`  Fix 1-1 relations by adding \`UNIQUE\` constraints`)
+          console.log(`  ${bold(`Fix 1-1 relations by adding \`UNIQUE\` constraints`)}`)
           console.log(`  ${gray(`https://pris.ly/d/schema-incompatibilities#inline-1-1-relations-are-recognized-as-1-n-missing-unique-constraint`)}`)
           console.log()
           console.log('    ' + queries.join('\n    '))
           console.log()
           break
         case 'SetJsonTypeOp':
-          console.log(
-            `  Fixing columns with JSON data types`
-          )
+          console.log(`  ${bold(`Fixing columns with JSON data types`)}`)
           console.log(`  ${gray(`https://pris.ly/d/schema-incompatibilities##json-type-is-represented-as-text-in-database`)}`)
           console.log()
           console.log('    ' + queries.join('\n    '))
@@ -255,7 +251,6 @@ async function main(argv: string[]): Promise<void> {
       }
     }
 
-    console.log(`3. Run the above SQL commands against your database.`)
     console.log(
       redent(`
       If you've made all the SQL changes you're comfortable with,
@@ -264,8 +259,8 @@ async function main(argv: string[]): Promise<void> {
 
       Otherwise the next steps are to:
 
-        4. Run \`prisma introspect\` again to refresh your Prisma 2.0 schema.
-        5. Run \`prisma-upgrade\` again.
+        1. Run ${green(`\`prisma introspect\``)} again to refresh your Prisma 2.0 schema.
+        2. Run ${green(`\`prisma-upgrade\``)} again.
     `)
     )
     const yes = await prompt.confirm(`Skip to the last step? [Y/n]? `)
