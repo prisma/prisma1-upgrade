@@ -121,7 +121,7 @@ async function main(argv: string[]): Promise<void> {
   }
   schemaPrisma = path.resolve(wd, schemaPrisma)
   if (!(await exists(schemaPrisma))) {
-    return fatal(`Prisma 2 schema doesn't exist in "${schemaPrisma}"`)
+    return fatal(`Prisma 2.0 schema doesn't exist in "${schemaPrisma}"`)
   }
 
   const yml = yaml.safeLoad(await readFile(prismaYaml, 'utf8'))
@@ -144,7 +144,7 @@ async function main(argv: string[]): Promise<void> {
   // no models
   if (prisma2.models.length === 0) {
     return fatal(
-      `Your Prisma 2 schema doesn't have any models. Run \`prisma introspect\`, then run this tool again.`
+      `Your Prisma 2.0 schema doesn't have any models. Run \`prisma introspect\`, then run this tool again.`
     )
   }
 
@@ -168,30 +168,43 @@ async function main(argv: string[]): Promise<void> {
 
     console.log(
       redent(`
-      Welcome to the Prisma 1 to Prisma 2 upgrade tool. This tool is designed
-      to help you gracefully transition your ${provider} database from Prisma 1
-      to Prisma 2.
+      Welcome to the interactive Prisma Upgrade CLI that helps 
+      with the upgrade process from Prisma 1 to Prisma 2.0.
 
-      Here's how it works:
+      Please read the docs to learn more about the upgrade process:
+      https://pris.ly/d/how-to-upgrade'
 
-        1. We inspect the contents of your Prisma 1 and Prisma 2 files.
-        2. We generate specific SQL commands for you to run on your database.
-        3. You run the SQL commands against your database
-        4. You run the \`prisma introspect\` command again
-        5. You run the \`prisma-upgrade\` tool again
-        6. We check the Prisma 2 schema to ensure everything has been applied
-        7. We upgrade the Prisma 2 schema with Prisma-level attributes
+      ${bold('Goal')}
+      The Upgrade CLI helps you resolve the schema incompatibilities 
+      betweeen Prisma 1 and Prisma 2. Learn more: 
+      https://pris.ly/d/schema-incompatibilities
 
-      We will not try to migrate your database for you. You are in full control
-      over the changes to your ${provider} database.
+      ${bold('How it works')}
+      Troughout the process, you'll need to adjust your database schema by sending
+      SQL statements to it. The SQL statements are provided by the Upgrade CLI. 
 
-      We suggest you first run the generated SQL commands on your testing or
-      staging ${provider} database. Then when you're confident with the
-      transition you can migrate your production database. We encourage you to
-      backup your database before performing any of these actions.
+      Note that the Upgrade CLI never makes changes to your database, 
+      you are in full control over any operations that are executed against it.
 
+      These are the different steps of the upgrade processs:
+    
+        1. The Upgrade CLI inspects the contents of your Prisma 1 and Prisma 2.0 files.
+        2. The Upgrade CLI generates specific SQL commands for you to run on your database.
+        3. You run the SQL commands against your database.
+        4. You run the \`prisma introspect\` command again.
+        5. You run the \`prisma-upgrade\` tool again.
+        6. The Upgrade CLI checks the Prisma 2.0 schema to ensure everything has been applied.
+        7. The Upgrade CLI adjusts the Prisma 2.0 schema with the missing Prisma 2.0 attributes.
+
+      ${bold('Warning')}
+      It is recommended that youmake a full backup of your existing data before starting 
+      the upgrade process. If possible, the migration should be performed in a staging 
+      environment before executed against a production environment.
+
+      ${bold('Help')}
       If you have any questions or run into any problems along the way,
-      please create an issue at https://github.com/prisma/upgrade/issues/new.
+      please create an issue at:
+      https://github.com/prisma/upgrade/issues/new.
     `)
     )
     await confirm(`Are you ready? [Y/n] `)
@@ -242,11 +255,11 @@ async function main(argv: string[]): Promise<void> {
     console.log(
       redent(`
       If you've made all the SQL changes you're comfortable with
-      you can skip to the end where we upgrade your Prisma 2 schema.
+      you can skip to the end where we upgrade your Prisma 2.0 schema.
 
       Otherwise the next steps are to:
 
-        4. Run \`prisma introspect\` again to refresh your Prisma 2 schema
+        4. Run \`prisma introspect\` again to refresh your Prisma 2.0 schema
         5. Run \`prisma-upgrade\` again
     `)
     )
@@ -262,11 +275,11 @@ async function main(argv: string[]): Promise<void> {
     redent(`
       Congrats! You've fully upgraded your Prisma Schema.
 
-      As a last step, we need to adjust your Prisma 2 schema
+      As a last step, we need to adjust your Prisma 2.0 schema
       to carry-over some Prisma-level attributes that aren't
       picked up by introspection.
 
-      We will overwrite your existing Prisma 2 schema so please
+      We will overwrite your existing Prisma 2.0 schema so please
       make sure you have a backup.
   `)
   )
@@ -310,7 +323,7 @@ async function concatDatamodels(wd: string, yml: any): Promise<string> {
 }
 
 /**
- * Find the URL from prisma.yml or prisma 2 schema
+ * Find the URL from prisma.yml or prisma 2.0 schema
  */
 
 function findURL(yml: any, p2: p2.Schema): string | void {
