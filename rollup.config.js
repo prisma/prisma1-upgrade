@@ -1,8 +1,8 @@
-const nodeResolve = require('@rollup/plugin-node-resolve')
-const sucrase = require('@rollup/plugin-sucrase')
-const resolve = require('resolve')
-const Module = require('module')
-const path = require('path')
+import nodeResolve from '@rollup/plugin-node-resolve'
+import sucrase from '@rollup/plugin-sucrase'
+import resolve from 'resolve'
+import Module from 'module'
+import path from 'path'
 
 export default {
   input: {
