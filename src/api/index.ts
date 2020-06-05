@@ -265,10 +265,6 @@ function hasDefaultNow(field: p2.Field): boolean {
   return attr.toString() === '@default(now())'
 }
 
-function hasUpdatedAt(field: p2.Field): boolean {
-  return !!field.findAttribute((a) => a.name === 'updatedAt')
-}
-
 function isOneToOne(schema: p2.Schema, edge: graph.Edge): boolean {
   const fromModel = schema.findModel((m) => m.name === edge.from)
   if (!fromModel) return false
