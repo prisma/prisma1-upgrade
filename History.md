@@ -1,3 +1,12 @@
+# 0.0.14 / 2020-06-08
+
+- prep for addressing L.
+- add test for postgres aliasing
+- add K: @db aliasing
+- fix tests.
+- add better help messages
+- make npx the default everywhere
+
 # 0.0.13 / 2020-06-08
 
 - add support for migrating scalar enums. fix missing dependency.
