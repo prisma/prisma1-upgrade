@@ -126,10 +126,10 @@ async function main(argv: string[]): Promise<void> {
 
   const yml = yaml.safeLoad(await readFile(prismaYaml, 'utf8'))
   if (!yml.endpoint) {
-    return fatal(`prisma.yml must have an \`endpoint\` parameter`)
+    return fatal(`${bold(`prisma.yml`)} must have an \`endpoint\` parameter`)
   }
   if (!yml.datamodel) {
-    return fatal(`prisma.yml must have an \`endpoint\` parameter`)
+    return fatal(`${bold(`prisma.yml`)} must have an \`endpoint\` parameter`)
   }
 
   const datamodel = await concatDatamodels(path.dirname(prismaYaml), yml)
@@ -192,8 +192,8 @@ async function main(argv: string[]): Promise<void> {
     
         1. The Upgrade CLI generates SQL commands for you to run on your database.
         2. You run the SQL commands against your database.
-        3. You run the ${green(`\`prisma introspect\``)} command again.
-        4. You run the ${green(`\`prisma-upgrade\``)} command again.
+        3. You run the ${green(`\`npx prisma introspect\``)} command again.
+        4. You run the ${green(`\`npx prisma-upgrade\``)} command again.
         5. The Upgrade CLI adjusts the Prisma 2 schema by adding missing attributes.
 
       ${bold('➤ Note')}
@@ -261,7 +261,7 @@ async function main(argv: string[]): Promise<void> {
       please run the following two commands: 
 
         1. Run ${green(`\`npx prisma introspect\``)} again to refresh your Prisma 2 schema.
-        2. Run ${green(`\`prisma-upgrade\``)} again.
+        2. Run ${green(`\`npx prisma-upgrade\``)} again.
 
       If you can't or don't want to execute the remaining SQL statements right now, you can
       skip to the last step where the Upgrade CLI adds missing attributes to your Prisma 2 
@@ -269,7 +269,6 @@ async function main(argv: string[]): Promise<void> {
 
       Note that you can also skip to the last step for now and send the remaining SQL
       statements at any later point when you're ready for it.
-      
     `)
     )
     const yes = await prompt.confirm(`Skip to the last step? [Y/n]? `)
