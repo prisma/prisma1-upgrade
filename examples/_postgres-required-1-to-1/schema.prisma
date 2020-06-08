@@ -1,0 +1,17 @@
+datasource db {
+  provider = "postgresql"
+  url      = "postgres://root:prisma@0.0.0.0:5433/prisma?schema=postgres-required-1-to-1%24dev"
+}
+
+model Profile {
+  bio  String
+  id   String @default(cuid()) @id
+  User User[]
+}
+
+model User {
+  email   String   @unique
+  id      String   @default(cuid()) @id
+  profile String?
+  Profile Profile? @relation(fields: [profile], references: [id])
+}

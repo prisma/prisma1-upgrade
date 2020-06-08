@@ -7,7 +7,7 @@ export type Edge = {
   type: 'hasOne' | 'hasMany'
   from: string
   to: string
-  field: string
+  field: p1.FieldDefinition
 }
 
 export function load(schema: p1.Schema): Graph {
@@ -61,7 +61,7 @@ export function load(schema: p1.Schema): Graph {
             link: link,
             from: def.name,
             to: name,
-            field: field.name,
+            field: field,
           })
         }
         // is a has-many relationship
@@ -71,7 +71,7 @@ export function load(schema: p1.Schema): Graph {
             link: link,
             from: def.name,
             to: name,
-            field: field.name,
+            field: field,
           })
         }
       }

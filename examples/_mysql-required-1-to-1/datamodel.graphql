@@ -1,0 +1,11 @@
+type User {
+  id: ID! @id
+  email: String! @unique
+  profile: Profile! @relation(link: INLINE)
+}
+
+type Profile {
+  id: ID! @id
+  bio: String!
+  user: User!
+}

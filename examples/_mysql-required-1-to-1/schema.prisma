@@ -1,0 +1,19 @@
+datasource db {
+  provider = "mysql"
+  url      = "mysql://root:prisma@0.0.0.0:3307/mysql-required-1-to-1@dev"
+}
+
+model Profile {
+  bio  String
+  id   String @default(cuid()) @id
+  User User[]
+}
+
+model User {
+  email   String   @unique
+  id      String   @default(cuid()) @id
+  profile String?
+  Profile Profile? @relation(fields: [profile], references: [id])
+
+  @@index([profile], name: "profile")
+}

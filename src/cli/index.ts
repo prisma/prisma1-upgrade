@@ -1,4 +1,4 @@
-import { bold, red, gray, underline, black, green } from 'kleur'
+import { bold, red, gray, underline, green } from 'kleur'
 import { console } from '../console'
 import * as prompt from '../prompt'
 import * as p2 from '../prisma2'

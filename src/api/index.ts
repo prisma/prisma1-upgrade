@@ -49,7 +49,7 @@ export async function upgrade(input: Input): Promise<Output> {
           }
           // next, we'll loop over the P1 attributes
           for (let p1Attr of p1Field.directives) {
-            // Rule 3: when we see an @updatedAt in P1, replace @default(now()) with @updatedAt
+            // Rule 3: when we see an @updatedAt in P1
             if (p1Attr.name === 'updatedAt') {
               p2Field.upsertAttribute(updatedAt())
             }
@@ -185,9 +185,23 @@ export async function upgrade(input: Input): Promise<Output> {
             type: 'AddUniqueConstraintOp',
             schema: pgSchema,
             table: uniqueEdge.from,
-            column: uniqueEdge.field,
+            column: uniqueEdge.field.name,
           })
         }
+
+        // const p2Field = prisma2.findField()
+        // console.log(edge1.field.name, edge1.field.type.toString())
+        // console.log(edge2.field.name, edge2.field.type.toString())
+        // const p2Field = prisma2.findField((m, f) => {
+        //   return m.name === edge2.from && f.name === edge2.field.type.named()
+        // })
+        // const p2Field = prisma2.findField((m, f) => {
+        //   return m.name === edge2.from && f.name === edge2.field.type.named()
+        // })
+        // console.log(p2Field)
+        // if (p2Field) {
+        //   console.log('1-to-1', p2Field.name, p2Field.type.toString())
+        // }
       }
     }
   }
@@ -297,7 +311,7 @@ function hasDefaultNow(field: p2.Field): boolean {
 function isOneToOne(schema: p2.Schema, edge: graph.Edge): boolean {
   const fromModel = schema.findModel((m) => m.name === edge.from)
   if (!fromModel) return false
-  const fromField = fromModel.findField((f) => f.name === edge.field)
+  const fromField = fromModel.findField((f) => f.name === edge.field.name)
   if (!fromField) return false
   const uniqueAttr = fromField.findAttribute((a) => a.name === 'unique')
   if (!uniqueAttr) return false

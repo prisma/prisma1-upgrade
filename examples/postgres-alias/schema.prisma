@@ -1,0 +1,38 @@
+datasource db {
+  provider = "postgresql"
+  url      = "postgres://root:prisma@0.0.0.0:5433/prisma?schema=postgres-alias%24dev"
+}
+
+model Category {
+  id   String @id
+  name String
+  Post Post[] @relation("CategoryToMessage", references: [id])
+}
+
+model Post {
+  content   String?
+  createdAt DateTime
+  id        String     @id
+  published Boolean
+  title     String
+  updatedAt DateTime
+  Category  Category[] @relation("CategoryToMessage", references: [id])
+  User      User[]     @relation("MessageToUser", references: [id])
+}
+
+model Profile {
+  bio  String?
+  id   String  @id
+  user String?
+  User User?   @relation(fields: [user], references: [id])
+}
+
+model User {
+  email    String?   @unique
+  id       String    @id
+  jsonData String?
+  name     String
+  role     String
+  Profile  Profile[]
+  Post     Post[]    @relation("MessageToUser", references: [id])
+}
