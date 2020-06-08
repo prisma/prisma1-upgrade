@@ -1,3 +1,8 @@
+# 0.0.15 / 2020-06-08
+
+- add support for L: 1-1 relation with both sides required
+- add support for @map and @@map
+
 # 0.0.14 / 2020-06-08
 
 - prep for addressing L.
