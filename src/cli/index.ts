@@ -110,7 +110,7 @@ async function main(argv: string[]): Promise<void> {
       schemaPrisma = params[1]
       break
     default:
-      return fatal(`Too many arguments. Run ${green(`\`prisma-upgrade -h\``)} for details.`)
+      return fatal(`Too many arguments. Run ${green(`\`npx prisma-upgrade -h\``)} for details.`)
   }
 
   // change the working directory
