@@ -4,20 +4,21 @@ datasource db {
 }
 
 model Category {
-  id   String @default(cuid()) @id
-  name String
-  Post Post[] @relation("CategoryToMessage", references: [id])
+  id      String    @default(cuid()) @id
+  name    String
+  Message Message[] @relation("CategoryToMessage", references: [id])
 }
 
-model Post {
-  content   String?
-  createdAt DateTime   @default(now())
-  id        String     @default(cuid()) @id
-  published Boolean    @default(false)
-  title     String
-  updatedAt DateTime   @updatedAt
-  Category  Category[] @relation("CategoryToMessage", references: [id])
-  User      User[]     @relation("MessageToUser", references: [id])
+model Message {
+  content    String?
+  created_at DateTime   @default(now()) @map("createdAt")
+  id         String     @default(cuid()) @id
+  published  Boolean    @default(false)
+  slug       String     @map("title")
+  updatedAt  DateTime   @updatedAt
+  Category   Category[] @relation("CategoryToMessage", references: [id])
+  User       User[]     @relation("MessageToUser", references: [id])
+  @@map("Post")
 }
 
 model Profile {
@@ -28,13 +29,13 @@ model Profile {
 }
 
 model User {
-  email    String?  @unique
-  id       String   @default(cuid()) @id
-  jsonData Json?
+  email    String?   @unique
+  id       String    @default(cuid()) @id
+  settings Json?     @map("jsonData")
   name     String
-  role     Role     @default(dbgenerated())
+  role     Role      @default(dbgenerated())
   Profile  Profile?
-  Post     Post[]   @relation("MessageToUser", references: [id])
+  Message  Message[] @relation("MessageToUser", references: [id])
 }
 
 enum Role {

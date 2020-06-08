@@ -69,7 +69,7 @@ model User {
   bestFriend                       String?
   createdAt                        DateTime                @default(now())
   email                            String                  @unique
-  friendlyName                     String?
+  nickName                         String?                 @map("friendlyName")
   godFather                        String?
   home                             Int?
   id                               String                  @default(cuid()) @id

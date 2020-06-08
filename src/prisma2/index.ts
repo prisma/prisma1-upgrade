@@ -31,7 +31,7 @@ export class Schema {
         dss.push(block)
       }
     }
-    return dss.map((ds) => new Model(ds))
+    return dss.map((ds) => new Model(this, ds))
   }
 
   get enums(): Enum[] {
@@ -107,6 +107,18 @@ export class Schema {
         }
       }
     }
+  }
+
+  findFields(fn: (m: Model, f: Field) => boolean): Field[] {
+    const fields: Field[] = []
+    for (let model of this.models) {
+      for (let field of model.fields) {
+        if (fn(model, field)) {
+          fields.push(field)
+        }
+      }
+    }
+    return fields
   }
 
   findAttribute(
@@ -266,7 +278,7 @@ export class Datasource {
 }
 
 export class Model {
-  constructor(private readonly n: ast.Model) {}
+  constructor(private readonly s: Schema, private readonly n: ast.Model) {}
   get name(): string {
     return this.n.name.name
   }
@@ -281,12 +293,85 @@ export class Model {
     return fields.map((n) => new Field(n))
   }
 
+  get attributes(): Attribute[] {
+    let attrs: ast.Attribute[] = []
+    for (let prop of this.n.properties) {
+      if (prop.type === 'attribute') {
+        attrs.push(prop)
+      }
+    }
+    return attrs.map((n) => new Attribute(n))
+  }
+
   findField(fn: (f: Field) => boolean): Field | void {
     for (let field of this.fields) {
       if (fn(field)) {
         return field
       }
     }
+  }
+
+  rename(name: string) {
+    const dbName = this.name
+    this.n.name.name = name
+    this.upsertAttribute({
+      type: 'attribute',
+      name: {
+        type: 'identifier',
+        name: 'map',
+        start: pos,
+        end: pos,
+      },
+      start: pos,
+      end: pos,
+      arguments: [
+        {
+          type: 'unkeyed_argument',
+          value: {
+            type: 'string_value',
+            value: dbName,
+            start: pos,
+            end: pos,
+          },
+          start: pos,
+          end: pos,
+        },
+      ],
+    })
+    // adjust all references
+    const fields = this.s.findFields(
+      (_, f) => f.type.innermost().toString() === dbName
+    )
+    for (let field of fields) {
+      field.setName(name)
+      field.setInnermostType({
+        type: 'reference_type',
+        name: {
+          type: 'identifier',
+          name: name,
+          start: pos,
+          end: pos,
+        },
+        start: pos,
+        end: pos,
+      })
+    }
+  }
+
+  upsertAttribute(a: ast.Attribute) {
+    for (let i = 0; i < this.n.properties.length; i++) {
+      const prop = this.n.properties[i]
+      if (prop.type === 'field') {
+        continue
+      }
+      if (prop.name.name !== a.name.name) {
+        continue
+      }
+      this.n.properties[i] = a
+      return
+    }
+    this.n.properties.push(a)
+    return
   }
 }
 
@@ -302,9 +387,48 @@ export class Field {
   get name(): string {
     return this.n.name.name
   }
+
+  setName(name: string): void {
+    this.n.name.name = name
+  }
+
+  rename(name: string): void {
+    const dbName = this.name
+    this.setName(name)
+    this.upsertAttribute({
+      type: 'attribute',
+      name: {
+        type: 'identifier',
+        name: 'map',
+        start: pos,
+        end: pos,
+      },
+      start: pos,
+      end: pos,
+      arguments: [
+        {
+          type: 'unkeyed_argument',
+          value: {
+            type: 'string_value',
+            value: dbName,
+            start: pos,
+            end: pos,
+          },
+          start: pos,
+          end: pos,
+        },
+      ],
+    })
+  }
+
   get type(): DataType {
     return new DataType(this.n.datatype)
   }
+
+  setInnermostType(to: ast.DataType): void {
+    this.type.setInnermostType(to)
+  }
+
   get attributes(): Attribute[] {
     return this.n.attributes.map((n) => new Attribute(n))
   }
@@ -341,7 +465,7 @@ export class Field {
 }
 
 export class DataType {
-  constructor(private readonly n: ast.DataType) {}
+  constructor(private n: ast.DataType) {}
 
   get optional(): boolean {
     return this.n.type === 'optional_type'
@@ -354,6 +478,28 @@ export class DataType {
         return new DataType(this.n.inner)
       default:
         return this
+    }
+  }
+
+  setInnermostType(to: ast.DataType) {
+    this.setInnermost(this.n, to)
+  }
+
+  private setInnermost(
+    from: ast.DataType,
+    to: ast.DataType,
+    parent?: ast.OptionalType | ast.ListType
+  ): void {
+    switch (from.type) {
+      case 'optional_type':
+      case 'list_type':
+        return this.setInnermost(from.inner, to, from)
+      default:
+        if (parent) {
+          parent.inner = to
+          return
+        }
+        this.n = to
     }
   }
 

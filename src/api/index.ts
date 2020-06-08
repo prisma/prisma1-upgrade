@@ -32,12 +32,20 @@ export async function upgrade(input: Input): Promise<Output> {
       if (p2Model.name !== p1Model.dbname) {
         continue
       }
+      // add @map
+      if (p2Model.name !== p1Model.name) {
+        p2Model.rename(p1Model.name)
+      }
       // next we'll loop over p1 fields
       for (let p1Field of fields) {
         // find the corresponding p2 field
         for (let p2Field of p2Model.fields) {
           if (p2Field.name !== p1Field.dbname) {
             continue
+          }
+          // add @map
+          if (p2Field.name !== p1Field.name) {
+            p2Field.rename(p1Field.name)
           }
           switch (p1Field.type.named()) {
             case 'ID': // Rule 1: add @default(cuid()) for P1 ID types
@@ -72,12 +80,12 @@ export async function upgrade(input: Input): Promise<Output> {
   }
 
   for (let p1Model of prisma1.objects) {
-    const p2Model = prisma2.findModel((m) => m.name === p1Model.dbname)
+    const p2Model = prisma2.findModel((m) => m.name === p1Model.name)
     if (!p2Model) {
       continue
     }
     for (let p1Field of p1Model.fields) {
-      const p2Field = p2Model.findField((f) => f.name === p1Field.dbname)
+      const p2Field = p2Model.findField((f) => f.name === p1Field.name)
       if (!p2Field) {
         continue
       }
