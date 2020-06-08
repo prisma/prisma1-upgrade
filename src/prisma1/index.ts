@@ -16,6 +16,7 @@ import {
   InterfaceTypeExtensionNode,
   UnionTypeExtensionNode,
   EnumTypeExtensionNode,
+  EnumValueDefinitionNode,
   InputObjectTypeExtensionNode,
   DefinitionNode,
   FieldDefinitionNode,
@@ -96,6 +97,16 @@ export class Schema {
     }
     return arr
   }
+
+  get enums(): EnumTypeDefinition[] {
+    let arr: EnumTypeDefinition[] = []
+    for (let def of this.definitions) {
+      if (def instanceof EnumTypeDefinition) {
+        arr.push(def)
+      }
+    }
+    return arr
+  }
 }
 
 interface Definition {
@@ -149,6 +160,23 @@ export class EnumTypeDefinition {
   }
   get kind() {
     return this.def.kind
+  }
+  get values(): EnumValueDefinition[] {
+    let arr: EnumValueDefinition[] = []
+    if (!this.def.values) {
+      return arr
+    }
+    for (let value of this.def.values) {
+      arr.push(new EnumValueDefinition(value))
+    }
+    return arr
+  }
+}
+
+export class EnumValueDefinition {
+  constructor(private readonly def: EnumValueDefinitionNode) {}
+  get name() {
+    return this.def.name.value
   }
 }
 

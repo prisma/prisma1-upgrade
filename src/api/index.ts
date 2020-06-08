@@ -61,6 +61,16 @@ export async function upgrade(input: Input): Promise<Output> {
 
   const ops: sql.Op[] = []
 
+  let p1Enums: { [name: string]: p1.EnumTypeDefinition } = {}
+  for (let p1Enum of prisma1.enums) {
+    p1Enums[p1Enum.name] = p1Enum
+  }
+
+  let p2Enums: { [name: string]: p2.Enum } = {}
+  for (let p2Enum of prisma2.enums) {
+    p2Enums[p2Enum.name] = p2Enum
+  }
+
   for (let p1Model of prisma1.objects) {
     const p2Model = prisma2.findModel((m) => m.name === p1Model.name)
     if (!p2Model) {
@@ -79,6 +89,19 @@ export async function upgrade(input: Input): Promise<Output> {
           schema: pgSchema,
           p1Model,
           p1Field,
+        })
+      }
+
+      // adjust enum type (order matters)
+      const p1Enum = p1Enums[p1Field.type.named()]
+      const p2Enum = p2Enums[p2Field.type.innermost().toString()]
+      if (p1Enum && !p2Enum) {
+        ops.push({
+          type: 'SetEnumTypeOp',
+          schema: pgSchema,
+          p1Model,
+          p1Field,
+          p1Enum,
         })
       }
 
@@ -101,6 +124,7 @@ export async function upgrade(input: Input): Promise<Output> {
             p1Model,
             p1Field,
             p1Attr,
+            p1Enum,
           })
         }
         // we found a @createdAt in P1 and it's not in P2
@@ -240,7 +264,12 @@ function hasExpectedDefault(p1Arg: p1.Argument, p2Arg?: p2.Argument): boolean {
     case 'BooleanValue':
       return p2Arg.value.type === 'boolean_value'
     case 'EnumValue':
-      return p2Arg.value.type === 'string_value'
+      return (
+        p2Arg.value.type === 'reference_value' ||
+        // TODO: remove once we close:
+        // https://github.com/prisma/prisma/issues/2689
+        p2Arg.value.type === 'function_value'
+      )
     case 'FloatValue':
       return p2Arg.value.type === 'float_value'
     case 'IntValue':
