@@ -1,3 +1,9 @@
+# 0.0.13 / 2020-06-08
+
+- add support for migrating scalar enums. fix missing dependency.
+- add missing rollup dependencies
+- cleanup unused function
+
 # 0.0.12 / 2020-06-05
 
 - remove @updatedAt setting a default timestamp
