@@ -260,7 +260,7 @@ async function main(argv: string[]): Promise<void> {
       If you executed one or more of the above SQL statements against your database, 
       please run the following two commands: 
 
-        1. Run ${green(`\`prisma introspect\``)} again to refresh your Prisma 2 schema.
+        1. Run ${green(`\`npx prisma introspect\``)} again to refresh your Prisma 2 schema.
         2. Run ${green(`\`prisma-upgrade\``)} again.
 
       If you can't or don't want to execute the remaining SQL statements right now, you can
