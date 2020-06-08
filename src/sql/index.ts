@@ -94,16 +94,16 @@ export class Postgres implements Translator {
   }
 
   private SetCreatedAtOp(op: SetCreatedAtOp): string {
-    const tableName = this.schema(op.schema, op.p1Model.name)
-    const fieldName = op.p1Field.name
+    const tableName = this.schema(op.schema, op.p1Model.dbname)
+    const fieldName = op.p1Field.dbname
     return `ALTER TABLE ${tableName} ALTER COLUMN "${fieldName}" SET DEFAULT CURRENT_TIMESTAMP;`
   }
 
   private SetDefaultOp(op: SetDefaultOp): string {
     const arg = op.p1Attr.arguments.find((arg) => arg.name === 'value')
     if (!arg) return ''
-    const tableName = this.schema(op.schema, op.p1Model.name)
-    const fieldName = op.p1Field.name
+    const tableName = this.schema(op.schema, op.p1Model.dbname)
+    const fieldName = op.p1Field.dbname
     const defaultValue = this.defaultValue(arg.value)
     return `ALTER TABLE ${tableName} ALTER COLUMN "${fieldName}" SET DEFAULT ${defaultValue};`
   }
@@ -126,8 +126,8 @@ export class Postgres implements Translator {
   }
 
   private SetJsonTypeOp(op: SetJsonTypeOp): string {
-    const tableName = this.schema(op.schema, op.p1Model.name)
-    const fieldName = op.p1Field.name
+    const tableName = this.schema(op.schema, op.p1Model.dbname)
+    const fieldName = op.p1Field.dbname
     return `ALTER TABLE ${tableName} ALTER COLUMN "${fieldName}" SET DATA TYPE JSONB USING "${fieldName}"::TEXT::JSONB;`
   }
 
@@ -141,9 +141,9 @@ export class Postgres implements Translator {
 
   private SetEnumTypeOp(op: SetEnumTypeOp): string {
     const stmts: string[] = []
-    const tableName = this.schema(op.schema, op.p1Model.name)
+    const tableName = this.schema(op.schema, op.p1Model.dbname)
     const enumName = this.schema(op.schema, op.p1Enum.name)
-    const fieldName = op.p1Field.name
+    const fieldName = op.p1Field.dbname
     const enumList = op.p1Enum.values
       .map((value) => `'${value.name}'`)
       .join(', ')
@@ -183,8 +183,8 @@ export class MySQL5 implements Translator {
   private SetDefaultOp(op: SetDefaultOp): string {
     const arg = op.p1Attr.arguments.find((arg) => arg.name === 'value')
     if (!arg) return ''
-    const modelName = this.backtick(op.p1Model.name)
-    const fieldName = this.backtick(op.p1Field.name)
+    const modelName = this.backtick(op.p1Model.dbname)
+    const fieldName = this.backtick(op.p1Field.dbname)
     const dataType = this.dataType(arg.value, op.p1Enum)
     const nullable = !!~op.p1Field.type.toString().indexOf('?')
     const notNull = nullable ? '' : 'NOT NULL'
@@ -233,8 +233,8 @@ export class MySQL5 implements Translator {
   }
 
   private SetCreatedAtOp(op: SetCreatedAtOp): string {
-    const modelName = this.backtick(op.p1Model.name)
-    const fieldName = this.backtick(op.p1Field.name)
+    const modelName = this.backtick(op.p1Model.dbname)
+    const fieldName = this.backtick(op.p1Field.dbname)
     const dataType = 'DATETIME'
     const nullable = !!~op.p1Field.type.toString().indexOf('?')
     const notNull = nullable ? '' : 'NOT NULL'
@@ -248,14 +248,14 @@ export class MySQL5 implements Translator {
   }
 
   private SetJsonTypeOp(op: SetJsonTypeOp): string {
-    const modelName = this.backtick(op.p1Model.name)
-    const fieldName = this.backtick(op.p1Field.name)
+    const modelName = this.backtick(op.p1Model.dbname)
+    const fieldName = this.backtick(op.p1Field.dbname)
     return `ALTER TABLE ${modelName} CHANGE ${fieldName} ${fieldName} JSON;`
   }
 
   private SetEnumTypeOp(op: SetEnumTypeOp): string {
-    const modelName = this.backtick(op.p1Model.name)
-    const fieldName = this.backtick(op.p1Field.name)
+    const modelName = this.backtick(op.p1Model.dbname)
+    const fieldName = this.backtick(op.p1Field.dbname)
     const enumList = op.p1Enum.values
       .map((value) => `'${value.name}'`)
       .join(', ')

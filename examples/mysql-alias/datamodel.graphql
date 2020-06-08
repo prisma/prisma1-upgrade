@@ -1,0 +1,37 @@
+type User {
+  id: ID! @id
+  email: String @unique
+  name: String!
+  messages: [Message!]!
+  role: Role! @default(value: CUSTOMER)
+  profile: Profile
+  settings: Json @db(name: "jsonData")
+}
+
+type Message @db(name: "Post") {
+  id: ID! @id
+  created_at: DateTime! @createdAt @db(name: "createdAt")
+  updatedAt: DateTime! @updatedAt
+  slug: String! @db(name: "title")
+  content: String
+  published: Boolean! @default(value: false)
+  author: User @relation(link: TABLE)
+  categories: [Category!]!
+}
+
+type Profile {
+  id: ID! @id
+  bio: String
+  user: User! @relation(link: INLINE)
+}
+
+type Category {
+  id: ID! @id
+  name: String!
+  messages: [Message!]!
+}
+
+enum Role {
+  ADMIN
+  CUSTOMER
+}

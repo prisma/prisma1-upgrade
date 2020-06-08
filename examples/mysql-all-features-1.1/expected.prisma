@@ -79,7 +79,7 @@ model User {
   tagline                          String?
   taxDocument                      String?                 @unique
   temperature                      Float?
-  type                             String
+  type                             User_type?
   updatedAt                        DateTime                @updatedAt
   User_UserToUser_bestFriend       User?                   @relation("UserToUser_bestFriend", fields: [bestFriend], references: [id])
   User_UserToUser_godFather        User?                   @relation("UserToUser_godFather", fields: [godFather], references: [id])
@@ -108,4 +108,9 @@ model Work {
   title       String?
   updatedAt   DateTime @updatedAt
   User        User[]   @relation(references: [id])
+}
+
+enum User_type {
+  NORMAL
+  AWESOME
 }

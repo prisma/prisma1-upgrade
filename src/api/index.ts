@@ -29,14 +29,14 @@ export async function upgrade(input: Input): Promise<Output> {
     const fields = p1Model.fields
     // find the corresponding p2 model
     for (let p2Model of prisma2.models) {
-      if (p2Model.name !== p1Model.name) {
+      if (p2Model.name !== p1Model.dbname) {
         continue
       }
       // next we'll loop over p1 fields
       for (let p1Field of fields) {
         // find the corresponding p2 field
         for (let p2Field of p2Model.fields) {
-          if (p2Field.name !== p1Field.name) {
+          if (p2Field.name !== p1Field.dbname) {
             continue
           }
           switch (p1Field.type.named()) {
@@ -72,12 +72,12 @@ export async function upgrade(input: Input): Promise<Output> {
   }
 
   for (let p1Model of prisma1.objects) {
-    const p2Model = prisma2.findModel((m) => m.name === p1Model.name)
+    const p2Model = prisma2.findModel((m) => m.name === p1Model.dbname)
     if (!p2Model) {
       continue
     }
     for (let p1Field of p1Model.fields) {
-      const p2Field = p2Model.findField((f) => f.name === p1Field.name)
+      const p2Field = p2Model.findField((f) => f.name === p1Field.dbname)
       if (!p2Field) {
         continue
       }

@@ -131,9 +131,25 @@ export class ObjectTypeDefinition {
   get kind() {
     return this.def.kind
   }
-  get name() {
+  get name(): string {
     return this.def.name.value
   }
+
+  get dbname(): string {
+    if (!this.def.directives) {
+      return this.name
+    }
+    const db = this.def.directives.find((d) => d.name.value === 'db')
+    if (!db || !db.arguments) {
+      return this.name
+    }
+    const arg = db.arguments.find((arg) => arg.name.value === 'name')
+    if (!arg || !arg.value || arg.value.kind !== 'StringValue') {
+      return this.name
+    }
+    return arg.value.value
+  }
+
   get fields(): FieldDefinition[] {
     if (!this.def.fields) return []
     return this.def.fields.map((field) => new FieldDefinition(this, field))
@@ -157,6 +173,20 @@ export class EnumTypeDefinition {
   constructor(private readonly def: EnumTypeDefinitionNode) {}
   get name() {
     return this.def.name.value
+  }
+  get dbname(): string {
+    if (!this.def.directives) {
+      return this.name
+    }
+    const db = this.def.directives.find((d) => d.name.value === 'db')
+    if (!db || !db.arguments) {
+      return this.name
+    }
+    const arg = db.arguments.find((arg) => arg.name.value === 'name')
+    if (!arg || !arg.value || arg.value.kind !== 'StringValue') {
+      return this.name
+    }
+    return arg.value.value
   }
   get kind() {
     return this.def.kind
@@ -267,6 +297,21 @@ export class FieldDefinition {
 
   get name() {
     return this.def.name.value
+  }
+
+  get dbname(): string {
+    if (!this.def.directives) {
+      return this.name
+    }
+    const db = this.def.directives.find((d) => d.name.value === 'db')
+    if (!db || !db.arguments) {
+      return this.name
+    }
+    const arg = db.arguments.find((arg) => arg.name.value === 'name')
+    if (!arg || !arg.value || arg.value.kind !== 'StringValue') {
+      return this.name
+    }
+    return arg.value.value
   }
 
   get type(): Type {

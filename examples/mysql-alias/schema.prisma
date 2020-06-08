@@ -1,0 +1,40 @@
+datasource db {
+  provider = "mysql"
+  url      = "mysql://root:prisma@0.0.0.0:3307/mysql-alias@dev"
+}
+
+model Category {
+  id   String @default(cuid()) @id
+  name String
+  Post Post[] @relation("CategoryToMessage", references: [id])
+}
+
+model Post {
+  content   String?
+  createdAt DateTime
+  id        String     @default(cuid()) @id
+  published Boolean
+  title     String
+  updatedAt DateTime
+  Category  Category[] @relation("CategoryToMessage", references: [id])
+  User      User[]     @relation("MessageToUser", references: [id])
+}
+
+model Profile {
+  bio  String?
+  id   String  @default(cuid()) @id
+  user String?
+  User User?   @relation(fields: [user], references: [id])
+
+  @@index([user], name: "user")
+}
+
+model User {
+  email    String?   @unique
+  id       String    @default(cuid()) @id
+  jsonData String?
+  name     String
+  role     String
+  Profile  Profile[]
+  Post     Post[]    @relation("MessageToUser", references: [id])
+}

@@ -40,6 +40,7 @@
     "redent": "3.0.0"
   },
   "devDependencies": {
+    "@prisma/cli": "2.0.0-beta.8",
     "@prisma/sdk": "2.0.0-beta.8",
     "@rollup/plugin-node-resolve": "8.0.0",
     "@rollup/plugin-sucrase": "3.0.2",
@@ -52,8 +53,10 @@
     "mocha": "7.2.0",
     "pg": "8.2.1",
     "prettier": "2.0.5",
+    "prisma1": "1.34.11",
     "resolve": "1.17.0",
     "rollup": "2.13.1",
+    "slugify": "1.4.0",
     "testaway": "2.0.1",
     "typescript": "3.9.5"
   }
