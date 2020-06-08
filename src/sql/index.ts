@@ -26,6 +26,7 @@ export type Op =
   | SetCreatedAtOp
   | AddUniqueConstraintOp
   | SetJsonTypeOp
+  | SetEnumTypeOp
 
 export type SetDefaultOp = {
   type: 'SetDefaultOp'
@@ -33,6 +34,7 @@ export type SetDefaultOp = {
   p1Model: p1.ObjectTypeDefinition
   p1Field: p1.FieldDefinition
   p1Attr: p1.Directive
+  p1Enum?: p1.EnumTypeDefinition
 }
 
 export type SetCreatedAtOp = {
@@ -57,6 +59,14 @@ export type SetJsonTypeOp = {
   p1Field: p1.FieldDefinition
 }
 
+export type SetEnumTypeOp = {
+  type: 'SetEnumTypeOp'
+  schema?: string
+  p1Model: p1.ObjectTypeDefinition
+  p1Field: p1.FieldDefinition
+  p1Enum: p1.EnumTypeDefinition
+}
+
 export interface Translator {
   translate(op: Op): string
 }
@@ -72,6 +82,8 @@ export class Postgres implements Translator {
         return this.SetJsonTypeOp(op)
       case 'AddUniqueConstraintOp':
         return this.AddUniqueConstraintOp(op)
+      case 'SetEnumTypeOp':
+        return this.SetEnumTypeOp(op)
       default:
         throw new Error('Postgres: unhandled op: ' + op!.type)
     }
@@ -124,6 +136,26 @@ export class Postgres implements Translator {
     const fieldName = op.column
     return `ALTER TABLE ${tableName} ADD UNIQUE ("${fieldName}");`
   }
+
+  private enums: { [name: string]: boolean } = {}
+
+  private SetEnumTypeOp(op: SetEnumTypeOp): string {
+    const stmts: string[] = []
+    const tableName = this.schema(op.schema, op.p1Model.name)
+    const enumName = this.schema(op.schema, op.p1Enum.name)
+    const fieldName = op.p1Field.name
+    const enumList = op.p1Enum.values
+      .map((value) => `'${value.name}'`)
+      .join(', ')
+    if (!this.enums[enumName]) {
+      this.enums[enumName] = true
+      stmts.push(`CREATE TYPE ${enumName} AS ENUM (${enumList})`)
+    }
+    stmts.push(
+      `ALTER TABLE ${tableName} ALTER COLUMN "${fieldName}" SET DATA TYPE ${enumName} using "${fieldName}"::${enumName};`
+    )
+    return stmts.join(';\n')
+  }
 }
 
 export class MySQL5 implements Translator {
@@ -137,6 +169,8 @@ export class MySQL5 implements Translator {
         return this.AddUniqueConstraintOp(op)
       case 'SetJsonTypeOp':
         return this.SetJsonTypeOp(op)
+      case 'SetEnumTypeOp':
+        return this.SetEnumTypeOp(op)
       default:
         throw new Error('MySQL5: unhandled op: ' + op!.type)
     }
@@ -151,18 +185,24 @@ export class MySQL5 implements Translator {
     if (!arg) return ''
     const modelName = this.backtick(op.p1Model.name)
     const fieldName = this.backtick(op.p1Field.name)
-    const dataType = this.dataType(arg.value)
+    const dataType = this.dataType(arg.value, op.p1Enum)
     const nullable = !!~op.p1Field.type.toString().indexOf('?')
     const notNull = nullable ? '' : 'NOT NULL'
     const defaultValue = this.defaultValue(arg.value)
     return `ALTER TABLE ${modelName} CHANGE ${fieldName} ${fieldName} ${dataType} ${notNull} DEFAULT ${defaultValue};`
   }
 
-  private dataType(value: p1.Value): string {
+  private dataType(value: p1.Value, p1Enum?: p1.EnumTypeDefinition): string {
     switch (value.kind) {
       case 'BooleanValue':
         return `TINYINT(1)`
       case 'EnumValue':
+        if (p1Enum) {
+          const enumList = p1Enum.values
+            .map((value) => `'${value.name}'`)
+            .join(', ')
+          return `ENUM(${enumList})`
+        }
         return `VARCHAR(191)`
       case 'IntValue':
         return `INT(11)`
@@ -211,5 +251,14 @@ export class MySQL5 implements Translator {
     const modelName = this.backtick(op.p1Model.name)
     const fieldName = this.backtick(op.p1Field.name)
     return `ALTER TABLE ${modelName} CHANGE ${fieldName} ${fieldName} JSON;`
+  }
+
+  private SetEnumTypeOp(op: SetEnumTypeOp): string {
+    const modelName = this.backtick(op.p1Model.name)
+    const fieldName = this.backtick(op.p1Field.name)
+    const enumList = op.p1Enum.values
+      .map((value) => `'${value.name}'`)
+      .join(', ')
+    return `ALTER TABLE ${modelName} CHANGE ${fieldName} ${fieldName} ENUM(${enumList});`
   }
 }

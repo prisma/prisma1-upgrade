@@ -29,11 +29,16 @@ model Profile {
 }
 
 model User {
-  email    String?  @unique
-  id       String   @default(cuid()) @id
+  email    String?   @unique
+  id       String    @default(cuid()) @id
   jsonData Json?
   name     String
-  role     String   @default("CUSTOMER")
+  role     User_role @default(CUSTOMER)
   Profile  Profile?
-  Post     Post[]   @relation(references: [id])
+  Post     Post[]    @relation(references: [id])
+}
+
+enum User_role {
+  ADMIN
+  CUSTOMER
 }

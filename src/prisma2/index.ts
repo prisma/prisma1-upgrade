@@ -34,6 +34,16 @@ export class Schema {
     return dss.map((ds) => new Model(ds))
   }
 
+  get enums(): Enum[] {
+    let dss: ast.Enum[] = []
+    for (let block of this.n.blocks) {
+      if (block.type === 'enum') {
+        dss.push(block)
+      }
+    }
+    return dss.map((ds) => new Enum(ds))
+  }
+
   // return the provider
   provider(): string {
     const datasource = this.datasources[0]
@@ -131,11 +141,7 @@ export class Datasource {
         return provider.value.value
       default:
         throw new Error(
-          `datasource ${
-            this.node.name
-          } "provider" attribute must be a string, but got ${
-            provider.value.type
-          }`
+          `datasource ${this.node.name} "provider" attribute must be a string, but got ${provider.value.type}`
         )
     }
   }
@@ -284,6 +290,13 @@ export class Model {
   }
 }
 
+export class Enum {
+  constructor(private readonly n: ast.Enum) {}
+  get name(): string {
+    return this.n.name.name
+  }
+}
+
 export class Field {
   constructor(private readonly n: ast.Field) {}
   get name(): string {
@@ -313,7 +326,6 @@ export class Field {
       this.n.attributes[i] = a
       return
     }
-    // console.log('inserting', a.name)
     this.n.attributes.push(a)
     return
   }

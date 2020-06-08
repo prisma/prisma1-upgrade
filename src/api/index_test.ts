@@ -21,7 +21,7 @@ const tmpdir = path.join(os.tmpdir(), 'prisma-upgrade')
 const readFile = util.promisify(fs.readFile)
 const userInfo = os.userInfo()
 
-it('import-able', async function() {
+it('import-able', async function () {
   this.timeout('60s')
   await testaway(tmpdir, path.join(__dirname, '..', '..'))
   const result = await execa(

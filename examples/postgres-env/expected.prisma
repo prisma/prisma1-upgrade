@@ -32,7 +32,12 @@ model User {
   id       String   @default(cuid()) @id
   jsonData Json?
   name     String
-  role     String   @default("CUSTOMER")
+  role     Role     @default(dbgenerated())
   Profile  Profile?
   Post     Post[]   @relation(references: [id])
+}
+
+enum Role {
+  ADMIN
+  CUSTOMER
 }

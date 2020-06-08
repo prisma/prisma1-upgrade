@@ -117,7 +117,7 @@ async function main(argv: string[]): Promise<void> {
   const wd = args['--chdir'] ? path.resolve(cwd, args['--chdir']) : cwd
   prismaYaml = path.resolve(wd, prismaYaml)
   if (!(await exists(prismaYaml))) {
-    return fatal(`Prisma 1 datamodel doesn't exist in "${prismaYaml}"`)
+    return fatal(`prisma.yml doesn't exist in "${prismaYaml}"`)
   }
   schemaPrisma = path.resolve(wd, schemaPrisma)
   if (!(await exists(schemaPrisma))) {
@@ -230,6 +230,14 @@ async function main(argv: string[]): Promise<void> {
         case 'SetJsonTypeOp':
           console.log(
             `  Turn the columns string type into a json type for Json fields.`
+          )
+          console.log()
+          console.log('    ' + queries.join('\n    '))
+          console.log()
+          break
+        case 'SetEnumTypeOp':
+          console.log(
+            `  Turn the columns string type into a enum type for Enum fields.`
           )
           console.log()
           console.log('    ' + queries.join('\n    '))
