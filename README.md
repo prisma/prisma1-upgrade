@@ -1,5 +1,3 @@
-⚠️ **EXPERIMENTAL** This tool is being built now. It's not ready for use. Please watch this repository for updates.
-
 # prisma-upgrade
 
 Upgrade is a CLI tool to help Prisma 1 users upgrade to Prisma 2.
@@ -28,8 +26,6 @@ This table reflects the _current_ feature set of the upgrade CLI and will be upd
 | Cascading deletes                   | No      | No         | No            | No                  |
 | Maintain order of models and fields | n/a     | n/a        | Not yet       | No                  |
 | Maintain relation names             | n/a     | n/a        | Not yet       | No                  |
-
-
 
 What do the columns mean?
 

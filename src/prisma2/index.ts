@@ -392,6 +392,10 @@ export class Field {
     this.n.name.name = name
   }
 
+  setType(datatype: ast.DataType): void {
+    this.n.datatype = datatype
+  }
+
   rename(name: string): void {
     const dbName = this.name
     this.setName(name)
@@ -421,9 +425,30 @@ export class Field {
     })
   }
 
-  get type(): DataType {
+  get type() {
     return new DataType(this.n.datatype)
   }
+
+  // setNotNull(): void {
+  //   this._setNotNull(this.n.datatype)
+  // }
+
+  // private _setNotNull(n: ast.DataType, parent?: ast.ListType) {
+  //   switch (n.type) {
+  //     case 'list_type':
+  //       this._setNotNull(n.inner, n)
+  //       return
+  //     case 'optional_type':
+  //       if (parent) {
+  //         parent.inner = n.inner
+  //         return
+  //       }
+  //       this.n.datatype = n.inner
+  //       return
+  //     default:
+  //       return
+  //   }
+  // }
 
   setInnermostType(to: ast.DataType): void {
     this.type.setInnermostType(to)

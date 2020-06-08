@@ -23,7 +23,6 @@ import {
   NamedTypeNode,
   ListTypeNode,
   NonNullTypeNode,
-  TypeNode,
   DirectiveNode,
   ArgumentNode,
   VariableNode,
@@ -96,6 +95,16 @@ export class Schema {
       }
     }
     return arr
+  }
+
+  findObject(
+    fn: (obj: ObjectTypeDefinition) => boolean
+  ): ObjectTypeDefinition | void {
+    for (let object of this.objects) {
+      if (fn(object)) {
+        return object
+      }
+    }
   }
 
   get enums(): EnumTypeDefinition[] {
@@ -339,12 +348,14 @@ export class FieldDefinition {
   }
 }
 
-export interface Type {
-  named(): string
-  kind: TypeNode['kind']
-  toString(): string
-  isReference(): boolean
-}
+export type Type = NamedType | ListType | NonNullType
+
+// export interface Type {
+//   named(): string
+//   kind: TypeNode['kind']
+//   toString(): string
+//   isReference(): boolean
+// }
 
 function isReference(name: string): boolean {
   switch (name) {
@@ -362,15 +373,19 @@ function isReference(name: string): boolean {
   }
 }
 
-export class NamedType implements Type {
+export class NamedType {
   constructor(private readonly def: NamedTypeNode) {}
+
+  get name(): string {
+    return this.def.name.value
+  }
 
   get kind(): 'NamedType' {
     return this.def.kind
   }
 
   named() {
-    return this.def.name.value
+    return this.name
   }
 
   toString(): string {
@@ -382,7 +397,7 @@ export class NamedType implements Type {
   }
 }
 
-export class ListType implements Type {
+export class ListType {
   constructor(private readonly def: ListTypeNode) {}
 
   get kind(): 'ListType' {
@@ -413,7 +428,7 @@ export class ListType implements Type {
   }
 }
 
-export class NonNullType implements Type {
+export class NonNullType {
   constructor(private readonly def: NonNullTypeNode) {}
 
   get kind(): 'NonNullType' {

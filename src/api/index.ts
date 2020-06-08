@@ -33,6 +33,7 @@ export async function upgrade(input: Input): Promise<Output> {
         continue
       }
       // add @map
+      // K: @db on types/fields to determine the name of table/column in the underlying database
       if (p2Model.name !== p1Model.name) {
         p2Model.rename(p1Model.name)
       }
@@ -44,9 +45,11 @@ export async function upgrade(input: Input): Promise<Output> {
             continue
           }
           // add @map
+          // K: @db on types/fields to determine the name of table/column in the underlying database
           if (p2Field.name !== p1Field.name) {
             p2Field.rename(p1Field.name)
           }
+          // D: String IDs are missing information what kind they are
           switch (p1Field.type.named()) {
             case 'ID': // Rule 1: add @default(cuid()) for P1 ID types
               p2Field.upsertAttribute(defaultAttr(cuid()))
@@ -57,9 +60,13 @@ export async function upgrade(input: Input): Promise<Output> {
           }
           // next, we'll loop over the P1 attributes
           for (let p1Attr of p1Field.directives) {
-            // Rule 3: when we see an @updatedAt in P1
+            // G: @updatedAt is lost
             if (p1Attr.name === 'updatedAt') {
               p2Field.upsertAttribute(updatedAt())
+            }
+            // F: @createdAt is lost
+            if (p1Attr.name === 'createdAt') {
+              p2Field.upsertAttribute(createdAt())
             }
           }
         }
@@ -90,7 +97,7 @@ export async function upgrade(input: Input): Promise<Output> {
         continue
       }
 
-      // handle the Json type
+      // H: JSON is represented as String
       if (p1Field.type.named() === 'Json' && !isJsonType(p2Field)) {
         ops.push({
           type: 'SetJsonTypeOp',
@@ -100,7 +107,7 @@ export async function upgrade(input: Input): Promise<Output> {
         })
       }
 
-      // adjust enum type (order matters)
+      // J: Singular Enum is a simple String
       const p1Enum = p1Enums[p1Field.type.named()]
       const p2Enum = p2Enums[p2Field.type.innermost().toString()]
       if (p1Enum && !p2Enum) {
@@ -115,7 +122,7 @@ export async function upgrade(input: Input): Promise<Output> {
 
       // loop over attributes
       for (let p1Attr of p1Field.directives) {
-        // we found a @default in P1
+        // A: @default value is missing
         if (p1Attr.name === 'default') {
           const p1Arg = p1Attr.findArgument((a) => a.name === 'value')
           if (!p1Arg) {
@@ -149,7 +156,7 @@ export async function upgrade(input: Input): Promise<Output> {
     }
   }
 
-  // upgrade 1-1 relations Datamodel
+  // B: 1-1 relations Datamodel v1.1
   // loop over edges and apply back-relation rules
   // to break up cycles and place the fields in the proper place
   const g = graph.load(prisma1)
@@ -192,24 +199,24 @@ export async function upgrade(input: Input): Promise<Output> {
           ops.push({
             type: 'AddUniqueConstraintOp',
             schema: pgSchema,
-            table: uniqueEdge.from,
+            table: uniqueEdge.from.name,
             column: uniqueEdge.field.name,
           })
         }
 
-        // const p2Field = prisma2.findField()
-        // console.log(edge1.field.name, edge1.field.type.toString())
-        // console.log(edge2.field.name, edge2.field.type.toString())
-        // const p2Field = prisma2.findField((m, f) => {
-        //   return m.name === edge2.from && f.name === edge2.field.type.named()
-        // })
-        // const p2Field = prisma2.findField((m, f) => {
-        //   return m.name === edge2.from && f.name === edge2.field.type.named()
-        // })
-        // console.log(p2Field)
-        // if (p2Field) {
-        //   console.log('1-to-1', p2Field.name, p2Field.type.toString())
-        // }
+        // L: 1-1 relation with both sides required details
+        const p2Field1 = prisma2.findField(
+          (m, f) => edge1.from.name === m.name && edge1.to.name === f.name
+        )
+        if (p2Field1) {
+          p2Field1.setType(toP2Type(edge1.field.type))
+        }
+        const p2Field2 = prisma2.findField(
+          (m, f) => edge2.from.name === m.name && edge2.to.name === f.name
+        )
+        if (p2Field2) {
+          p2Field2.setType(toP2Type(edge2.field.type))
+        }
       }
     }
   }
@@ -252,6 +259,16 @@ function updatedAt(): p2ast.Attribute {
   return {
     type: 'attribute',
     name: ident('updatedAt'),
+    end: pos,
+    start: pos,
+    arguments: [],
+  }
+}
+
+function createdAt(): p2ast.Attribute {
+  return {
+    type: 'attribute',
+    name: ident('createdAt'),
     end: pos,
     start: pos,
     arguments: [],
@@ -317,15 +334,15 @@ function hasDefaultNow(field: p2.Field): boolean {
 }
 
 function isOneToOne(schema: p2.Schema, edge: graph.Edge): boolean {
-  const fromModel = schema.findModel((m) => m.name === edge.from)
+  const fromModel = schema.findModel((m) => m.name === edge.from.name)
   if (!fromModel) return false
   const fromField = fromModel.findField((f) => f.name === edge.field.name)
   if (!fromField) return false
   const uniqueAttr = fromField.findAttribute((a) => a.name === 'unique')
   if (!uniqueAttr) return false
-  const toModel = schema.findModel((m) => m.name === edge.to)
+  const toModel = schema.findModel((m) => m.name === edge.to.name)
   if (!toModel) return false
-  const toField = toModel.findField((f) => f.name === edge.from)
+  const toField = toModel.findField((f) => f.name === edge.from.name)
   if (!toField) return false
   if (!toField.type.optional) return false
   return true
@@ -345,4 +362,52 @@ function getPGSchema(url: string): string {
   let pathname = obj.pathname || ''
   pathname = pathname.replace(/^\//, '')
   return pathname ? pathname.replace(/\//g, '$') : 'default$default'
+}
+
+// Turn a P1 datatype into a P2 datatype
+// NOTE: This is not fully done, I've written as much as I needed to solve the problem.
+// See TODO below.
+function toP2Type(dt: p1.Type, optional: boolean = true): p2ast.DataType {
+  switch (dt.kind) {
+    case 'ListType':
+      const listType: p2ast.ListType = {
+        type: 'list_type',
+        end: pos,
+        start: pos,
+        inner: toP2Type(dt.inner(), true),
+      }
+      if (!optional) {
+        return listType
+      }
+      return {
+        type: 'optional_type',
+        end: pos,
+        start: pos,
+        inner: listType,
+      }
+    case 'NonNullType':
+      return toP2Type(dt.inner(), false)
+    case 'NamedType':
+      // TODO: this should include other types like String
+      const namedType: p2ast.ReferenceType = {
+        type: 'reference_type',
+        name: {
+          type: 'identifier',
+          name: dt.name,
+          start: pos,
+          end: pos,
+        },
+        start: pos,
+        end: pos,
+      }
+      if (!optional) {
+        return namedType
+      }
+      return {
+        type: 'optional_type',
+        end: pos,
+        start: pos,
+        inner: namedType,
+      }
+  }
 }

@@ -5,8 +5,8 @@ import { Graph, json } from 'graphlib'
 export type Edge = {
   link: 'INLINE' | 'TABLE' | ''
   type: 'hasOne' | 'hasMany'
-  from: string
-  to: string
+  from: p1.ObjectTypeDefinition
+  to: p1.ObjectTypeDefinition
   field: p1.FieldDefinition
 }
 
@@ -56,21 +56,23 @@ export function load(schema: p1.Schema): Graph {
         }
         // is a has-one relationship
         if (hasOne(field.type)) {
+          const to = schema.findObject((obj) => obj.name === name)
           graph.setEdge(def.name, name, <Edge>{
             type: 'hasOne',
             link: link,
-            from: def.name,
-            to: name,
+            from: def,
+            to: to,
             field: field,
           })
         }
         // is a has-many relationship
         if (hasMany(field.type)) {
+          const to = schema.findObject((obj) => obj.name === name)
           graph.setEdge(def.name, name, <Edge>{
             type: 'hasMany',
             link: link,
-            from: def.name,
-            to: name,
+            from: def,
+            to: to,
             field: field,
           })
         }
@@ -86,23 +88,23 @@ export function print(g: Graph): string {
 }
 
 function hasOne(dt: p1.Type): boolean {
-  if (dt instanceof p1.ListType) {
-    return false
-  } else if (dt instanceof p1.NonNullType) {
-    return hasOne(dt.inner())
-  } else if (dt instanceof p1.NamedType) {
-    return true
+  switch (dt.kind) {
+    case 'ListType':
+      return false
+    case 'NonNullType':
+      return hasOne(dt.inner())
+    case 'NamedType':
+      return true
   }
-  throw new Error(`hasOne: unknown type ${dt.toString()}`)
 }
 
 function hasMany(dt: p1.Type): boolean {
-  if (dt instanceof p1.ListType) {
-    return true
-  } else if (dt instanceof p1.NonNullType) {
-    return hasMany(dt.inner())
-  } else if (dt instanceof p1.NamedType) {
-    return false
+  switch (dt.kind) {
+    case 'ListType':
+      return true
+    case 'NonNullType':
+      return hasMany(dt.inner())
+    case 'NamedType':
+      return false
   }
-  throw new Error(`hasOne: unknown type ${dt.toString()}`)
 }

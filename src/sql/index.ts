@@ -59,6 +59,13 @@ export type SetJsonTypeOp = {
   p1Field: p1.FieldDefinition
 }
 
+export type SetNotNullOp = {
+  type: 'SetNotNullOp'
+  schema?: string
+  p1Model: p1.ObjectTypeDefinition
+  p1Field: p1.FieldDefinition
+}
+
 export type SetEnumTypeOp = {
   type: 'SetEnumTypeOp'
   schema?: string

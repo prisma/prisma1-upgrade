@@ -12,7 +12,7 @@ model Profile {
 model User {
   email   String  @unique
   id      String  @default(cuid()) @id
-  profile String  @unique
+  profile String? @unique
   Profile Profile @relation(fields: [profile], references: [id])
   @@index([profile], name: "profile")
 }

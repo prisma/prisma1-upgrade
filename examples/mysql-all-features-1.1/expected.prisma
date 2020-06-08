@@ -15,7 +15,7 @@ model IdentificationDocument {
   expiresOn      DateTime
   id             String   @default(cuid()) @id
   issuedOn       DateTime
-  User           User?
+  User           User
 }
 
 model Tagline {
@@ -43,7 +43,7 @@ model TaxDocument {
   id             String    @default(cuid()) @id
   issuedOn       DateTime
   lastChangedOn  DateTime? @updatedAt
-  User           User?
+  User           User
 }
 
 model Thought {
@@ -67,32 +67,32 @@ model Thought_content {
 model User {
   age                              Int
   bestFriend                       String?
-  createdAt                        DateTime                @default(now())
-  email                            String                  @unique
-  nickName                         String?                 @map("friendlyName")
+  createdAt                        DateTime               @default(now())
+  email                            String                 @unique
+  nickName                         String?                @map("friendlyName")
   godFather                        String?
   home                             Int?
-  id                               String                  @default(cuid()) @id
-  identificationDocument           String?                 @unique
-  isActive                         Boolean                 @default(false)
+  id                               String                 @default(cuid()) @id
+  identificationDocument           String?                @unique
+  isActive                         Boolean                @default(false)
   meta                             Json?
   tagline                          String?
-  taxDocument                      String?                 @unique
+  taxDocument                      String?                @unique
   temperature                      Float?
   type                             User_type?
-  updatedAt                        DateTime                @updatedAt
-  User_UserToUser_bestFriend       User?                   @relation("UserToUser_bestFriend", fields: [bestFriend], references: [id])
-  User_UserToUser_godFather        User?                   @relation("UserToUser_godFather", fields: [godFather], references: [id])
-  Home                             Home?                   @relation(fields: [home], references: [id])
-  IdentificationDocument           IdentificationDocument? @relation(fields: [identificationDocument], references: [id])
-  Tagline                          Tagline?                @relation(fields: [tagline], references: [id])
-  TaxDocument                      TaxDocument?            @relation(fields: [taxDocument], references: [id])
-  other_User_UserToUser_bestFriend User[]                  @relation("UserToUser_bestFriend")
-  other_User_UserToUser_godFather  User[]                  @relation("UserToUser_godFather")
-  Thought                          Thought[]               @relation(references: [id])
-  User_A                           User[]                  @relation("UserFriends", references: [id])
-  User_B                           User[]                  @relation("UserFriends", references: [id])
-  Work                             Work[]                  @relation(references: [id])
+  updatedAt                        DateTime               @updatedAt
+  User_UserToUser_bestFriend       User?                  @relation("UserToUser_bestFriend", fields: [bestFriend], references: [id])
+  User_UserToUser_godFather        User?                  @relation("UserToUser_godFather", fields: [godFather], references: [id])
+  Home                             Home?                  @relation(fields: [home], references: [id])
+  IdentificationDocument           IdentificationDocument @relation(fields: [identificationDocument], references: [id])
+  Tagline                          Tagline?               @relation(fields: [tagline], references: [id])
+  TaxDocument                      TaxDocument?           @relation(fields: [taxDocument], references: [id])
+  other_User_UserToUser_bestFriend User[]                 @relation("UserToUser_bestFriend")
+  other_User_UserToUser_godFather  User[]                 @relation("UserToUser_godFather")
+  Thought                          Thought[]              @relation(references: [id])
+  User_A                           User[]                 @relation("UserFriends", references: [id])
+  User_B                           User[]                 @relation("UserFriends", references: [id])
+  Work                             Work[]                 @relation(references: [id])
   @@index([bestFriend], name: "bestFriend")
   @@index([godFather], name: "godFather")
   @@index([home], name: "home")

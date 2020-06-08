@@ -25,7 +25,7 @@ model Profile {
   bio  String?
   id   String  @default(cuid()) @id
   user String? @unique
-  User User?   @relation(fields: [user], references: [id])
+  User User    @relation(fields: [user], references: [id])
 }
 
 model User {
