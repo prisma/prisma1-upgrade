@@ -7,7 +7,7 @@ This is a **Beta Tool** meaning that it's working and is well-tested but it hasn
 ## Usage
 
 ```sh
-$ prisma-upgrade
+$ npx prisma-upgrade
 ```
 
 See [our documentation](https://www.prisma.io/docs/guides/upgrade-from-prisma-1/how-to-upgrade#prisma-upgrade-cli) for more information about how to upgrade your Prisma 1 datamodel to Prisma 2.
