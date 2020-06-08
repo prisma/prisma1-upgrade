@@ -7,8 +7,10 @@ This is a **Beta Tool** meaning that it works for the most part and is fairly we
 ## Usage
 
 ```sh
-$ prisma-upgrade datamodel.prisma schema.prisma
+$ prisma-upgrade
 ```
+
+See [our documentation](https://www.prisma.io/docs/guides/upgrade-from-prisma-1/how-to-upgrade#prisma-upgrade-cli) for more information about how to upgrade your Prisma 1 datamodel to Prisma 2.
 
 ## Current features
 
