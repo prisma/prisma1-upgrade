@@ -142,13 +142,36 @@ async function main(argv: string[]): Promise<void> {
 
   const datamodel = await concatDatamodels(path.dirname(prismaYaml), yml)
   const prisma1 = p1.parse(datamodel)
-  const prisma2 = new p2.Schema(await readFile(schemaPrisma, 'utf8'))
+  let prisma2: p2.Schema
+  try {
+    prisma2 = new p2.Schema(await readFile(schemaPrisma, 'utf8'))
+  } catch (err) {
+    return fatal(
+      redent(`
+      Error parsing the Prisma 2 file.
+
+      Are you sure "${schemaPrisma}" is a valid Prisma 2.0 schema file?
+
+      Run ${green(`\`prisma-upgrade -h\``)} for more details.
+
+      Stack Trace:
+
+        ${redent(err.stack || err.message, 4).trim()}
+      `)
+    )
+  }
   const url = isURL(args['--url'] || '') ? args['--url'] : findURL(yml, prisma2)
   if (!url) {
     return fatal(
-      `No url found. Please use the --url flag. The url is not used to connect to your database, only to determine the schema name. Run ${green(
-        `\`prisma-upgrade -h\``
-      )} for more details.`
+      redent(`
+        We could not determine your endpoint. It's probably in an environment variable.
+
+        Please use the --url flag to specify the endpoint.
+
+        Run ${green(`\`prisma-upgrade -h\``)} for more details.
+
+        Note: The url is not used to connect to your database, only to determine the schema name.
+    `)
     )
   }
   // no models

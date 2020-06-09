@@ -36,7 +36,7 @@
     "is-url": "1.2.4",
     "js-yaml": "3.14.0",
     "kleur": "3.0.3",
-    "prismafile": "1.0.6",
+    "prismafile": "1.0.7",
     "redent": "3.0.0"
   },
   "devDependencies": {

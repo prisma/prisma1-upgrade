@@ -1,4 +1,4 @@
 endpoint: http://localhost:4466/mysql-many-dms/dev
 datamodel:
-  - model/user.graphql
-  - model/post.graphql
+  - model/user.prisma
+  - model/post.prisma

@@ -4,13 +4,15 @@ datasource db {
 }
 
 model Post {
-  id   String  @default(cuid()) @id
+  id   String
   user String?
   User User?   @relation(fields: [user], references: [id])
   @@index([user], name: "user")
+  meta String
 }
 
+// ok cool
 model User {
-  id   String @default(cuid()) @id
+  id   String
   Post Post[]
 }

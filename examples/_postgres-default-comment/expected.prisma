@@ -1,0 +1,11 @@
+datasource db {
+  provider = "postgresql"
+  url      = "postgres://m@localhost:5432/prisma_test?schema=postgres-default-string%24dev"
+}
+
+model User {
+  email    String? @unique
+  id       String  @default(cuid()) @id
+  name     String  @default("gnarley")
+  nickName String? @default("mcblabber")
+}
