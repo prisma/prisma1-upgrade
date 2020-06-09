@@ -1,3 +1,7 @@
+# 0.0.19 / 2020-06-09
+
+- ignore 1-to-1 relations that have link: Table
+
 # 0.0.18 / 2020-06-09
 
 - bump prismafile to support comments in P2 schema.
