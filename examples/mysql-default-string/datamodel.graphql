@@ -1,0 +1,6 @@
+type User {
+  id: ID! @id
+  email: String @unique
+  name: String! @default(value: "gnarley")
+  nickName: String @default(value: "mcblabber")
+}

@@ -1,0 +1,11 @@
+datasource db {
+  provider = "mysql"
+  url      = "mysql://root@localhost:3306/prisma_test"
+}
+
+model User {
+  email    String? @unique
+  id       String  @default(cuid()) @id
+  name     String  @default("gnarley")
+  nickName String? @default("mcblabber")
+}

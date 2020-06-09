@@ -21,6 +21,7 @@ type Output = {
 export async function upgrade(input: Input): Promise<Output> {
   const { prisma1, prisma2, url } = input
   const pgSchema = getPGSchema(url)
+  const provider = prisma2.provider()
 
   // first we'll transform P2 schema to make up for temporary re-introspection limitations.
   const models = prisma1.objects
@@ -67,6 +68,21 @@ export async function upgrade(input: Input): Promise<Output> {
             // F: @createdAt is lost
             if (p1Attr.name === 'createdAt') {
               p2Field.upsertAttribute(createdAt())
+            }
+            // mysql only: defaults don't work for TEXT (and it's variants) and JSON fields
+            // but they do work at the Prisma-level, so we'll provide them.
+            if (isMySQLDefaultText(provider, p1Field, p1Attr)) {
+              const value = getDefaultValueString(p1Attr)
+              if (typeof value === 'string') {
+                p2Field.upsertAttribute(
+                  defaultAttr({
+                    type: 'string_value',
+                    start: pos,
+                    end: pos,
+                    value: value,
+                  })
+                )
+              }
             }
           }
         }
@@ -131,6 +147,11 @@ export async function upgrade(input: Input): Promise<Output> {
           const p2Attr = p2Field.findAttribute((a) => a.name === 'default')
           // @default is already in P2
           if (p2Attr && hasExpectedDefault(p1Arg, p2Attr.arguments[0])) {
+            continue
+          }
+          // mysql only: defaults don't work for TEXT (and it's variants) and JSON fields
+          // but they do work at the Prisma-level, so we'll provide them.
+          if (isMySQLDefaultText(provider, p1Field, p1Attr)) {
             continue
           }
           ops.push({
@@ -350,6 +371,25 @@ function isOneToOne(schema: p2.Schema, edge: graph.Edge): boolean {
 
 function isJsonType(field: p2.Field): boolean {
   return field.type.innermost().toString() === 'Json'
+}
+
+function isMySQLDefaultText(
+  provider: string,
+  field: p1.FieldDefinition,
+  directive: p1.Directive
+): boolean {
+  return (
+    provider === 'mysql' &&
+    field.type.named() === 'String' &&
+    directive.name === 'default' &&
+    !!directive.findArgument((arg) => arg.name === 'value')
+  )
+}
+
+function getDefaultValueString(attr: p1.Directive): string | void {
+  const arg = attr.findArgument((a) => a.name === 'value')
+  if (!arg || !arg.value || arg.value.kind !== 'StringValue') return
+  return arg.value.value
 }
 
 function getPGSchema(url: string): string {
