@@ -1,3 +1,8 @@
+# 0.0.18 / 2020-06-09
+
+- bump prismafile to support comments in P2 schema.
+- improve error handling
+
 # 0.0.17 / 2020-06-09
 
 - fix mysql default json.
