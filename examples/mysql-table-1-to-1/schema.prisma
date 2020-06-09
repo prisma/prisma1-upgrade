@@ -1,0 +1,19 @@
+datasource db {
+  provider = "mysql"
+  url      = "mysql://root:prisma@0.0.0.0:3307/mysql-table-1-to-1@dev"
+}
+
+model Settings {
+  id                  String  @default(cuid()) @id
+  user                String?
+  User_SettingsToUser User?   @relation(fields: [user], references: [id])
+  User_Settings       User[]  @relation("Settings", references: [id])
+
+  @@index([user], name: "user")
+}
+
+model User {
+  id                      String     @default(cuid()) @id
+  Settings_SettingsToUser Settings[]
+  Settings_Settings       Settings[] @relation("Settings", references: [id])
+}

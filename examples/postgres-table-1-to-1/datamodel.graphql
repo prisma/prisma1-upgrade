@@ -1,0 +1,9 @@
+type User {
+  id: ID! @id
+  settings: Settings @relation(name: "Settings", link: TABLE)
+}
+
+type Settings {
+  id: ID! @id
+  user: User @relation(name: "SettingsOnUser")
+}

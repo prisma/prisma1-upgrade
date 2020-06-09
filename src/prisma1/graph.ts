@@ -43,12 +43,8 @@ export function load(schema: p1.Schema): Graph {
         let link: Edge['link'] = ''
         const relation = field.directives.find((d) => d.name === 'relation')
         if (relation) {
-          const arg = relation?.arguments.find((a) => a.name === 'link')
-          if (
-            arg &&
-            arg.value.kind === 'StringValue' &&
-            arg.value.value === 'TABLE'
-          ) {
+          const arg = relation.arguments.find((a) => a.name === 'link')
+          if (arg && 'value' in arg.value && arg.value.value === 'TABLE') {
             link = 'TABLE'
           } else {
             link = 'INLINE'

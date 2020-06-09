@@ -1,0 +1,17 @@
+datasource db {
+  provider = "postgresql"
+  url      = "postgres://root:prisma@0.0.0.0:5433/prisma?schema=postgres-table-1-to-1%24dev"
+}
+
+model Settings {
+  id                  String  @id
+  user                String?
+  User_SettingsToUser User?   @relation(fields: [user], references: [id])
+  User_Settings       User[]  @relation("Settings", references: [id])
+}
+
+model User {
+  id                      String     @id
+  Settings_SettingsToUser Settings[]
+  Settings_Settings       Settings[] @relation("Settings", references: [id])
+}

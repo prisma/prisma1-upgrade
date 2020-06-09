@@ -36,7 +36,8 @@ it('import-able', async function () {
 const dir = path.join(__dirname, '..', '..', 'examples')
 const allTests = fs.readdirSync(dir)
 
-describe('mysql', () => {
+describe('mysql', function () {
+  this.timeout('5s')
   const tests = allTests.filter((test) => test.startsWith('mysql'))
   tests.forEach((name) => {
     describe(name, () => {

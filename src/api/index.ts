@@ -241,7 +241,12 @@ export async function upgrade(input: Input): Promise<Output> {
 
       const edge2: graph.Edge = g.edge(edges[j].v, edges[j].w)
       // 1:1 relationship
-      if (edge1.type === 'hasOne' && edge2.type === 'hasOne') {
+      if (
+        edge1.type === 'hasOne' &&
+        edge1.link === 'INLINE' &&
+        edge2.type === 'hasOne' &&
+        edge2.link === 'INLINE'
+      ) {
         const uniqueEdge =
           edge1.link === 'INLINE' // edge inline
             ? edge1

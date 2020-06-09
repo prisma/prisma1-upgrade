@@ -32,6 +32,9 @@ async function main() {
 
     const exampleDirs = await fs.readdirSync(examples)
     for (let example of exampleDirs) {
+      if (example[0] === '_') {
+        continue
+      }
       const fullpath = path.join(examples, example)
       // TODO: comment out if you want to run anew
       if (fs.existsSync(path.join(fullpath, 'dump.sql'))) {
