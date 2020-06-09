@@ -1,3 +1,9 @@
+# 0.0.16 / 2020-06-09
+
+- workaround dbgenerated introspection issue for enums with defaults in postgres
+- fix mysql5 default text issue
+- fix @createdAt getting added superfluously
+
 # 0.0.15 / 2020-06-08
 
 - add support for L: 1-1 relation with both sides required
