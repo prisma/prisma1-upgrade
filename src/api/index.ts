@@ -14,6 +14,7 @@ type Input = {
 
 type Output = {
   schema: p2.Schema
+  warnings: string[]
   ops: sql.Op[]
 }
 
@@ -22,6 +23,7 @@ export async function upgrade(input: Input): Promise<Output> {
   const { prisma1, prisma2, url } = input
   const pgSchema = getPGSchema(url)
   const provider = prisma2.provider()
+  const warnings: string[] = []
 
   // gather the enums
   let p1Enums: { [name: string]: p1.EnumTypeDefinition } = {}
@@ -79,7 +81,7 @@ export async function upgrade(input: Input): Promise<Output> {
             if (p1Attr.name === 'createdAt') {
               p2Field.upsertAttribute(defaultNow())
             }
-            // MySQL only: defaults don't work for TEXT (and it's variants) and JSON fields
+            // MySQL only: defaults don't work for TEXT (and it's variants)
             // but they do work at the Prisma-level, so we'll provide them.
             if (isMySQLDefaultText(provider, p1Field, p1Attr)) {
               const value = getDefaultValueString(p1Attr)
@@ -93,6 +95,15 @@ export async function upgrade(input: Input): Promise<Output> {
                   })
                 )
               }
+            }
+            // mysql only: defaults don't work for JSON
+            if (isMySQLDefaultJson(provider, p1Field, p1Attr)) {
+              warnings.push(
+                `Prisma 2.0 doesn't support the Json data type with a default yet.
+
+                See: https://github.com/prisma/prisma/issues/2556 for more information.`
+              )
+              continue
             }
             // Postgres only: @default(<ENUM>) currently generated @default(dbgenerated())
             // TODO: test & remove after https://github.com/prisma/prisma-engines/pull/794
@@ -170,9 +181,13 @@ export async function upgrade(input: Input): Promise<Output> {
           if (p2Attr && hasExpectedDefault(p1Arg, p2Attr.arguments[0])) {
             continue
           }
-          // mysql only: defaults don't work for TEXT (and it's variants) and JSON fields
+          // mysql only: defaults don't work for TEXT (and it's variants)
           // but they do work at the Prisma-level, so we'll provide them.
           if (isMySQLDefaultText(provider, p1Field, p1Attr)) {
+            continue
+          }
+          // mysql only: defaults don't work for JSON
+          if (isMySQLDefaultJson(provider, p1Field, p1Attr)) {
             continue
           }
           ops.push({
@@ -265,6 +280,7 @@ export async function upgrade(input: Input): Promise<Output> {
 
   return {
     schema: prisma2,
+    warnings,
     ops,
   }
 }
@@ -407,6 +423,19 @@ function isMySQLDefaultText(
   return (
     provider === 'mysql' &&
     field.type.named() === 'String' &&
+    directive.name === 'default' &&
+    !!directive.findArgument((arg) => arg.name === 'value')
+  )
+}
+
+function isMySQLDefaultJson(
+  provider: string,
+  field: p1.FieldDefinition,
+  directive: p1.Directive
+): boolean {
+  return (
+    provider === 'mysql' &&
+    field.type.named() === 'Json' &&
     directive.name === 'default' &&
     !!directive.findArgument((arg) => arg.name === 'value')
   )

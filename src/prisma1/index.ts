@@ -339,6 +339,10 @@ export class FieldDefinition {
     return this.def.directives.map((dir) => new Directive(dir))
   }
 
+  optional(): boolean {
+    return this.type.optional()
+  }
+
   findDirective(fn: (n: Directive) => boolean): Directive | void {
     for (let d of this.directives) {
       if (fn(d)) {
@@ -384,6 +388,10 @@ export class NamedType {
     return this.def.kind
   }
 
+  optional(): boolean {
+    return true
+  }
+
   named() {
     return this.name
   }
@@ -415,6 +423,10 @@ export class ListType {
     }
   }
 
+  optional(): boolean {
+    return true
+  }
+
   named(): string {
     return this.inner().named()
   }
@@ -442,6 +454,10 @@ export class NonNullType {
       case 'NamedType':
         return new NamedType(this.def.type)
     }
+  }
+
+  optional(): boolean {
+    return false
   }
 
   named(): string {

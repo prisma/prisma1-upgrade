@@ -79,7 +79,7 @@ model User {
   tagline                          String?
   taxDocument                      String?                @unique
   temperature                      Float?
-  type                             User_type?
+  type                             User_type
   updatedAt                        DateTime               @updatedAt
   User_UserToUser_bestFriend       User?                  @relation("UserToUser_bestFriend", fields: [bestFriend], references: [id])
   User_UserToUser_godFather        User?                  @relation("UserToUser_godFather", fields: [godFather], references: [id])

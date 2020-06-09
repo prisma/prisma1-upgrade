@@ -276,7 +276,7 @@ async function main(argv: string[]): Promise<void> {
           console.log(`  ${bold(`Fixing columns with JSON data types`)}`)
           console.log(
             `  ${gray(
-              `https://pris.ly/d/schema-incompatibilities##json-type-is-represented-as-text-in-database`
+              `https://pris.ly/d/schema-incompatibilities#json-type-is-represented-as-text-in-database`
             )}`
           )
           console.log()
@@ -286,18 +286,25 @@ async function main(argv: string[]): Promise<void> {
           break
         case 'SetEnumTypeOp':
           console.log(
-            `  Turn the columns string type into a enum type for Enum fields.`
+            `  ${bold(
+              `Turn the columns string type into a enum type for Enum fields`
+            )}`
+          )
+          console.log(
+            `  ${gray(
+              `https://pris.ly/d/schema-incompatibilities#enums-are-represented-as-text-in-database`
+            )}`
           )
           console.log()
           console.log('    ' + queries.join('\n    '))
+          console.log()
           console.log()
           break
       }
     }
 
     console.log(
-      redent(`
-      If you executed one or more of the above SQL statements against your database,
+      redent(`If you executed one or more of the above SQL statements against your database,
       please run the following two commands:
 
         1. Run ${green(

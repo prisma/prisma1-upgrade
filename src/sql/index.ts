@@ -193,8 +193,7 @@ export class MySQL5 implements Translator {
     const modelName = this.backtick(op.p1Model.dbname)
     const fieldName = this.backtick(op.p1Field.dbname)
     const dataType = this.dataType(arg.value, op.p1Enum)
-    const nullable = !!~op.p1Field.type.toString().indexOf('?')
-    const notNull = nullable ? '' : 'NOT NULL'
+    const notNull = op.p1Field.optional() ? '' : 'NOT NULL'
     const defaultValue = this.defaultValue(arg.value)
     return `ALTER TABLE ${modelName} CHANGE ${fieldName} ${fieldName} ${dataType} ${notNull} DEFAULT ${defaultValue};`
   }
@@ -243,8 +242,7 @@ export class MySQL5 implements Translator {
     const modelName = this.backtick(op.p1Model.dbname)
     const fieldName = this.backtick(op.p1Field.dbname)
     const dataType = 'DATETIME'
-    const nullable = !!~op.p1Field.type.toString().indexOf('?')
-    const notNull = nullable ? '' : 'NOT NULL'
+    const notNull = op.p1Field.optional() ? '' : 'NOT NULL'
     return `ALTER TABLE ${modelName} CHANGE ${fieldName} ${fieldName} ${dataType} ${notNull} DEFAULT CURRENT_TIMESTAMP;`
   }
 
@@ -257,15 +255,17 @@ export class MySQL5 implements Translator {
   private SetJsonTypeOp(op: SetJsonTypeOp): string {
     const modelName = this.backtick(op.p1Model.dbname)
     const fieldName = this.backtick(op.p1Field.dbname)
-    return `ALTER TABLE ${modelName} CHANGE ${fieldName} ${fieldName} JSON;`
+    const notNull = op.p1Field.optional() ? '' : 'NOT NULL'
+    return `ALTER TABLE ${modelName} CHANGE ${fieldName} ${fieldName} JSON ${notNull};`
   }
 
   private SetEnumTypeOp(op: SetEnumTypeOp): string {
     const modelName = this.backtick(op.p1Model.dbname)
     const fieldName = this.backtick(op.p1Field.dbname)
+    const notNull = op.p1Field.optional() ? '' : 'NOT NULL'
     const enumList = op.p1Enum.values
       .map((value) => `'${value.name}'`)
       .join(', ')
-    return `ALTER TABLE ${modelName} CHANGE ${fieldName} ${fieldName} ENUM(${enumList});`
+    return `ALTER TABLE ${modelName} CHANGE ${fieldName} ${fieldName} ENUM(${enumList}) ${notNull};`
   }
 }
