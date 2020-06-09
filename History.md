@@ -1,3 +1,9 @@
+# 0.0.17 / 2020-06-09
+
+- fix mysql default json.
+- improve not null handling in mysql.
+- fix cli messaging around enums.
+
 # 0.0.16 / 2020-06-09
 
 - workaround dbgenerated introspection issue for enums with defaults in postgres
