@@ -23,6 +23,16 @@ export async function upgrade(input: Input): Promise<Output> {
   const pgSchema = getPGSchema(url)
   const provider = prisma2.provider()
 
+  // gather the enums
+  let p1Enums: { [name: string]: p1.EnumTypeDefinition } = {}
+  for (let p1Enum of prisma1.enums) {
+    p1Enums[p1Enum.name] = p1Enum
+  }
+  let p2Enums: { [name: string]: p2.Enum } = {}
+  for (let p2Enum of prisma2.enums) {
+    p2Enums[p2Enum.name] = p2Enum
+  }
+
   // first we'll transform P2 schema to make up for temporary re-introspection limitations.
   const models = prisma1.objects
   // loop over p1 models
@@ -65,11 +75,11 @@ export async function upgrade(input: Input): Promise<Output> {
             if (p1Attr.name === 'updatedAt') {
               p2Field.upsertAttribute(updatedAt())
             }
-            // F: @createdAt is lost
+            // F: @defaultNow for @createdAt is lost after a re-deploy. Add it back in.
             if (p1Attr.name === 'createdAt') {
-              p2Field.upsertAttribute(createdAt())
+              p2Field.upsertAttribute(defaultNow())
             }
-            // mysql only: defaults don't work for TEXT (and it's variants) and JSON fields
+            // MySQL only: defaults don't work for TEXT (and it's variants) and JSON fields
             // but they do work at the Prisma-level, so we'll provide them.
             if (isMySQLDefaultText(provider, p1Field, p1Attr)) {
               const value = getDefaultValueString(p1Attr)
@@ -84,6 +94,27 @@ export async function upgrade(input: Input): Promise<Output> {
                 )
               }
             }
+            // Postgres only: @default(<ENUM>) currently generated @default(dbgenerated())
+            // TODO: test & remove after https://github.com/prisma/prisma-engines/pull/794
+            // is merged
+            if (isPostgresDefaultEnum(provider, p1Field, p1Attr, p1Enums)) {
+              const value = getDefaultValueEnum(p1Attr)
+              if (typeof value === 'string') {
+                p2Field.upsertAttribute(
+                  defaultAttr({
+                    type: 'reference_value',
+                    start: pos,
+                    end: pos,
+                    name: {
+                      type: 'identifier',
+                      start: pos,
+                      end: pos,
+                      name: value,
+                    },
+                  })
+                )
+              }
+            }
           }
         }
       }
@@ -91,16 +122,6 @@ export async function upgrade(input: Input): Promise<Output> {
   }
 
   const ops: sql.Op[] = []
-
-  let p1Enums: { [name: string]: p1.EnumTypeDefinition } = {}
-  for (let p1Enum of prisma1.enums) {
-    p1Enums[p1Enum.name] = p1Enum
-  }
-
-  let p2Enums: { [name: string]: p2.Enum } = {}
-  for (let p2Enum of prisma2.enums) {
-    p2Enums[p2Enum.name] = p2Enum
-  }
 
   for (let p1Model of prisma1.objects) {
     const p2Model = prisma2.findModel((m) => m.name === p1Model.name)
@@ -286,14 +307,19 @@ function updatedAt(): p2ast.Attribute {
   }
 }
 
-function createdAt(): p2ast.Attribute {
-  return {
-    type: 'attribute',
-    name: ident('createdAt'),
-    end: pos,
+function defaultNow(): p2ast.Attribute {
+  return defaultAttr({
+    type: 'function_value',
+    name: {
+      type: 'identifier',
+      name: 'now',
+      start: pos,
+      end: pos,
+    },
     start: pos,
+    end: pos,
     arguments: [],
-  }
+  })
 }
 
 // cuid()
@@ -386,9 +412,31 @@ function isMySQLDefaultText(
   )
 }
 
+function isPostgresDefaultEnum(
+  provider: string,
+  p1Field: p1.FieldDefinition,
+  attr: p1.Directive,
+  enums: { [name: string]: p1.EnumTypeDefinition }
+): boolean {
+  if (provider !== 'postgresql' || !enums[p1Field.type.named()]) {
+    return false
+  }
+  const arg = attr.findArgument((a) => a.name === 'value')
+  if (!arg || !arg.value || arg.value.kind !== 'EnumValue') {
+    return false
+  }
+  return true
+}
+
 function getDefaultValueString(attr: p1.Directive): string | void {
   const arg = attr.findArgument((a) => a.name === 'value')
   if (!arg || !arg.value || arg.value.kind !== 'StringValue') return
+  return arg.value.value
+}
+
+function getDefaultValueEnum(attr: p1.Directive): string | void {
+  const arg = attr.findArgument((a) => a.name === 'value')
+  if (!arg || !arg.value || arg.value.kind !== 'EnumValue') return
   return arg.value.value
 }
 

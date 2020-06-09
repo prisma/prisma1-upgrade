@@ -33,7 +33,7 @@ model User {
   id       String    @default(cuid()) @id
   settings Json?     @map("jsonData")
   name     String
-  role     Role      @default(dbgenerated())
+  role     Role      @default(CUSTOMER)
   Profile  Profile?
   Message  Message[] @relation("MessageToUser", references: [id])
 }
