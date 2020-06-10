@@ -296,7 +296,7 @@ async function main(argv: string[]): Promise<void> {
           console.log()
           break
         case 'SetJsonTypeOp':
-          console.log(`  ${bold(`Fix columns with JSON data types`)}`)
+          console.log(`${bold(`Fix columns with JSON data types`)}`)
           console.log(
             `  ${gray(
               `https://pris.ly/d/schema-incompatibilities#json-type-is-represented-as-text-in-database`
