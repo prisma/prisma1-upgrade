@@ -203,7 +203,7 @@ async function main(argv: string[]): Promise<void> {
 
     console.log(
       redent(`
-      ◮ Welcome to the interactive Prisma Upgrade CLI that helps with the
+      ◮ Welcome to the interactive ${bold('Prisma Upgrade CLI')} that helps with the
       upgrade process from Prisma 1 to Prisma 2.0.
 
       Please read the docs to learn more about the upgrade process:
@@ -245,7 +245,7 @@ async function main(argv: string[]): Promise<void> {
     await confirm(`Are you ready? [Y/n] `)
     clear(true)
 
-    console.log()
+    console.log(`${bold('➤ Adjust your database schema')}`)
     console.log(`Run the following SQL statements against your database:`)
     console.log()
 
@@ -327,7 +327,9 @@ async function main(argv: string[]): Promise<void> {
     }
 
     console.log(
-      redent(`If you executed one or more of the above SQL statements against your database,
+      redent(`
+      ${bold('➤ Next Steps')}
+      If you executed one or more of the above SQL statements against your database,
       please run the following two commands:
 
         1. Run ${green(
@@ -338,11 +340,6 @@ async function main(argv: string[]): Promise<void> {
       If you can't or don't want to execute the remaining SQL statements right now, you can
       skip to the last step where the Upgrade CLI adds missing attributes to your Prisma 2
       schema that are not picked up by introspection.
-
-        1. Run ${green(
-          `\`prisma introspect\``
-        )} again to refresh your Prisma 2.0 schema.
-        2. Run ${green(`\`prisma-upgrade\``)} again.
     `)
     )
     const yes = await prompt.confirm(`Skip to the last step? [Y/n]? `)
