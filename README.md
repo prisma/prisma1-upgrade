@@ -16,20 +16,23 @@ See [our documentation](https://www.prisma.io/docs/guides/upgrade-from-prisma-1/
 
 This table reflects the _current_ feature set of the upgrade CLI and will be updated continuously. Read below for a more detailled explanation of each column. You can also find more info about each of these feautures in the [docs](https://www.prisma.io/docs/guides/upgrade-from-prisma-1/schema-incompatibilities).
 
-| Name                                | MySQL   | PostgreSQL | Prisma schema | Prisma 1 compatible |
-| ----------------------------------- | ------- | ---------- | ------------- | ------------------- |
-| Default values                      | Yes     | Yes        | Yes           | Yes                 |
-| @updatedAt                          | n/a     | n/a        | Yes           | Yes                 |
-| Missing UNIQUE for inline 1-1       | Yes     | Yes        | Yes           | Yes                 |
-| JSON                                | Yes     | Yes        | Yes           | Yes                 |
-| Enums                               | Yes     | Yes        | Yes           | Yes                 |
-| Generated IDs                       | n/a     | n/a        | Yes           | Yes                 |
-| @createdAt                          | Yes     | Yes        | Yes           | Yes                 |
-| Relation tables are all m-n         | Not yet | Not yet    | Not yet       | No                  |
-| Scalar lists have extra table       | Not yet | Not yet    | Not yet       | No                  |
-| Cascading deletes                   | No      | No         | No            | No                  |
-| Maintain order of models and fields | n/a     | n/a        | Not yet       | No                  |
-| Maintain relation names             | n/a     | n/a        | Not yet       | No                  |
+| Name                                  | MySQL   | PostgreSQL | Prisma schema | Prisma 1 compatible |
+| ------------------------------------- | ------- | ---------- | ------------- | ------------------- |
+| Default values                        | Yes     | Yes        | Yes           | Yes                 |
+| Missing UNIQUE for inline 1-1         | Yes     | Yes        | Yes           | Yes                 |
+| JSON                                  | Yes     | Yes        | Yes           | Yes                 |
+| Enums                                 | Yes     | Yes        | Yes           | Yes                 |
+| @createdAt                            | Yes     | Yes        | Yes           | Yes                 |
+| Generated IDs with `@default(cuid())` | n/a     | n/a        | Yes           | Yes                 |
+| @updatedAt                            | n/a     | n/a        | Yes           | Yes                 |
+| `@map` and `@@map`                    | n/a     | n/a        | Yes           | Yes                 |
+| Maintain required 1-1-relations       | n/a     | n/a        | Yes           | Yes                 |
+| Maintain order of models and fields   | n/a     | n/a        | Not yet       | Yes                 |
+| Maintain relation names               | n/a     | n/a        | Not yet       | Yes                 |
+| Relation tables are all m-n           | Not yet | Not yet    | Not yet       | No                  |
+| Scalar lists have extra table         | Not yet | Not yet    | Not yet       | No                  |
+| Cascading deletes                     | No      | No         | No            | No                  |
+
 
 What do the columns mean?
 
