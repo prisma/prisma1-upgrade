@@ -25,6 +25,7 @@ DROP TABLE IF EXISTS `Post`;
 CREATE TABLE `Post` (
   `id` char(25) CHARACTER SET utf8 NOT NULL,
   `user` char(25) CHARACTER SET utf8 DEFAULT NULL,
+  `meta` mediumtext COLLATE utf8mb4_unicode_ci NOT NULL,
   PRIMARY KEY (`id`),
   KEY `user` (`user`),
   CONSTRAINT `Post_ibfk_1` FOREIGN KEY (`user`) REFERENCES `User` (`id`) ON DELETE SET NULL

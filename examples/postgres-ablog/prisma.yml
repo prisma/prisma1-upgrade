@@ -1,0 +1,2 @@
+endpoint: http://localhost:4467/postgres-ablog/dev
+datamodel: datamodel.graphql

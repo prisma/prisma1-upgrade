@@ -77,10 +77,6 @@ export async function upgrade(input: Input): Promise<Output> {
             if (p1Attr.name === 'updatedAt') {
               p2Field.upsertAttribute(updatedAt())
             }
-            // F: @defaultNow for @createdAt is lost after a re-deploy. Add it back in.
-            if (p1Attr.name === 'createdAt') {
-              p2Field.upsertAttribute(defaultNow())
-            }
             // MySQL only: defaults don't work for TEXT (and it's variants)
             // but they do work at the Prisma-level, so we'll provide them.
             if (isMySQLDefaultText(provider, p1Field, p1Attr)) {
@@ -200,14 +196,20 @@ export async function upgrade(input: Input): Promise<Output> {
           })
         }
         // we found a @createdAt in P1 and it's not in P2
-        if (p1Attr.name === 'createdAt' && !hasDefaultNow(p2Field)) {
-          ops.push({
-            type: 'SetCreatedAtOp',
-            schema: pgSchema,
-            p1Model,
-            p1Field,
-            p1Attr,
-          })
+        if (p1Attr.name === 'createdAt') {
+          // maybe add the SQL command if we don't already have @default(now)
+          if (!hasDefaultNow(p2Field)) {
+            ops.push({
+              type: 'SetCreatedAtOp',
+              schema: pgSchema,
+              p1Model,
+              p1Field,
+              p1Attr,
+            })
+          }
+          // either way upsert default(now())
+          // F: @defaultNow for @createdAt is lost after a re-deploy. Add it back in.
+          p2Field.upsertAttribute(defaultNow())
         }
       }
     }
@@ -243,9 +245,9 @@ export async function upgrade(input: Input): Promise<Output> {
       // 1:1 relationship
       if (
         edge1.type === 'hasOne' &&
-        edge1.link === 'INLINE' &&
+        edge1.link !== 'TABLE' &&
         edge2.type === 'hasOne' &&
-        edge2.link === 'INLINE'
+        edge2.link !== 'TABLE'
       ) {
         const uniqueEdge =
           edge1.link === 'INLINE' // edge inline

@@ -11,7 +11,6 @@ model Post {
   meta String
 }
 
-// ok cool
 model User {
   id   String
   Post Post[]

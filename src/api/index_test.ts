@@ -55,6 +55,10 @@ describe('mysql', function () {
           path.join(abspath, 'expected.prisma'),
           'utf8'
         )
+        const expectedSQL = await readFile(
+          path.join(abspath, 'expected.sql'),
+          'utf8'
+        )
         const prismaYaml = path.join(abspath, 'prisma.yml')
         const yml = yaml.safeLoad(await readFile(prismaYaml, 'utf8'))
         const datamodel = await concatDatamodels(path.dirname(prismaYaml), yml)
@@ -85,7 +89,7 @@ describe('mysql', function () {
         await db.query(`create database prisma_test;`)
         await db.query(`use prisma_test;`)
         db.query(await readFile(path.join(abspath, 'dump.sql'), 'utf8'))
-        await test(db, engine, expected, url, p1schema, p2schema)
+        await test(db, engine, expected, expectedSQL, url, p1schema, p2schema)
       })
     })
   })
@@ -107,6 +111,10 @@ describe('postgres', () => {
         const abspath = path.join(dir, name)
         const expected = await readFile(
           path.join(abspath, 'expected.prisma'),
+          'utf8'
+        )
+        const expectedSQL = await readFile(
+          path.join(abspath, 'expected.sql'),
           'utf8'
         )
         const prismaYaml = path.join(abspath, 'prisma.yml')
@@ -155,7 +163,15 @@ describe('postgres', () => {
         await db.connect()
         engine = new Inspector()
         await db.query(await readFile(path.join(abspath, 'dump.sql'), 'utf8'))
-        await test(db, engine, expected, pgschema, p1schema, p2schema)
+        await test(
+          db,
+          engine,
+          expected,
+          expectedSQL,
+          pgschema,
+          p1schema,
+          p2schema
+        )
       })
     })
   })
@@ -228,6 +244,7 @@ async function test(
   db: DB,
   engine: Inspector,
   expected: string,
+  expectedSQL: string,
   url: string,
   p1schema: p1.Schema,
   p2schema: p2.Schema
@@ -280,6 +297,21 @@ async function test(
     console.log(schema.toString())
     console.log(ops)
     assert.equal(0, ops.length, 'expected 0 ops the 2nd time around')
+  }
+
+  // assert the operations
+  const blockSQL = queries.join('\n')
+  if (blockSQL !== expectedSQL) {
+    console.log('')
+    console.log('Actual:')
+    console.log('')
+    console.log(chalk.dim(blockSQL))
+    console.log('')
+    console.log('Expected:')
+    console.log('')
+    console.log(chalk.dim(expectedSQL))
+    console.log('')
+    console.log(assert.equal(blockSQL, expectedSQL))
   }
 
   // schema
