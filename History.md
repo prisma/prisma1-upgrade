@@ -1,3 +1,9 @@
+# 0.0.20 / 2020-06-12
+
+- add expected.sql to all tests
+- fix @createdAt regression
+- fix 1-1 unique regression.
+
 # 0.0.19 / 2020-06-09
 
 - ignore 1-to-1 relations that have link: Table
