@@ -4,14 +4,14 @@ datasource db {
 }
 
 model Settings {
-  id                  String  @id
+  id                  String  @default(cuid()) @id
   user                String?
   User_SettingsToUser User?   @relation(fields: [user], references: [id])
   User_Settings       User[]  @relation("Settings", references: [id])
 }
 
 model User {
-  id                      String     @id
+  id                      String     @default(cuid()) @id
   Settings_SettingsToUser Settings[]
   Settings_Settings       Settings[] @relation("Settings", references: [id])
 }

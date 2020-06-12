@@ -1,0 +1,1 @@
+ALTER TABLE "postgres-required-1-to-1$dev"."User" ADD UNIQUE ("profile");

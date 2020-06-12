@@ -1,0 +1,1 @@
+ALTER TABLE `Post` CHANGE `meta` `meta` JSON NOT NULL;

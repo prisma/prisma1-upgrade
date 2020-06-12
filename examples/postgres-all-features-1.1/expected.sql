@@ -1,0 +1,11 @@
+ALTER TABLE "postgres-all-features-1-1$dev"."User" ALTER COLUMN "createdAt" SET DEFAULT CURRENT_TIMESTAMP;
+CREATE TYPE "postgres-all-features-1-1$dev"."UserType" AS ENUM ('NORMAL', 'AWESOME');
+ALTER TABLE "postgres-all-features-1-1$dev"."User" ALTER COLUMN "type" SET DATA TYPE "postgres-all-features-1-1$dev"."UserType" using "type"::"postgres-all-features-1-1$dev"."UserType";
+ALTER TABLE "postgres-all-features-1-1$dev"."User" ALTER COLUMN "isActive" SET DEFAULT false;
+ALTER TABLE "postgres-all-features-1-1$dev"."User" ALTER COLUMN "meta" SET DATA TYPE JSONB USING "meta"::TEXT::JSONB;
+ALTER TABLE "postgres-all-features-1-1$dev"."Work" ALTER COLUMN "createdAt" SET DEFAULT CURRENT_TIMESTAMP;
+ALTER TABLE "postgres-all-features-1-1$dev"."Home" ALTER COLUMN "createdAt" SET DEFAULT CURRENT_TIMESTAMP;
+ALTER TABLE "postgres-all-features-1-1$dev"."Thought" ALTER COLUMN "createdAt" SET DEFAULT CURRENT_TIMESTAMP;
+ALTER TABLE "postgres-all-features-1-1$dev"."Tagline" ALTER COLUMN "createdAt" SET DEFAULT CURRENT_TIMESTAMP;
+ALTER TABLE "postgres-all-features-1-1$dev"."User" ADD UNIQUE ("identificationDocument");
+ALTER TABLE "postgres-all-features-1-1$dev"."User" ADD UNIQUE ("taxDocument");

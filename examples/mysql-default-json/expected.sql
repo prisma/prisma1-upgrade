@@ -1,0 +1,1 @@
+ALTER TABLE `User` CHANGE `meta` `meta` JSON NOT NULL;
