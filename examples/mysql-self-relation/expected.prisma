@@ -1,0 +1,12 @@
+datasource db {
+  provider = "mysql"
+  url      = "mysql://root@localhost:3306/prisma_test"
+}
+
+model User {
+  id         String  @default(cuid()) @id
+  invitedBy  String? @unique
+  User       User?   @relation("UserToUser_invitedBy", fields: [invitedBy], references: [id])
+  other_User User?   @relation("UserToUser_invitedBy")
+  @@index([invitedBy], name: "invitedBy")
+}
