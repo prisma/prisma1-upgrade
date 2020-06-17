@@ -422,31 +422,9 @@ function isMySQLDefaultJson(
   )
 }
 
-function isPostgresDefaultEnum(
-  provider: string,
-  p1Field: p1.FieldDefinition,
-  attr: p1.Directive,
-  enums: { [name: string]: p1.EnumTypeDefinition }
-): boolean {
-  if (provider !== 'postgresql' || !enums[p1Field.type.named()]) {
-    return false
-  }
-  const arg = attr.findArgument((a) => a.name === 'value')
-  if (!arg || !arg.value || arg.value.kind !== 'EnumValue') {
-    return false
-  }
-  return true
-}
-
 function getDefaultValueString(attr: p1.Directive): string | void {
   const arg = attr.findArgument((a) => a.name === 'value')
   if (!arg || !arg.value || arg.value.kind !== 'StringValue') return
-  return arg.value.value
-}
-
-function getDefaultValueEnum(attr: p1.Directive): string | void {
-  const arg = attr.findArgument((a) => a.name === 'value')
-  if (!arg || !arg.value || arg.value.kind !== 'EnumValue') return
   return arg.value.value
 }
 
