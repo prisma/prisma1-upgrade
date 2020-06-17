@@ -1,3 +1,0 @@
-type Schedule {
-  id: ID! @id
-}

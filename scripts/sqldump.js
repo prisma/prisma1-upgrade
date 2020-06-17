@@ -66,6 +66,20 @@ async function main() {
           `--no-data`,
         ])
         dump = stdout
+      } else if (~example.indexOf(`mysql1-`)) {
+        console.log(`${example}: dumping MySQL1 schema`)
+        const { stdout } = await exec(`mysqldump`, [
+          `-u`,
+          `root`,
+          `-pprisma`,
+          `--port`,
+          `3308`,
+          `--host`,
+          `0.0.0.0`,
+          `${slugify(example)}@dev`,
+          `--no-data`,
+        ])
+        dump = stdout
       } else if (~example.indexOf(`postgres-`)) {
         console.log(`${example}: dumping Postgres schema`)
         const { stdout } = await exec(
@@ -77,6 +91,30 @@ async function main() {
             'localhost',
             '--port',
             '5433',
+            '--username',
+            'root',
+            '--no-privileges',
+            '--schema-only',
+            '--no-security-labels',
+          ],
+          {
+            env: {
+              PGPASSWORD: 'prisma',
+            },
+          }
+        )
+        dump = stdout
+      } else if (~example.indexOf(`postgres1-`)) {
+        console.log(`${example}: dumping Postgres schema`)
+        const { stdout } = await exec(
+          `pg_dump`,
+          [
+            '--dbname',
+            `prisma`, // prisma lives in a schema inside prisma db
+            '--host',
+            'localhost',
+            '--port',
+            '5434',
             '--username',
             'root',
             '--no-privileges',
@@ -111,6 +149,21 @@ async function main() {
             cwd,
           }
         )
+      } else if (~example.indexOf(`mysql1-`)) {
+        console.log(`${example}: introspecting MySQL database`)
+        await exec(
+          prisma2,
+          [
+            'introspect',
+            '--url',
+            `mysql://root:prisma@0.0.0.0:3308/${slugify(example)}@dev`,
+            `--schema`,
+            schemaPrisma,
+          ],
+          {
+            cwd,
+          }
+        )
       } else if (~example.indexOf(`postgres-`)) {
         console.log(`${example}: introspecting Postgres database`)
         await exec(
@@ -119,6 +172,23 @@ async function main() {
             'introspect',
             '--url',
             `postgres://root:prisma@0.0.0.0:5433/prisma?schema=${encodeURIComponent(
+              slugify(example) + '$dev'
+            )}`,
+            `--schema`,
+            schemaPrisma,
+          ],
+          {
+            cwd,
+          }
+        )
+      } else if (~example.indexOf(`postgres1-`)) {
+        console.log(`${example}: introspecting Postgres database`)
+        await exec(
+          prisma2,
+          [
+            'introspect',
+            '--url',
+            `postgres://root:prisma@0.0.0.0:5434/prisma?schema=${encodeURIComponent(
               slugify(example) + '$dev'
             )}`,
             `--schema`,

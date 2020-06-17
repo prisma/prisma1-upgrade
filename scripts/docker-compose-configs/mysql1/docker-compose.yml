@@ -1,0 +1,26 @@
+version: '3'
+services:
+  prisma:
+    image: prismagraphql/prisma:1.30
+    restart: always
+    ports:
+      - '4468:4466'
+    environment:
+      PRISMA_CONFIG: |
+        port: 4466
+        databases:
+          default:
+            connector: mysql
+            host: mysql
+            port: 3306
+            user: root
+            password: prisma
+            rawAccess: true
+            migrations: true
+  mysql:
+    image: mysql:5.7
+    restart: always
+    ports:
+      - '3308:3306'
+    environment:
+      MYSQL_ROOT_PASSWORD: prisma

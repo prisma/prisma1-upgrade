@@ -89,6 +89,7 @@ describe('mysql', function () {
         await db.query(`create database prisma_test;`)
         await db.query(`use prisma_test;`)
         db.query(await readFile(path.join(abspath, 'dump.sql'), 'utf8'))
+        await new Promise((resolve) => setTimeout(() => resolve(), 100))
         await test(db, engine, expected, expectedSQL, url, p1schema, p2schema)
       })
     })

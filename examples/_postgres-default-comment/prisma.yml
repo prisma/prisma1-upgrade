@@ -1,5 +1,0 @@
-endpoint: ${env:PRISMA_ENDPOINT}
-datamodel:
-  - user.prisma
-  - studyguide.prisma
-  - schedule.prisma

@@ -41,7 +41,7 @@
   },
   "devDependencies": {
     "@prisma/cli": "2.0.0",
-    "@prisma/sdk": "2.0.0",
+    "@prisma/sdk": "2.1.0-dev.29",
     "@rollup/plugin-node-resolve": "8.0.0",
     "@rollup/plugin-sucrase": "3.0.2",
     "@types/graphlib": "2.1.6",
@@ -58,6 +58,7 @@
     "rollup": "2.13.1",
     "slugify": "1.4.0",
     "testaway": "2.0.1",
+    "ts-node": "8.10.2",
     "typescript": "3.9.5"
   }
 }

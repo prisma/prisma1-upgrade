@@ -1,2 +1,0 @@
-endpoint: ${env:PRISMA_ENDPOINT}
-datamodel: datamodel.graphql

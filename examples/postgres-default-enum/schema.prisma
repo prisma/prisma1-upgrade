@@ -1,0 +1,9 @@
+datasource db {
+  provider = "postgresql"
+  url      = "postgres://root:prisma@0.0.0.0:5433/prisma?schema=postgres-default-enum%24dev"
+}
+
+model User {
+  id   String @default(cuid()) @id
+  role String
+}

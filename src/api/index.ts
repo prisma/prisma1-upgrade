@@ -101,27 +101,6 @@ export async function upgrade(input: Input): Promise<Output> {
               )
               continue
             }
-            // Postgres only: @default(<ENUM>) currently generated @default(dbgenerated())
-            // TODO: test & remove after https://github.com/prisma/prisma-engines/pull/794
-            // is merged
-            if (isPostgresDefaultEnum(provider, p1Field, p1Attr, p1Enums)) {
-              const value = getDefaultValueEnum(p1Attr)
-              if (typeof value === 'string') {
-                p2Field.upsertAttribute(
-                  defaultAttr({
-                    type: 'reference_value',
-                    start: pos,
-                    end: pos,
-                    name: {
-                      type: 'identifier',
-                      start: pos,
-                      end: pos,
-                      name: value,
-                    },
-                  })
-                )
-              }
-            }
           }
         }
       }
@@ -373,12 +352,7 @@ function hasExpectedDefault(p1Arg: p1.Argument, p2Arg?: p2.Argument): boolean {
     case 'BooleanValue':
       return p2Arg.value.type === 'boolean_value'
     case 'EnumValue':
-      return (
-        p2Arg.value.type === 'reference_value' ||
-        // TODO: remove once we close:
-        // https://github.com/prisma/prisma/issues/2689
-        p2Arg.value.type === 'function_value'
-      )
+      return p2Arg.value.type === 'reference_value'
     case 'FloatValue':
       return p2Arg.value.type === 'float_value'
     case 'IntValue':

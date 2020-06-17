@@ -1,6 +1,6 @@
 -- MySQL dump 10.13  Distrib 5.7.29, for osx10.15 (x86_64)
 --
--- Host: 0.0.0.0    Database: mysql-self-relation@dev
+-- Host: 0.0.0.0    Database: mysql1-self-relation@dev
 -- ------------------------------------------------------
 -- Server version	5.7.30
 
@@ -24,10 +24,42 @@ DROP TABLE IF EXISTS `User`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `User` (
   `id` char(25) CHARACTER SET utf8 NOT NULL,
-  `invitedBy` char(25) CHARACTER SET utf8 DEFAULT NULL,
+  `updatedAt` datetime(3) NOT NULL,
+  `createdAt` datetime(3) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `_RelayId`
+--
+
+DROP TABLE IF EXISTS `_RelayId`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `_RelayId` (
+  `id` varchar(36) NOT NULL,
+  `stableModelIdentifier` varchar(25) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `_UserInvitation`
+--
+
+DROP TABLE IF EXISTS `_UserInvitation`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `_UserInvitation` (
+  `id` char(25) CHARACTER SET utf8 NOT NULL,
+  `A` char(25) CHARACTER SET utf8 NOT NULL,
+  `B` char(25) CHARACTER SET utf8 NOT NULL,
   PRIMARY KEY (`id`),
-  KEY `invitedBy` (`invitedBy`),
-  CONSTRAINT `User_ibfk_1` FOREIGN KEY (`invitedBy`) REFERENCES `User` (`id`) ON DELETE SET NULL
+  UNIQUE KEY `UserInvitation_AB_unique` (`A`,`B`),
+  KEY `B` (`B`),
+  CONSTRAINT `_UserInvitation_ibfk_1` FOREIGN KEY (`A`) REFERENCES `User` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `_UserInvitation_ibfk_2` FOREIGN KEY (`B`) REFERENCES `User` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -40,4 +72,4 @@ CREATE TABLE `User` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2020-06-12 16:13:30
+-- Dump completed on 2020-06-17 11:47:34

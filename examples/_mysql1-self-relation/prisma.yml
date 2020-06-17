@@ -1,0 +1,2 @@
+endpoint: http://localhost:4468/mysql1-self-relation/dev
+datamodel: datamodel.graphql

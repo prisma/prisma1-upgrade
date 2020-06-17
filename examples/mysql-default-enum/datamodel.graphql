@@ -1,0 +1,9 @@
+type User {
+  id: ID! @id
+  role: Role! @default(value: CUSTOMER)
+}
+
+enum Role {
+  ADMIN
+  CUSTOMER
+}
