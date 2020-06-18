@@ -1,0 +1,2 @@
+endpoint: http://localhost:4469/postgres1-has-one/dev
+datamodel: datamodel.graphql

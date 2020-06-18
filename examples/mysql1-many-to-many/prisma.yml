@@ -1,0 +1,2 @@
+endpoint: http://localhost:4468/mysql1-many-to-many/dev
+datamodel: datamodel.graphql

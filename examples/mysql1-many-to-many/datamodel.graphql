@@ -1,0 +1,8 @@
+type Post {
+  id: ID! @unique
+  tags: [Tag!]!
+}
+type Tag {
+  id: ID! @unique
+  posts: [Post!]!
+}

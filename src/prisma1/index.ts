@@ -116,6 +116,24 @@ export class Schema {
     }
     return arr
   }
+
+  version(): '1.1' | '1.0' {
+    for (let obj of this.objects) {
+      for (let field of obj.fields) {
+        if (field.type.named() !== 'ID') {
+          continue
+        }
+        for (let directive of field.directives) {
+          if (directive.name === 'id') {
+            return '1.1'
+          }
+        }
+        return '1.0'
+      }
+    }
+    // arbitrary: default to 1.1
+    return '1.1'
+  }
 }
 
 interface Definition {

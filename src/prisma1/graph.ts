@@ -40,7 +40,7 @@ export function load(schema: p1.Schema): Graph {
         // then we either were explicit with link
         // or it's an inline relation
         // otherwise there's no specified link at all.
-        let link: Edge['link'] = ''
+        let link: Edge['link'] = schema.version() === '1.0' ? 'TABLE' : ''
         const relation = field.directives.find((d) => d.name === 'relation')
         if (relation) {
           const arg = relation.arguments.find((a) => a.name === 'link')
