@@ -27,6 +27,7 @@ export type Op =
   | AddUniqueConstraintOp
   | SetJsonTypeOp
   | SetEnumTypeOp
+  | MigrateHasManyOp
 
 export type SetDefaultOp = {
   type: 'SetDefaultOp'
@@ -74,6 +75,16 @@ export type SetEnumTypeOp = {
   p1Enum: p1.EnumTypeDefinition
 }
 
+export type MigrateHasManyOp = {
+  type: 'MigrateHasManyOp'
+  schema?: string
+  p1ModelOne: p1.ObjectTypeDefinition
+  p1ModelMany: p1.ObjectTypeDefinition
+  p1FieldOne: p1.FieldDefinition
+  p1FieldManyID: p1.FieldDefinition
+  p1FieldOneID: p1.FieldDefinition
+}
+
 export interface Translator {
   translate(op: Op): string
 }
@@ -91,6 +102,8 @@ export class Postgres implements Translator {
         return this.AddUniqueConstraintOp(op)
       case 'SetEnumTypeOp':
         return this.SetEnumTypeOp(op)
+      case 'MigrateHasManyOp':
+        return this.MigrateHasManyOp(op)
       default:
         throw new Error('Postgres: unhandled op: ' + op!.type)
     }
@@ -163,6 +176,34 @@ export class Postgres implements Translator {
     )
     return stmts.join(';\n')
   }
+
+  private MigrateHasManyOp(op: MigrateHasManyOp): string {
+    const stmts: string[] = []
+    const modelNameMany = op.p1ModelMany.name
+    const modelNameOne = op.p1ModelOne.name
+    const tableNameOne = this.schema(op.schema, modelNameOne)
+    const tableNameMany = this.schema(op.schema, modelNameMany)
+    const columnNameOneID = op.p1FieldOneID.name
+    const columnNameMany = op.p1FieldManyID.name
+    const foreignName = `${op.p1FieldOne.name}Id`
+    const joinTableName = this.schema(
+      op.schema,
+      modelNameOne < modelNameMany
+        ? `_${modelNameOne}To${modelNameMany}`
+        : `_${modelNameMany}To${modelNameOne}`
+    )
+    stmts.push(
+      `ALTER TABLE ${tableNameOne} ADD COLUMN "${foreignName}" character varying(25);`
+    )
+    stmts.push(
+      `ALTER TABLE ${tableNameOne} ADD CONSTRAINT "${op.p1FieldOne.name}" FOREIGN KEY ("${foreignName}") REFERENCES ${tableNameMany}("${columnNameMany}");`
+    )
+    stmts.push(
+      `UPDATE ${tableNameOne} SET "${foreignName}" = ${joinTableName}."B" FROM ${joinTableName} WHERE ${joinTableName}."A" = ${tableNameOne}."${columnNameOneID}";`
+    )
+    stmts.push(`DROP TABLE ${joinTableName};`)
+    return stmts.join('\n')
+  }
 }
 
 export class MySQL5 implements Translator {
@@ -178,6 +219,8 @@ export class MySQL5 implements Translator {
         return this.SetJsonTypeOp(op)
       case 'SetEnumTypeOp':
         return this.SetEnumTypeOp(op)
+      case 'MigrateHasManyOp':
+        return this.MigrateHasManyOp(op)
       default:
         throw new Error('MySQL5: unhandled op: ' + op!.type)
     }
@@ -267,5 +310,32 @@ export class MySQL5 implements Translator {
       .map((value) => `'${value.name}'`)
       .join(', ')
     return `ALTER TABLE ${modelName} CHANGE ${fieldName} ${fieldName} ENUM(${enumList}) ${notNull};`
+  }
+
+  private MigrateHasManyOp(op: MigrateHasManyOp): string {
+    const stmts: string[] = []
+    const modelNameMany = op.p1ModelMany.name
+    const modelNameOne = op.p1ModelOne.name
+    const tableNameOne = this.backtick(modelNameOne)
+    const tableNameMany = this.backtick(modelNameMany)
+    const columnNameOneID = this.backtick(op.p1FieldOneID.name)
+    const columnNameMany = this.backtick(op.p1FieldManyID.name)
+    const foreignName = this.backtick(`${op.p1FieldOne.name}Id`)
+    const joinTableName = this.backtick(
+      modelNameOne < modelNameMany
+        ? `_${modelNameOne}To${modelNameMany}`
+        : `_${modelNameMany}To${modelNameOne}`
+    )
+    stmts.push(
+      `ALTER TABLE ${tableNameOne} ADD COLUMN ${foreignName} char(25) CHARACTER SET utf8;`
+    )
+    stmts.push(
+      `ALTER TABLE ${tableNameOne} ADD CONSTRAINT ${op.p1FieldOne.name} FOREIGN KEY (${foreignName}) REFERENCES ${tableNameMany}(${columnNameMany});`
+    )
+    stmts.push(
+      `UPDATE ${tableNameOne}, ${joinTableName} SET ${tableNameOne}.${foreignName} = ${joinTableName}.B where ${joinTableName}.A = ${tableNameOne}.${columnNameOneID};`
+    )
+    stmts.push(`DROP TABLE ${joinTableName};`)
+    return stmts.join('\n')
   }
 }

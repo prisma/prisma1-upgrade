@@ -1,0 +1,19 @@
+datasource db {
+  provider = "postgresql"
+  url      = "postgres://m@localhost:5432/prisma_test?schema=postgres1-has-many%24dev"
+}
+
+model Post {
+  authorId  String?
+  createdAt DateTime
+  id        String   @default(cuid()) @id
+  updatedAt DateTime
+  User      User?    @relation(fields: [authorId], references: [id])
+}
+
+model User {
+  createdAt DateTime
+  id        String   @default(cuid()) @id
+  updatedAt DateTime
+  Post      Post[]
+}

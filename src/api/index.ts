@@ -261,12 +261,41 @@ export async function upgrade(input: Input): Promise<Output> {
     }
   }
 
+  // C: All relations are represented as m-n
   for (let [edge1, edge2] of relations) {
-    // 1:1 relationship
     if (!isTableHasMany(edge1, edge2)) {
       continue
     }
-    console.log('HAS MANY!')
+    // 1:N relationship
+    const hasOne = edge1.type === 'hasOne' ? edge1 : edge2
+    const hasMany = edge1.type === 'hasMany' ? edge1 : edge2
+    if (isOneToMany(prisma2, hasOne)) {
+      continue
+    }
+    // get the ID field
+    const hasManyFieldID = hasMany.from.fields.find(
+      (f) => f.type.named() === 'ID'
+    )
+    if (!hasManyFieldID) {
+      continue
+    }
+    // get the ID field
+    const hasOneFieldID = hasOne.from.fields.find(
+      (f) => f.type.named() === 'ID'
+    )
+    if (!hasOneFieldID) {
+      continue
+    }
+
+    breakingOps.push({
+      type: 'MigrateHasManyOp',
+      schema: pgSchema,
+      p1ModelOne: hasOne.from,
+      p1FieldOne: hasOne.field,
+      p1FieldOneID: hasOneFieldID,
+      p1ModelMany: hasMany.from,
+      p1FieldManyID: hasManyFieldID,
+    })
   }
 
   for (let [edge1, edge2] of relations) {
@@ -403,6 +432,18 @@ function isOneToOne(schema: p2.Schema, edge: graph.Edge): boolean {
   const toField = toModel.findField((f) => f.name === edge.from.name)
   if (!toField) return false
   if (!toField.type.optional) return false
+  return true
+}
+
+function isOneToMany(schema: p2.Schema, hasOneEdge: graph.Edge): boolean {
+  const model = schema.findModel((m) => m.name === hasOneEdge.from.name)
+  if (!model) {
+    return false
+  }
+  const field = model.findField((f) => f.name === hasOneEdge.field.name + 'Id')
+  if (!field) {
+    return false
+  }
   return true
 }
 

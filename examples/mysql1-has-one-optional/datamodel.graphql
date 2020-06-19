@@ -4,5 +4,5 @@ type User {
 }
 type Profile {
   id: ID! @unique
-  author: User!
+  author: User
 }

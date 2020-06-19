@@ -1,8 +1,8 @@
 type User {
   id: ID! @unique
-  posts: [Post!]!
+  profile: Profile!
 }
-type Post {
+type Profile {
   id: ID! @unique
   author: User!
 }

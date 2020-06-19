@@ -1,18 +1,18 @@
 datasource db {
   provider = "postgresql"
-  url      = "postgres://root:prisma@0.0.0.0:5434/prisma?schema=postgres1-many-to-many%24dev"
+  url      = "postgres://root:prisma@0.0.0.0:5434/prisma?schema=postgres1-has-many2%24dev"
+}
+
+model AUser {
+  createdAt DateTime
+  id        String   @default(cuid()) @id
+  updatedAt DateTime
+  Post      Post[]   @relation(references: [id])
 }
 
 model Post {
   createdAt DateTime
   id        String   @default(cuid()) @id
   updatedAt DateTime
-  Tag       Tag[]    @relation(references: [id])
-}
-
-model Tag {
-  createdAt DateTime
-  id        String   @default(cuid()) @id
-  updatedAt DateTime
-  Post      Post[]   @relation(references: [id])
+  AUser     AUser[]  @relation(references: [id])
 }

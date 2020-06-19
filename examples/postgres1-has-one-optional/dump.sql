@@ -121,17 +121,17 @@ CREATE TABLE management."TelemetryInfo" (
 ALTER TABLE management."TelemetryInfo" OWNER TO root;
 
 --
--- Name: Post; Type: TABLE; Schema: postgres1-has-one$dev; Owner: root
+-- Name: Profile; Type: TABLE; Schema: postgres1-has-one$dev; Owner: root
 --
 
-CREATE TABLE "postgres1-has-one$dev"."Post" (
+CREATE TABLE "postgres1-has-one$dev"."Profile" (
     id character varying(25) NOT NULL,
     "updatedAt" timestamp(3) without time zone NOT NULL,
     "createdAt" timestamp(3) without time zone NOT NULL
 );
 
 
-ALTER TABLE "postgres1-has-one$dev"."Post" OWNER TO root;
+ALTER TABLE "postgres1-has-one$dev"."Profile" OWNER TO root;
 
 --
 -- Name: User; Type: TABLE; Schema: postgres1-has-one$dev; Owner: root
@@ -147,17 +147,17 @@ CREATE TABLE "postgres1-has-one$dev"."User" (
 ALTER TABLE "postgres1-has-one$dev"."User" OWNER TO root;
 
 --
--- Name: _PostToUser; Type: TABLE; Schema: postgres1-has-one$dev; Owner: root
+-- Name: _ProfileToUser; Type: TABLE; Schema: postgres1-has-one$dev; Owner: root
 --
 
-CREATE TABLE "postgres1-has-one$dev"."_PostToUser" (
+CREATE TABLE "postgres1-has-one$dev"."_ProfileToUser" (
     id character(25) NOT NULL,
     "A" character varying(25) NOT NULL,
     "B" character varying(25) NOT NULL
 );
 
 
-ALTER TABLE "postgres1-has-one$dev"."_PostToUser" OWNER TO root;
+ALTER TABLE "postgres1-has-one$dev"."_ProfileToUser" OWNER TO root;
 
 --
 -- Name: _RelayId; Type: TABLE; Schema: postgres1-has-one$dev; Owner: root
@@ -172,17 +172,17 @@ CREATE TABLE "postgres1-has-one$dev"."_RelayId" (
 ALTER TABLE "postgres1-has-one$dev"."_RelayId" OWNER TO root;
 
 --
--- Name: Post; Type: TABLE; Schema: postgres1-has-one-optional$dev; Owner: root
+-- Name: Profile; Type: TABLE; Schema: postgres1-has-one-optional$dev; Owner: root
 --
 
-CREATE TABLE "postgres1-has-one-optional$dev"."Post" (
+CREATE TABLE "postgres1-has-one-optional$dev"."Profile" (
     id character varying(25) NOT NULL,
     "updatedAt" timestamp(3) without time zone NOT NULL,
     "createdAt" timestamp(3) without time zone NOT NULL
 );
 
 
-ALTER TABLE "postgres1-has-one-optional$dev"."Post" OWNER TO root;
+ALTER TABLE "postgres1-has-one-optional$dev"."Profile" OWNER TO root;
 
 --
 -- Name: User; Type: TABLE; Schema: postgres1-has-one-optional$dev; Owner: root
@@ -198,17 +198,17 @@ CREATE TABLE "postgres1-has-one-optional$dev"."User" (
 ALTER TABLE "postgres1-has-one-optional$dev"."User" OWNER TO root;
 
 --
--- Name: _PostToUser; Type: TABLE; Schema: postgres1-has-one-optional$dev; Owner: root
+-- Name: _ProfileToUser; Type: TABLE; Schema: postgres1-has-one-optional$dev; Owner: root
 --
 
-CREATE TABLE "postgres1-has-one-optional$dev"."_PostToUser" (
+CREATE TABLE "postgres1-has-one-optional$dev"."_ProfileToUser" (
     id character(25) NOT NULL,
     "A" character varying(25) NOT NULL,
     "B" character varying(25) NOT NULL
 );
 
 
-ALTER TABLE "postgres1-has-one-optional$dev"."_PostToUser" OWNER TO root;
+ALTER TABLE "postgres1-has-one-optional$dev"."_ProfileToUser" OWNER TO root;
 
 --
 -- Name: _RelayId; Type: TABLE; Schema: postgres1-has-one-optional$dev; Owner: root
@@ -263,11 +263,11 @@ ALTER TABLE ONLY management."TelemetryInfo"
 
 
 --
--- Name: Post Post_pkey; Type: CONSTRAINT; Schema: postgres1-has-one$dev; Owner: root
+-- Name: Profile Profile_pkey; Type: CONSTRAINT; Schema: postgres1-has-one$dev; Owner: root
 --
 
-ALTER TABLE ONLY "postgres1-has-one$dev"."Post"
-    ADD CONSTRAINT "Post_pkey" PRIMARY KEY (id);
+ALTER TABLE ONLY "postgres1-has-one$dev"."Profile"
+    ADD CONSTRAINT "Profile_pkey" PRIMARY KEY (id);
 
 
 --
@@ -279,11 +279,11 @@ ALTER TABLE ONLY "postgres1-has-one$dev"."User"
 
 
 --
--- Name: _PostToUser _PostToUser_pkey; Type: CONSTRAINT; Schema: postgres1-has-one$dev; Owner: root
+-- Name: _ProfileToUser _ProfileToUser_pkey; Type: CONSTRAINT; Schema: postgres1-has-one$dev; Owner: root
 --
 
-ALTER TABLE ONLY "postgres1-has-one$dev"."_PostToUser"
-    ADD CONSTRAINT "_PostToUser_pkey" PRIMARY KEY (id);
+ALTER TABLE ONLY "postgres1-has-one$dev"."_ProfileToUser"
+    ADD CONSTRAINT "_ProfileToUser_pkey" PRIMARY KEY (id);
 
 
 --
@@ -295,11 +295,11 @@ ALTER TABLE ONLY "postgres1-has-one$dev"."_RelayId"
 
 
 --
--- Name: Post Post_pkey; Type: CONSTRAINT; Schema: postgres1-has-one-optional$dev; Owner: root
+-- Name: Profile Profile_pkey; Type: CONSTRAINT; Schema: postgres1-has-one-optional$dev; Owner: root
 --
 
-ALTER TABLE ONLY "postgres1-has-one-optional$dev"."Post"
-    ADD CONSTRAINT "Post_pkey" PRIMARY KEY (id);
+ALTER TABLE ONLY "postgres1-has-one-optional$dev"."Profile"
+    ADD CONSTRAINT "Profile_pkey" PRIMARY KEY (id);
 
 
 --
@@ -311,11 +311,11 @@ ALTER TABLE ONLY "postgres1-has-one-optional$dev"."User"
 
 
 --
--- Name: _PostToUser _PostToUser_pkey; Type: CONSTRAINT; Schema: postgres1-has-one-optional$dev; Owner: root
+-- Name: _ProfileToUser _ProfileToUser_pkey; Type: CONSTRAINT; Schema: postgres1-has-one-optional$dev; Owner: root
 --
 
-ALTER TABLE ONLY "postgres1-has-one-optional$dev"."_PostToUser"
-    ADD CONSTRAINT "_PostToUser_pkey" PRIMARY KEY (id);
+ALTER TABLE ONLY "postgres1-has-one-optional$dev"."_ProfileToUser"
+    ADD CONSTRAINT "_ProfileToUser_pkey" PRIMARY KEY (id);
 
 
 --
@@ -327,31 +327,31 @@ ALTER TABLE ONLY "postgres1-has-one-optional$dev"."_RelayId"
 
 
 --
--- Name: _PostToUser_AB_unique; Type: INDEX; Schema: postgres1-has-one$dev; Owner: root
+-- Name: _ProfileToUser_AB_unique; Type: INDEX; Schema: postgres1-has-one$dev; Owner: root
 --
 
-CREATE UNIQUE INDEX "_PostToUser_AB_unique" ON "postgres1-has-one$dev"."_PostToUser" USING btree ("A", "B");
-
-
---
--- Name: _PostToUser_B; Type: INDEX; Schema: postgres1-has-one$dev; Owner: root
---
-
-CREATE INDEX "_PostToUser_B" ON "postgres1-has-one$dev"."_PostToUser" USING btree ("B");
+CREATE UNIQUE INDEX "_ProfileToUser_AB_unique" ON "postgres1-has-one$dev"."_ProfileToUser" USING btree ("A", "B");
 
 
 --
--- Name: _PostToUser_AB_unique; Type: INDEX; Schema: postgres1-has-one-optional$dev; Owner: root
+-- Name: _ProfileToUser_B; Type: INDEX; Schema: postgres1-has-one$dev; Owner: root
 --
 
-CREATE UNIQUE INDEX "_PostToUser_AB_unique" ON "postgres1-has-one-optional$dev"."_PostToUser" USING btree ("A", "B");
+CREATE INDEX "_ProfileToUser_B" ON "postgres1-has-one$dev"."_ProfileToUser" USING btree ("B");
 
 
 --
--- Name: _PostToUser_B; Type: INDEX; Schema: postgres1-has-one-optional$dev; Owner: root
+-- Name: _ProfileToUser_AB_unique; Type: INDEX; Schema: postgres1-has-one-optional$dev; Owner: root
 --
 
-CREATE INDEX "_PostToUser_B" ON "postgres1-has-one-optional$dev"."_PostToUser" USING btree ("B");
+CREATE UNIQUE INDEX "_ProfileToUser_AB_unique" ON "postgres1-has-one-optional$dev"."_ProfileToUser" USING btree ("A", "B");
+
+
+--
+-- Name: _ProfileToUser_B; Type: INDEX; Schema: postgres1-has-one-optional$dev; Owner: root
+--
+
+CREATE INDEX "_ProfileToUser_B" ON "postgres1-has-one-optional$dev"."_ProfileToUser" USING btree ("B");
 
 
 --
@@ -363,35 +363,35 @@ ALTER TABLE ONLY management."Migration"
 
 
 --
--- Name: _PostToUser _PostToUser_A_fkey; Type: FK CONSTRAINT; Schema: postgres1-has-one$dev; Owner: root
+-- Name: _ProfileToUser _ProfileToUser_A_fkey; Type: FK CONSTRAINT; Schema: postgres1-has-one$dev; Owner: root
 --
 
-ALTER TABLE ONLY "postgres1-has-one$dev"."_PostToUser"
-    ADD CONSTRAINT "_PostToUser_A_fkey" FOREIGN KEY ("A") REFERENCES "postgres1-has-one$dev"."Post"(id) ON DELETE CASCADE;
-
-
---
--- Name: _PostToUser _PostToUser_B_fkey; Type: FK CONSTRAINT; Schema: postgres1-has-one$dev; Owner: root
---
-
-ALTER TABLE ONLY "postgres1-has-one$dev"."_PostToUser"
-    ADD CONSTRAINT "_PostToUser_B_fkey" FOREIGN KEY ("B") REFERENCES "postgres1-has-one$dev"."User"(id) ON DELETE CASCADE;
+ALTER TABLE ONLY "postgres1-has-one$dev"."_ProfileToUser"
+    ADD CONSTRAINT "_ProfileToUser_A_fkey" FOREIGN KEY ("A") REFERENCES "postgres1-has-one$dev"."Profile"(id) ON DELETE CASCADE;
 
 
 --
--- Name: _PostToUser _PostToUser_A_fkey; Type: FK CONSTRAINT; Schema: postgres1-has-one-optional$dev; Owner: root
+-- Name: _ProfileToUser _ProfileToUser_B_fkey; Type: FK CONSTRAINT; Schema: postgres1-has-one$dev; Owner: root
 --
 
-ALTER TABLE ONLY "postgres1-has-one-optional$dev"."_PostToUser"
-    ADD CONSTRAINT "_PostToUser_A_fkey" FOREIGN KEY ("A") REFERENCES "postgres1-has-one-optional$dev"."Post"(id) ON DELETE CASCADE;
+ALTER TABLE ONLY "postgres1-has-one$dev"."_ProfileToUser"
+    ADD CONSTRAINT "_ProfileToUser_B_fkey" FOREIGN KEY ("B") REFERENCES "postgres1-has-one$dev"."User"(id) ON DELETE CASCADE;
 
 
 --
--- Name: _PostToUser _PostToUser_B_fkey; Type: FK CONSTRAINT; Schema: postgres1-has-one-optional$dev; Owner: root
+-- Name: _ProfileToUser _ProfileToUser_A_fkey; Type: FK CONSTRAINT; Schema: postgres1-has-one-optional$dev; Owner: root
 --
 
-ALTER TABLE ONLY "postgres1-has-one-optional$dev"."_PostToUser"
-    ADD CONSTRAINT "_PostToUser_B_fkey" FOREIGN KEY ("B") REFERENCES "postgres1-has-one-optional$dev"."User"(id) ON DELETE CASCADE;
+ALTER TABLE ONLY "postgres1-has-one-optional$dev"."_ProfileToUser"
+    ADD CONSTRAINT "_ProfileToUser_A_fkey" FOREIGN KEY ("A") REFERENCES "postgres1-has-one-optional$dev"."Profile"(id) ON DELETE CASCADE;
+
+
+--
+-- Name: _ProfileToUser _ProfileToUser_B_fkey; Type: FK CONSTRAINT; Schema: postgres1-has-one-optional$dev; Owner: root
+--
+
+ALTER TABLE ONLY "postgres1-has-one-optional$dev"."_ProfileToUser"
+    ADD CONSTRAINT "_ProfileToUser_B_fkey" FOREIGN KEY ("B") REFERENCES "postgres1-has-one-optional$dev"."User"(id) ON DELETE CASCADE;
 
 
 --

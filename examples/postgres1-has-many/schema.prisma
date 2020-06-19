@@ -1,6 +1,6 @@
 datasource db {
   provider = "postgresql"
-  url      = "postgres://root:prisma@0.0.0.0:5434/prisma?schema=postgres1-relation%24dev"
+  url      = "postgres://root:prisma@0.0.0.0:5434/prisma?schema=postgres1-has-many%24dev"
 }
 
 model Post {

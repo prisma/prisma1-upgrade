@@ -1,0 +1,18 @@
+datasource db {
+  provider = "mysql"
+  url      = "mysql://root:prisma@0.0.0.0:3308/mysql1-has-many2@dev"
+}
+
+model AUser {
+  createdAt DateTime
+  id        String   @default(cuid()) @id
+  updatedAt DateTime
+  Post      Post[]   @relation(references: [id])
+}
+
+model Post {
+  createdAt DateTime
+  id        String   @default(cuid()) @id
+  updatedAt DateTime
+  AUser     AUser[]  @relation(references: [id])
+}

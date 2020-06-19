@@ -3,18 +3,18 @@ datasource db {
   url      = "mysql://root@localhost:3306/prisma_test"
 }
 
+model AUser {
+  createdAt DateTime
+  id        String   @default(cuid()) @id
+  updatedAt DateTime
+  Post      Post[]
+}
+
 model Post {
   authorId  String?
   createdAt DateTime
   id        String   @default(cuid()) @id
   updatedAt DateTime
-  User      User?    @relation(fields: [authorId], references: [id])
+  AUser     AUser?   @relation(fields: [authorId], references: [id])
   @@index([authorId], name: "author")
-}
-
-model User {
-  createdAt DateTime
-  id        String   @default(cuid()) @id
-  updatedAt DateTime
-  Post      Post[]
 }

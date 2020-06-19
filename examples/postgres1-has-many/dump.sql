@@ -26,13 +26,13 @@ CREATE SCHEMA management;
 ALTER SCHEMA management OWNER TO root;
 
 --
--- Name: postgres1-relation$dev; Type: SCHEMA; Schema: -; Owner: root
+-- Name: postgres1-has-many$dev; Type: SCHEMA; Schema: -; Owner: root
 --
 
-CREATE SCHEMA "postgres1-relation$dev";
+CREATE SCHEMA "postgres1-has-many$dev";
 
 
-ALTER SCHEMA "postgres1-relation$dev" OWNER TO root;
+ALTER SCHEMA "postgres1-has-many$dev" OWNER TO root;
 
 SET default_tablespace = '';
 
@@ -112,55 +112,55 @@ CREATE TABLE management."TelemetryInfo" (
 ALTER TABLE management."TelemetryInfo" OWNER TO root;
 
 --
--- Name: Post; Type: TABLE; Schema: postgres1-relation$dev; Owner: root
+-- Name: Post; Type: TABLE; Schema: postgres1-has-many$dev; Owner: root
 --
 
-CREATE TABLE "postgres1-relation$dev"."Post" (
+CREATE TABLE "postgres1-has-many$dev"."Post" (
     id character varying(25) NOT NULL,
     "updatedAt" timestamp(3) without time zone NOT NULL,
     "createdAt" timestamp(3) without time zone NOT NULL
 );
 
 
-ALTER TABLE "postgres1-relation$dev"."Post" OWNER TO root;
+ALTER TABLE "postgres1-has-many$dev"."Post" OWNER TO root;
 
 --
--- Name: User; Type: TABLE; Schema: postgres1-relation$dev; Owner: root
+-- Name: User; Type: TABLE; Schema: postgres1-has-many$dev; Owner: root
 --
 
-CREATE TABLE "postgres1-relation$dev"."User" (
+CREATE TABLE "postgres1-has-many$dev"."User" (
     id character varying(25) NOT NULL,
     "updatedAt" timestamp(3) without time zone NOT NULL,
     "createdAt" timestamp(3) without time zone NOT NULL
 );
 
 
-ALTER TABLE "postgres1-relation$dev"."User" OWNER TO root;
+ALTER TABLE "postgres1-has-many$dev"."User" OWNER TO root;
 
 --
--- Name: _PostToUser; Type: TABLE; Schema: postgres1-relation$dev; Owner: root
+-- Name: _PostToUser; Type: TABLE; Schema: postgres1-has-many$dev; Owner: root
 --
 
-CREATE TABLE "postgres1-relation$dev"."_PostToUser" (
+CREATE TABLE "postgres1-has-many$dev"."_PostToUser" (
     id character(25) NOT NULL,
     "A" character varying(25) NOT NULL,
     "B" character varying(25) NOT NULL
 );
 
 
-ALTER TABLE "postgres1-relation$dev"."_PostToUser" OWNER TO root;
+ALTER TABLE "postgres1-has-many$dev"."_PostToUser" OWNER TO root;
 
 --
--- Name: _RelayId; Type: TABLE; Schema: postgres1-relation$dev; Owner: root
+-- Name: _RelayId; Type: TABLE; Schema: postgres1-has-many$dev; Owner: root
 --
 
-CREATE TABLE "postgres1-relation$dev"."_RelayId" (
+CREATE TABLE "postgres1-has-many$dev"."_RelayId" (
     id character varying(36) NOT NULL,
     "stableModelIdentifier" character varying(25) NOT NULL
 );
 
 
-ALTER TABLE "postgres1-relation$dev"."_RelayId" OWNER TO root;
+ALTER TABLE "postgres1-has-many$dev"."_RelayId" OWNER TO root;
 
 --
 -- Name: CloudSecret CloudSecret_pkey; Type: CONSTRAINT; Schema: management; Owner: root
@@ -203,49 +203,49 @@ ALTER TABLE ONLY management."TelemetryInfo"
 
 
 --
--- Name: Post Post_pkey; Type: CONSTRAINT; Schema: postgres1-relation$dev; Owner: root
+-- Name: Post Post_pkey; Type: CONSTRAINT; Schema: postgres1-has-many$dev; Owner: root
 --
 
-ALTER TABLE ONLY "postgres1-relation$dev"."Post"
+ALTER TABLE ONLY "postgres1-has-many$dev"."Post"
     ADD CONSTRAINT "Post_pkey" PRIMARY KEY (id);
 
 
 --
--- Name: User User_pkey; Type: CONSTRAINT; Schema: postgres1-relation$dev; Owner: root
+-- Name: User User_pkey; Type: CONSTRAINT; Schema: postgres1-has-many$dev; Owner: root
 --
 
-ALTER TABLE ONLY "postgres1-relation$dev"."User"
+ALTER TABLE ONLY "postgres1-has-many$dev"."User"
     ADD CONSTRAINT "User_pkey" PRIMARY KEY (id);
 
 
 --
--- Name: _PostToUser _PostToUser_pkey; Type: CONSTRAINT; Schema: postgres1-relation$dev; Owner: root
+-- Name: _PostToUser _PostToUser_pkey; Type: CONSTRAINT; Schema: postgres1-has-many$dev; Owner: root
 --
 
-ALTER TABLE ONLY "postgres1-relation$dev"."_PostToUser"
+ALTER TABLE ONLY "postgres1-has-many$dev"."_PostToUser"
     ADD CONSTRAINT "_PostToUser_pkey" PRIMARY KEY (id);
 
 
 --
--- Name: _RelayId pk_RelayId; Type: CONSTRAINT; Schema: postgres1-relation$dev; Owner: root
+-- Name: _RelayId pk_RelayId; Type: CONSTRAINT; Schema: postgres1-has-many$dev; Owner: root
 --
 
-ALTER TABLE ONLY "postgres1-relation$dev"."_RelayId"
+ALTER TABLE ONLY "postgres1-has-many$dev"."_RelayId"
     ADD CONSTRAINT "pk_RelayId" PRIMARY KEY (id);
 
 
 --
--- Name: _PostToUser_AB_unique; Type: INDEX; Schema: postgres1-relation$dev; Owner: root
+-- Name: _PostToUser_AB_unique; Type: INDEX; Schema: postgres1-has-many$dev; Owner: root
 --
 
-CREATE UNIQUE INDEX "_PostToUser_AB_unique" ON "postgres1-relation$dev"."_PostToUser" USING btree ("A", "B");
+CREATE UNIQUE INDEX "_PostToUser_AB_unique" ON "postgres1-has-many$dev"."_PostToUser" USING btree ("A", "B");
 
 
 --
--- Name: _PostToUser_B; Type: INDEX; Schema: postgres1-relation$dev; Owner: root
+-- Name: _PostToUser_B; Type: INDEX; Schema: postgres1-has-many$dev; Owner: root
 --
 
-CREATE INDEX "_PostToUser_B" ON "postgres1-relation$dev"."_PostToUser" USING btree ("B");
+CREATE INDEX "_PostToUser_B" ON "postgres1-has-many$dev"."_PostToUser" USING btree ("B");
 
 
 --
@@ -257,19 +257,19 @@ ALTER TABLE ONLY management."Migration"
 
 
 --
--- Name: _PostToUser _PostToUser_A_fkey; Type: FK CONSTRAINT; Schema: postgres1-relation$dev; Owner: root
+-- Name: _PostToUser _PostToUser_A_fkey; Type: FK CONSTRAINT; Schema: postgres1-has-many$dev; Owner: root
 --
 
-ALTER TABLE ONLY "postgres1-relation$dev"."_PostToUser"
-    ADD CONSTRAINT "_PostToUser_A_fkey" FOREIGN KEY ("A") REFERENCES "postgres1-relation$dev"."Post"(id) ON DELETE CASCADE;
+ALTER TABLE ONLY "postgres1-has-many$dev"."_PostToUser"
+    ADD CONSTRAINT "_PostToUser_A_fkey" FOREIGN KEY ("A") REFERENCES "postgres1-has-many$dev"."Post"(id) ON DELETE CASCADE;
 
 
 --
--- Name: _PostToUser _PostToUser_B_fkey; Type: FK CONSTRAINT; Schema: postgres1-relation$dev; Owner: root
+-- Name: _PostToUser _PostToUser_B_fkey; Type: FK CONSTRAINT; Schema: postgres1-has-many$dev; Owner: root
 --
 
-ALTER TABLE ONLY "postgres1-relation$dev"."_PostToUser"
-    ADD CONSTRAINT "_PostToUser_B_fkey" FOREIGN KEY ("B") REFERENCES "postgres1-relation$dev"."User"(id) ON DELETE CASCADE;
+ALTER TABLE ONLY "postgres1-has-many$dev"."_PostToUser"
+    ADD CONSTRAINT "_PostToUser_B_fkey" FOREIGN KEY ("B") REFERENCES "postgres1-has-many$dev"."User"(id) ON DELETE CASCADE;
 
 
 --
