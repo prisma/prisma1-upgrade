@@ -1,6 +1,6 @@
 datasource db {
   provider = "postgresql"
-  url      = "postgres://m@localhost:5432/prisma_test?schema=postgres1-has-one%24dev"
+  url      = "postgres://m@localhost:5432/prisma_test?schema=postgres1-has-one-optional%24dev"
 }
 
 model Profile {
@@ -15,5 +15,5 @@ model User {
   createdAt DateTime
   id        String   @default(cuid()) @id
   updatedAt DateTime
-  Profile   Profile
+  Profile   Profile?
 }

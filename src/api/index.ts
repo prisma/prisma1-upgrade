@@ -269,6 +269,7 @@ export async function upgrade(input: Input): Promise<Output> {
     // 1:N relationship
     const hasOne = edge1.type === 'hasOne' ? edge1 : edge2
     const hasMany = edge1.type === 'hasMany' ? edge1 : edge2
+    // skip if is one to many already
     if (isOneToMany(prisma2, hasOne)) {
       continue
     }
@@ -286,7 +287,6 @@ export async function upgrade(input: Input): Promise<Output> {
     if (!hasOneFieldID) {
       continue
     }
-
     breakingOps.push({
       type: 'MigrateHasManyOp',
       schema: pgSchema,
@@ -303,7 +303,36 @@ export async function upgrade(input: Input): Promise<Output> {
     if (!isTableHasOne(edge1, edge2)) {
       continue
     }
-    console.log('HAS ONE!')
+
+    const p1From = edge1.from.name < edge2.from.name ? edge1 : edge2
+    const p1To = edge1.from.name < edge2.from.name ? edge2 : edge1
+    const p1FieldToID = p1To.from.fields.find((f) => f.type.named() === 'ID')
+    if (!p1FieldToID) {
+      continue
+    }
+
+    breakingOps.push({
+      type: 'MigrateOneToOneOp',
+      schema: pgSchema,
+      p1ModelFrom: p1From.from,
+      p1FieldFrom: p1From.field,
+      p1ModelTo: p1To.from,
+      p1FieldToID: p1FieldToID,
+    })
+
+    // L: 1-1 relation with both sides required details
+    const p2Field1 = prisma2.findField(
+      (m, f) => edge1.from.name === m.name && edge1.to.name === f.name
+    )
+    if (p2Field1) {
+      p2Field1.setType(toP2Type(edge1.field.type))
+    }
+    const p2Field2 = prisma2.findField(
+      (m, f) => edge2.from.name === m.name && edge2.to.name === f.name
+    )
+    if (p2Field2) {
+      p2Field2.setType(toP2Type(edge2.field.type))
+    }
   }
 
   return {

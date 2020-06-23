@@ -1,0 +1,3 @@
+ALTER TABLE `Profile` ADD COLUMN `userId` char(25) CHARACTER SET UTF8  UNIQUE;
+ALTER TABLE `Profile` ADD FOREIGN KEY (`userId`) REFERENCES `User` (`id`);
+DROP TABLE `_ProfileToUser`;
