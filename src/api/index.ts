@@ -263,12 +263,20 @@ export async function upgrade(input: Input): Promise<Output> {
 
   // C: All relations are represented as m-n
   for (let [edge1, edge2] of relations) {
+    // console.log(
+    //   edge1.from.name,
+    //   edge1.field.name,
+    //   '->',
+    //   edge2.from.name,
+    //   edge2.field.name
+    // )
     if (!isTableHasMany(edge1, edge2)) {
       continue
     }
     // 1:N relationship
     const hasOne = edge1.type === 'hasOne' ? edge1 : edge2
     const hasMany = edge1.type === 'hasMany' ? edge1 : edge2
+
     // skip if is one to many already
     if (isOneToMany(prisma2, hasOne)) {
       continue
@@ -298,6 +306,7 @@ export async function upgrade(input: Input): Promise<Output> {
     })
   }
 
+  // C: All relations are represented as m-n
   for (let [edge1, edge2] of relations) {
     // 1:1 relationship
     if (!isTableHasOne(edge1, edge2)) {
@@ -311,14 +320,16 @@ export async function upgrade(input: Input): Promise<Output> {
       continue
     }
 
-    breakingOps.push({
-      type: 'MigrateOneToOneOp',
-      schema: pgSchema,
-      p1ModelFrom: p1From.from,
-      p1FieldFrom: p1From.field,
-      p1ModelTo: p1To.from,
-      p1FieldToID: p1FieldToID,
-    })
+    if (!isTableOneToOne(prisma2, p1From, p1To)) {
+      breakingOps.push({
+        type: 'MigrateOneToOneOp',
+        schema: pgSchema,
+        p1ModelFrom: p1From.from,
+        p1FieldFrom: p1From.field,
+        p1ModelTo: p1To.from,
+        p1FieldToID: p1FieldToID,
+      })
+    }
 
     // L: 1-1 relation with both sides required details
     const p2Field1 = prisma2.findField(
@@ -461,6 +472,36 @@ function isOneToOne(schema: p2.Schema, edge: graph.Edge): boolean {
   const toField = toModel.findField((f) => f.name === edge.from.name)
   if (!toField) return false
   if (!toField.type.optional) return false
+  return true
+}
+
+function isTableOneToOne(
+  schema: p2.Schema,
+  from: graph.Edge,
+  to: graph.Edge
+): boolean {
+  const fromModel = schema.findModel((m) => m.name === from.from.name)
+  if (!fromModel) {
+    return false
+  }
+  const toModel = schema.findModel((m) => m.name === to.from.name)
+  if (!toModel) {
+    return false
+  }
+  const fromField = fromModel.findField((m) => m.name === toModel.name)
+  if (!fromField) {
+    return false
+  }
+  const toField = toModel.findField((m) => m.name === fromModel.name)
+  if (!toField) {
+    return false
+  }
+  if (fromField.type.list()) {
+    return false
+  }
+  if (toField.type.list()) {
+    return false
+  }
   return true
 }
 

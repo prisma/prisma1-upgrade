@@ -40,7 +40,7 @@ describe('mysql', function () {
   this.timeout('5s')
   const tests = allTests.filter((test) => test.startsWith('mysql'))
   tests.forEach((name) => {
-    describe(name, () => {
+    describe(name, function () {
       let db: mariadb.Connection
       let engine: Inspector
 
@@ -313,11 +313,11 @@ async function test(
   if (breakingOps.length) {
     // console.log(schema.toString())
     // console.log(breakingOps)
-    // assert.equal(
-    //   0,
-    //   breakingOps.length,
-    //   'expected 0 breakingOps the 2nd time around'
-    // )
+    assert.equal(
+      0,
+      breakingOps.length,
+      'expected 0 breakingOps the 2nd time around'
+    )
   }
 
   // assert the operations

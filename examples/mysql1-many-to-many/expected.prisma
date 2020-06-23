@@ -3,3 +3,16 @@ datasource db {
   url      = "mysql://root@localhost:3306/prisma_test"
 }
 
+model Post {
+  createdAt DateTime
+  id        String   @default(cuid()) @id
+  updatedAt DateTime
+  Tag       Tag[]    @relation(references: [id])
+}
+
+model Tag {
+  createdAt DateTime
+  id        String   @default(cuid()) @id
+  updatedAt DateTime
+  Post      Post[]   @relation(references: [id])
+}

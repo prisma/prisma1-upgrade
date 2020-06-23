@@ -496,6 +496,10 @@ export class DataType {
     return this.n.type === 'optional_type'
   }
 
+  list(): boolean {
+    return this.n.type === 'list_type'
+  }
+
   innermost(): DataType {
     switch (this.n.type) {
       case 'optional_type':
