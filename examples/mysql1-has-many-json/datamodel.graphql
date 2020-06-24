@@ -1,0 +1,9 @@
+type User {
+  id: ID! @unique
+  posts: [Post!]!
+  meta: Json
+}
+type Post {
+  id: ID! @unique
+  author: User!
+}

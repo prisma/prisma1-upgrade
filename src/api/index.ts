@@ -295,6 +295,7 @@ export async function upgrade(input: Input): Promise<Output> {
     if (!hasOneFieldID) {
       continue
     }
+
     breakingOps.push({
       type: 'MigrateHasManyOp',
       schema: pgSchema,
@@ -303,6 +304,12 @@ export async function upgrade(input: Input): Promise<Output> {
       p1FieldOneID: hasOneFieldID,
       p1ModelMany: hasMany.from,
       p1FieldManyID: hasManyFieldID,
+      joinTableName: joinTableName(
+        edge1.from,
+        edge1.field,
+        edge2.from,
+        edge2.field
+      ),
     })
   }
 
@@ -328,6 +335,12 @@ export async function upgrade(input: Input): Promise<Output> {
         p1FieldFrom: p1From.field,
         p1ModelTo: p1To.from,
         p1FieldToID: p1FieldToID,
+        joinTableName: joinTableName(
+          edge1.from,
+          edge1.field,
+          edge2.from,
+          edge2.field
+        ),
       })
     }
 
@@ -653,4 +666,29 @@ function toP2Type(dt: p1.Type, optional: boolean = true): p2ast.DataType {
         inner: namedType,
       }
   }
+}
+
+function joinTableName(
+  a: p1.ObjectTypeDefinition,
+  af: p1.FieldDefinition,
+  b: p1.ObjectTypeDefinition,
+  bf: p1.FieldDefinition
+): string {
+  const ta = a.name < b.name ? `_${a.name}To${b.name}` : `_${b.name}To${a.name}`
+  const ar = af.findDirective((d) => d.name === 'relation')
+  const br = bf.findDirective((d) => d.name === 'relation')
+  if (!ar || !br) {
+    return ta
+  }
+  const an = ar.findArgument((a) => a.name === 'name')
+  const bn = br.findArgument((a) => a.name === 'name')
+  if (!an || !bn) {
+    return ta
+  }
+  const av = an.value.kind === 'StringValue' ? an.value.value : ''
+  const bv = bn.value.kind === 'StringValue' ? bn.value.value : ''
+  if (!av || !bv || av !== bv) {
+    return ta
+  }
+  return '_' + av
 }

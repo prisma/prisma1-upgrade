@@ -183,27 +183,19 @@ async function main(argv: string[]): Promise<void> {
     )
   }
 
-  const { ops, schema } = await api.upgrade({
+  const { ops, schema, breakingOps } = await api.upgrade({
     prisma1,
     prisma2,
     url,
   })
+  console.log(ops.length, breakingOps.length)
 
-  if (ops.length) {
-    const provider = prisma2.provider()
-
-    const segments = new Map<sql.Op['type'], sql.Op[]>()
-    for (let op of ops) {
-      if (!segments.has(op.type)) {
-        segments.set(op.type, [])
-      }
-      const segment = segments.get(op.type) || []
-      segment.push(op)
-    }
-
+  if (ops.length || breakingOps.length) {
     console.log(
       redent(`
-      ◮ Welcome to the interactive ${bold('Prisma Upgrade CLI')} that helps with the
+      ◮ Welcome to the interactive ${bold(
+        'Prisma Upgrade CLI'
+      )} that helps with the
       upgrade process from Prisma 1 to Prisma 2.0.
 
       Please read the docs to learn more about the upgrade process:
@@ -244,6 +236,19 @@ async function main(argv: string[]): Promise<void> {
     )
     await confirm(`Are you ready? [Y/n] `)
     clear(true)
+  }
+
+  if (ops.length) {
+    const provider = prisma2.provider()
+
+    const segments = new Map<sql.Op['type'], sql.Op[]>()
+    for (let op of ops) {
+      if (!segments.has(op.type)) {
+        segments.set(op.type, [])
+      }
+      const segment = segments.get(op.type) || []
+      segment.push(op)
+    }
 
     console.log(`${bold('➤ Adjust your database schema')}`)
     console.log(`Run the following SQL statements against your database:`)
@@ -296,7 +301,7 @@ async function main(argv: string[]): Promise<void> {
           console.log()
           break
         case 'SetJsonTypeOp':
-          console.log(`${bold(`Fix columns with JSON data types`)}`)
+          console.log(`  ${bold(`Fix columns with JSON data types`)}`)
           console.log(
             `  ${gray(
               `https://pris.ly/d/schema-incompatibilities#json-type-is-represented-as-text-in-database`
@@ -308,11 +313,7 @@ async function main(argv: string[]): Promise<void> {
           console.log()
           break
         case 'SetEnumTypeOp':
-          console.log(
-            `  ${bold(
-              `Fix columns with ENUM data types`
-            )}`
-          )
+          console.log(`  ${bold(`Fix columns with ENUM data types`)}`)
           console.log(
             `  ${gray(
               `https://pris.ly/d/schema-incompatibilities#enums-are-represented-as-text-in-database`
@@ -325,12 +326,71 @@ async function main(argv: string[]): Promise<void> {
           break
       }
     }
+  }
+
+  if (breakingOps.length) {
+    const provider = prisma2.provider()
+
+    const segments = new Map<sql.Op['type'], sql.Op[]>()
+    for (let op of breakingOps) {
+      if (!segments.has(op.type)) {
+        segments.set(op.type, [])
+      }
+      const segment = segments.get(op.type) || []
+      segment.push(op)
+    }
 
     console.log(
-      redent(`
+      redent(`${bold('➤ Breaking Changes Detected')}
+        We've detected some changes that will break your Prisma 1 application
+        client. If you apply these changes you'll need to migrate to Prisma 2
+        all at once. This will give you better schema design and performance
+        so it's recommended if you can. You can read more about the tradeoffs
+        at ${gray(underline('https://pris.ly/d/how-to-upgrade'))}.
+      `)
+    )
+    const yes = await prompt.confirm(
+      `Do you want to make these breaking changes? [Y/n]? `
+    )
+    if (yes) {
+      clear(true)
+
+      console.log(`${bold('➤ Adjust your database schema')}`)
+      console.log(`Run the following SQL statements against your database:`)
+      console.log()
+
+      // run the queries
+      for (let [type, ops] of segments) {
+        const queries = sql.translate(provider, ops)
+        switch (type) {
+          case 'MigrateHasManyOp':
+            console.log(`  ${bold(`Fix one-to-many table relations`)}`)
+            console.log()
+            console.log()
+            console.log(queries.map((q) => redent(q, 4)).join('\n    '))
+            console.log()
+            console.log()
+            break
+          case 'MigrateOneToOneOp':
+            console.log(`  ${bold(`Fix one-to-one table relations`)}`)
+            console.log()
+            console.log()
+            console.log(queries.map((q) => redent(q, 4)).join('\n    '))
+            console.log()
+            console.log()
+            break
+        }
+      }
+    }
+  }
+
+  console.log(
+    redent(`
       ${bold('➤ Next Steps')}
-      If you executed one or more of the above SQL statements against your database,
-      please run the following two commands:
+
+      After you executed one or more of the above SQL statements against your database,
+      please run the following two commands to refresh your Prisma 2 Schema and check
+      the changes.
 
         1. Run ${green(
           `\`npx prisma introspect\``
@@ -341,13 +401,12 @@ async function main(argv: string[]): Promise<void> {
       skip to the last step where the Upgrade CLI adds missing attributes to your Prisma 2
       schema that are not picked up by introspection.
     `)
-    )
-    const yes = await prompt.confirm(`Skip to the last step? [Y/n]? `)
-    if (!yes) {
-      return
-    }
-    clear(true)
+  )
+  const yes = await prompt.confirm(`Skip to the last step? [Y/n]? `)
+  if (!yes) {
+    return
   }
+  clear(true)
 
   // overwrite the schema.prisma file if there's no remaining operations
   console.log(

@@ -85,6 +85,7 @@ export type MigrateHasManyOp = {
   p1FieldOne: p1.FieldDefinition
   p1FieldManyID: p1.FieldDefinition
   p1FieldOneID: p1.FieldDefinition
+  joinTableName: string
 }
 
 export type MigrateOneToOneOp = {
@@ -94,6 +95,7 @@ export type MigrateOneToOneOp = {
   p1ModelTo: p1.ObjectTypeDefinition
   p1FieldFrom: p1.FieldDefinition
   p1FieldToID: p1.FieldDefinition
+  joinTableName: string
 }
 
 export interface Translator {
@@ -199,12 +201,7 @@ export class Postgres implements Translator {
     const columnNameOneID = op.p1FieldOneID.name
     const columnNameMany = op.p1FieldManyID.name
     const foreignName = `${op.p1FieldOne.name}Id`
-    const joinTableName = this.schema(
-      op.schema,
-      modelNameOne < modelNameMany
-        ? `_${modelNameOne}To${modelNameMany}`
-        : `_${modelNameMany}To${modelNameOne}`
-    )
+    const joinTableName = this.schema(op.schema, op.joinTableName)
     stmts.push(
       `ALTER TABLE ${tableNameOne} ADD COLUMN "${foreignName}" character varying(25);`
     )
@@ -231,10 +228,7 @@ export class Postgres implements Translator {
     )
     const fieldIDName = p1FieldToID.name
     const modelToName = this.schema(op.schema, p1ModelTo.name)
-    const joinTableName = this.schema(
-      op.schema,
-      `_${p1ModelFrom.name}To${p1ModelTo.name}`
-    )
+    const joinTableName = this.schema(op.schema, op.joinTableName)
     stmts.push(
       `ALTER TABLE ${modelFromName} ADD COLUMN "${modelFromColumn}" character varying(25) ${notNull} UNIQUE;`
     )
@@ -363,11 +357,7 @@ export class MySQL5 implements Translator {
     const columnNameOneID = this.backtick(op.p1FieldOneID.name)
     const columnNameMany = this.backtick(op.p1FieldManyID.name)
     const foreignName = this.backtick(`${op.p1FieldOne.name}Id`)
-    const joinTableName = this.backtick(
-      modelNameOne < modelNameMany
-        ? `_${modelNameOne}To${modelNameMany}`
-        : `_${modelNameMany}To${modelNameOne}`
-    )
+    const joinTableName = this.backtick(op.joinTableName)
     stmts.push(
       `ALTER TABLE ${tableNameOne} ADD COLUMN ${foreignName} char(25) CHARACTER SET utf8;`
     )
@@ -394,9 +384,7 @@ export class MySQL5 implements Translator {
     )
     const fieldIDName = this.backtick(p1FieldToID.name)
     const modelToName = this.backtick(p1ModelTo.name)
-    const joinTableName = this.backtick(
-      `_${p1ModelFrom.name}To${p1ModelTo.name}`
-    )
+    const joinTableName = this.backtick(op.joinTableName)
     stmts.push(
       `ALTER TABLE ${modelFromName} ADD COLUMN ${modelFromColumn} char(25) CHARACTER SET UTF8 ${notNull} UNIQUE;`
     )
