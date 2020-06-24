@@ -1,3 +1,12 @@
+# 0.0.22 / 2020-06-24
+
+- add tests with both breaking changes and normal changes
+- add support for one-to-one relationships in DM1.0 for postgres and mysql
+- add breaking ops for 1-to-1 relations in DM1.0
+- add support for one-to-many breaking changes. updated the tests
+- remove unused functions
+- chore: add security email to README
+
 # 0.0.21 / 2020-06-17
 
 - Fix postgres defaults enum (see [note in original commit](https://github.com/prisma/upgrade/commit/c819cfd7d25f43834402d5bd527409b297d1bf03) for caveat message.)
