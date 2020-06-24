@@ -1,0 +1,8 @@
+type User {
+  id: ID! @unique
+  profile: Profile!
+}
+type Profile {
+  id: ID! @unique
+  author: User
+}

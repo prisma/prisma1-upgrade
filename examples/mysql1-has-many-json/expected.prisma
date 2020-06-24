@@ -1,0 +1,21 @@
+datasource db {
+  provider = "mysql"
+  url      = "mysql://root@localhost:3306/prisma_test"
+}
+
+model Post {
+  authorId  String?
+  createdAt DateTime
+  id        String   @default(cuid()) @id
+  updatedAt DateTime
+  User      User?    @relation(fields: [authorId], references: [id])
+  @@index([authorId], name: "author")
+}
+
+model User {
+  createdAt DateTime
+  id        String   @default(cuid()) @id
+  meta      Json?
+  updatedAt DateTime
+  Post      Post[]
+}

@@ -1,0 +1,2 @@
+endpoint: http://localhost:4469/postgres1-many-to-many/dev
+datamodel: datamodel.graphql

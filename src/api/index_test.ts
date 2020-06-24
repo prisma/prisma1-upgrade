@@ -40,7 +40,7 @@ describe('mysql', function () {
   this.timeout('5s')
   const tests = allTests.filter((test) => test.startsWith('mysql'))
   tests.forEach((name) => {
-    describe(name, () => {
+    describe(name, function () {
       let db: mariadb.Connection
       let engine: Inspector
 
@@ -265,8 +265,7 @@ async function test(
   // var p2schema = new p2.Schema(schemaPrisma)
 
   // await db.query(dump)
-
-  var { ops, schema } = await api.upgrade({
+  var { ops, breakingOps, schema } = await api.upgrade({
     url: url,
     prisma1: p1schema,
     prisma2: p2schema,
@@ -283,12 +282,23 @@ async function test(
     }
   }
 
+  // run the breaking queries
+  const breakingQueries = sql.translate(schema.provider(), breakingOps)
+  for (let query of breakingQueries) {
+    try {
+      await db.query(query)
+    } catch (e) {
+      console.log(query)
+      throw e
+    }
+  }
+
   // re-introspect
   const datamodel = await engine.inspect(schema.toString())
 
   // apply p2schema again
   var p2schema = new p2.Schema(datamodel)
-  var { ops, schema } = await api.upgrade({
+  var { ops, breakingOps, schema } = await api.upgrade({
     url: url,
     prisma1: p1schema,
     prisma2: p2schema,
@@ -300,8 +310,18 @@ async function test(
     assert.equal(0, ops.length, 'expected 0 ops the 2nd time around')
   }
 
+  if (breakingOps.length) {
+    // console.log(schema.toString())
+    // console.log(breakingOps)
+    assert.equal(
+      0,
+      breakingOps.length,
+      'expected 0 breakingOps the 2nd time around'
+    )
+  }
+
   // assert the operations
-  const blockSQL = queries.join('\n')
+  const blockSQL = queries.concat(breakingQueries).join('\n')
   if (blockSQL !== expectedSQL) {
     console.log('')
     console.log('Actual:')

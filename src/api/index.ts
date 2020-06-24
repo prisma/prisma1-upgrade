@@ -16,6 +16,7 @@ type Output = {
   schema: p2.Schema
   warnings: string[]
   ops: sql.Op[]
+  breakingOps: sql.Op[]
 }
 
 // upgrade performs a set of rules
@@ -108,6 +109,7 @@ export async function upgrade(input: Input): Promise<Output> {
   }
 
   const ops: sql.Op[] = []
+  const breakingOps: sql.Op[] = []
 
   for (let p1Model of prisma1.objects) {
     const p2Model = prisma2.findModel((m) => m.name === p1Model.name)
@@ -199,6 +201,7 @@ export async function upgrade(input: Input): Promise<Output> {
   // to break up cycles and place the fields in the proper place
   const g = graph.load(prisma1)
   const edges = g.edges()
+  const relations: [graph.Edge, graph.Edge][] = []
   const visited: { [name: string]: string[] } = {}
   for (let i = 0; i < edges.length; i++) {
     const src = g.node(edges[i].v)
@@ -221,46 +224,138 @@ export async function upgrade(input: Input): Promise<Output> {
       visited[dst.name].push(src.name)
 
       const edge2: graph.Edge = g.edge(edges[j].v, edges[j].w)
-      // 1:1 relationship
-      if (
-        edge1.type === 'hasOne' &&
-        edge1.link !== 'TABLE' &&
-        edge2.type === 'hasOne' &&
-        edge2.link !== 'TABLE'
-      ) {
-        const uniqueEdge =
-          edge1.link === 'INLINE' // edge inline
-            ? edge1
-            : edge2.link === 'INLINE' // edge2 inline
-            ? edge2
-            : edge1.from < edge2.from // alphanumeric
-            ? edge1
-            : edge2
+      relations.push([edge1, edge2])
+    }
+  }
 
-        // add constraint if it's not a 1-to-1 already
-        if (!isOneToOne(prisma2, uniqueEdge)) {
-          ops.push({
-            type: 'AddUniqueConstraintOp',
-            schema: pgSchema,
-            table: uniqueEdge.from.name,
-            column: uniqueEdge.field.name,
-          })
-        }
+  for (let [edge1, edge2] of relations) {
+    // 1:1 relationship
+    if (!isInlineOneToOne(edge1, edge2)) {
+      continue
+    }
+    // alphanumeric sorting
+    const uniqueEdge = findUniqueEdge(edge1, edge2)
 
-        // L: 1-1 relation with both sides required details
-        const p2Field1 = prisma2.findField(
-          (m, f) => edge1.from.name === m.name && edge1.to.name === f.name
-        )
-        if (p2Field1) {
-          p2Field1.setType(toP2Type(edge1.field.type))
-        }
-        const p2Field2 = prisma2.findField(
-          (m, f) => edge2.from.name === m.name && edge2.to.name === f.name
-        )
-        if (p2Field2) {
-          p2Field2.setType(toP2Type(edge2.field.type))
-        }
-      }
+    // add constraint if it's not a 1-to-1 already
+    if (!isOneToOne(prisma2, uniqueEdge)) {
+      ops.push({
+        type: 'AddUniqueConstraintOp',
+        schema: pgSchema,
+        table: uniqueEdge.from.name,
+        column: uniqueEdge.field.name,
+      })
+    }
+
+    // L: 1-1 relation with both sides required details
+    const p2Field1 = prisma2.findField(
+      (m, f) => edge1.from.name === m.name && edge1.to.name === f.name
+    )
+    if (p2Field1) {
+      p2Field1.setType(toP2Type(edge1.field.type))
+    }
+    const p2Field2 = prisma2.findField(
+      (m, f) => edge2.from.name === m.name && edge2.to.name === f.name
+    )
+    if (p2Field2) {
+      p2Field2.setType(toP2Type(edge2.field.type))
+    }
+  }
+
+  // C: All relations are represented as m-n
+  for (let [edge1, edge2] of relations) {
+    // console.log(
+    //   edge1.from.name,
+    //   edge1.field.name,
+    //   '->',
+    //   edge2.from.name,
+    //   edge2.field.name
+    // )
+    if (!isTableHasMany(edge1, edge2)) {
+      continue
+    }
+    // 1:N relationship
+    const hasOne = edge1.type === 'hasOne' ? edge1 : edge2
+    const hasMany = edge1.type === 'hasMany' ? edge1 : edge2
+
+    // skip if is one to many already
+    if (isOneToMany(prisma2, hasOne)) {
+      continue
+    }
+    // get the ID field
+    const hasManyFieldID = hasMany.from.fields.find(
+      (f) => f.type.named() === 'ID'
+    )
+    if (!hasManyFieldID) {
+      continue
+    }
+    // get the ID field
+    const hasOneFieldID = hasOne.from.fields.find(
+      (f) => f.type.named() === 'ID'
+    )
+    if (!hasOneFieldID) {
+      continue
+    }
+
+    breakingOps.push({
+      type: 'MigrateHasManyOp',
+      schema: pgSchema,
+      p1ModelOne: hasOne.from,
+      p1FieldOne: hasOne.field,
+      p1FieldOneID: hasOneFieldID,
+      p1ModelMany: hasMany.from,
+      p1FieldManyID: hasManyFieldID,
+      joinTableName: joinTableName(
+        edge1.from,
+        edge1.field,
+        edge2.from,
+        edge2.field
+      ),
+    })
+  }
+
+  // C: All relations are represented as m-n
+  for (let [edge1, edge2] of relations) {
+    // 1:1 relationship
+    if (!isTableHasOne(edge1, edge2)) {
+      continue
+    }
+
+    const p1From = edge1.from.name < edge2.from.name ? edge1 : edge2
+    const p1To = edge1.from.name < edge2.from.name ? edge2 : edge1
+    const p1FieldToID = p1To.from.fields.find((f) => f.type.named() === 'ID')
+    if (!p1FieldToID) {
+      continue
+    }
+
+    if (!isTableOneToOne(prisma2, p1From, p1To)) {
+      breakingOps.push({
+        type: 'MigrateOneToOneOp',
+        schema: pgSchema,
+        p1ModelFrom: p1From.from,
+        p1FieldFrom: p1From.field,
+        p1ModelTo: p1To.from,
+        p1FieldToID: p1FieldToID,
+        joinTableName: joinTableName(
+          edge1.from,
+          edge1.field,
+          edge2.from,
+          edge2.field
+        ),
+      })
+    }
+
+    // L: 1-1 relation with both sides required details
+    const p2Field1 = prisma2.findField(
+      (m, f) => edge1.from.name === m.name && edge1.to.name === f.name
+    )
+    if (p2Field1) {
+      p2Field1.setType(toP2Type(edge1.field.type))
+    }
+    const p2Field2 = prisma2.findField(
+      (m, f) => edge2.from.name === m.name && edge2.to.name === f.name
+    )
+    if (p2Field2) {
+      p2Field2.setType(toP2Type(edge2.field.type))
     }
   }
 
@@ -268,6 +363,7 @@ export async function upgrade(input: Input): Promise<Output> {
     schema: prisma2,
     warnings,
     ops,
+    breakingOps,
   }
 }
 
@@ -392,6 +488,90 @@ function isOneToOne(schema: p2.Schema, edge: graph.Edge): boolean {
   return true
 }
 
+function isTableOneToOne(
+  schema: p2.Schema,
+  from: graph.Edge,
+  to: graph.Edge
+): boolean {
+  const fromModel = schema.findModel((m) => m.name === from.from.name)
+  if (!fromModel) {
+    return false
+  }
+  const toModel = schema.findModel((m) => m.name === to.from.name)
+  if (!toModel) {
+    return false
+  }
+  const fromField = fromModel.findField((m) => m.name === toModel.name)
+  if (!fromField) {
+    return false
+  }
+  const toField = toModel.findField((m) => m.name === fromModel.name)
+  if (!toField) {
+    return false
+  }
+  if (fromField.type.list()) {
+    return false
+  }
+  if (toField.type.list()) {
+    return false
+  }
+  return true
+}
+
+function isOneToMany(schema: p2.Schema, hasOneEdge: graph.Edge): boolean {
+  const model = schema.findModel((m) => m.name === hasOneEdge.from.name)
+  if (!model) {
+    return false
+  }
+  const field = model.findField((f) => f.name === hasOneEdge.field.name + 'Id')
+  if (!field) {
+    return false
+  }
+  return true
+}
+
+function isInlineOneToOne(edge1: graph.Edge, edge2: graph.Edge): boolean {
+  return (
+    edge1.type === 'hasOne' &&
+    edge1.link !== 'TABLE' &&
+    edge2.type === 'hasOne' &&
+    edge2.link !== 'TABLE'
+  )
+}
+
+// find the edge to stick UNIQUE on
+function findUniqueEdge(edge1: graph.Edge, edge2: graph.Edge): graph.Edge {
+  if (edge1.link === 'INLINE' && edge2.link !== 'INLINE') {
+    return edge1
+  }
+  if (edge1.link !== 'INLINE' && edge2.link === 'INLINE') {
+    return edge2
+  }
+  return edge1.from.name > edge2.from.name ? edge1 : edge2
+}
+
+function isTableHasMany(edge1: graph.Edge, edge2: graph.Edge): boolean {
+  return (
+    (edge1.type === 'hasOne' &&
+      edge1.link === 'TABLE' &&
+      edge2.type === 'hasMany' &&
+      edge2.link === 'TABLE') ||
+    (edge1.type === 'hasMany' &&
+      edge1.link === 'TABLE' &&
+      edge2.type === 'hasOne' &&
+      edge2.link === 'TABLE')
+  )
+}
+
+function isTableHasOne(edge1: graph.Edge, edge2: graph.Edge): boolean {
+  return (
+    edge1.type === 'hasOne' &&
+    edge1.link === 'TABLE' &&
+    edge2.type === 'hasOne' &&
+    edge2.link === 'TABLE'
+  )
+}
+
 function isJsonType(field: p2.Field): boolean {
   return field.type.innermost().toString() === 'Json'
 }
@@ -486,4 +666,29 @@ function toP2Type(dt: p1.Type, optional: boolean = true): p2ast.DataType {
         inner: namedType,
       }
   }
+}
+
+function joinTableName(
+  a: p1.ObjectTypeDefinition,
+  af: p1.FieldDefinition,
+  b: p1.ObjectTypeDefinition,
+  bf: p1.FieldDefinition
+): string {
+  const ta = a.name < b.name ? `_${a.name}To${b.name}` : `_${b.name}To${a.name}`
+  const ar = af.findDirective((d) => d.name === 'relation')
+  const br = bf.findDirective((d) => d.name === 'relation')
+  if (!ar || !br) {
+    return ta
+  }
+  const an = ar.findArgument((a) => a.name === 'name')
+  const bn = br.findArgument((a) => a.name === 'name')
+  if (!an || !bn) {
+    return ta
+  }
+  const av = an.value.kind === 'StringValue' ? an.value.value : ''
+  const bv = bn.value.kind === 'StringValue' ? bn.value.value : ''
+  if (!av || !bv || av !== bv) {
+    return ta
+  }
+  return '_' + av
 }

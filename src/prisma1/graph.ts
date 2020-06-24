@@ -40,9 +40,10 @@ export function load(schema: p1.Schema): Graph {
         // then we either were explicit with link
         // or it's an inline relation
         // otherwise there's no specified link at all.
-        let link: Edge['link'] = ''
+        const version = schema.version()
+        let link: Edge['link'] = version === '1.0' ? 'TABLE' : ''
         const relation = field.directives.find((d) => d.name === 'relation')
-        if (relation) {
+        if (version !== '1.0' && relation) {
           const arg = relation.arguments.find((a) => a.name === 'link')
           if (arg && 'value' in arg.value && arg.value.value === 'TABLE') {
             link = 'TABLE'
@@ -53,6 +54,12 @@ export function load(schema: p1.Schema): Graph {
         // is a has-one relationship
         if (hasOne(field.type)) {
           const to = schema.findObject((obj) => obj.name === name)
+          if (!to) {
+            continue
+          }
+          // if (to.name === def.name) {
+          //   console.log(`hasOne ${link} (self-relation)`, def.name, field.name)
+          // }
           graph.setEdge(def.name, name, <Edge>{
             type: 'hasOne',
             link: link,
@@ -60,10 +67,17 @@ export function load(schema: p1.Schema): Graph {
             to: to,
             field: field,
           })
+          continue
         }
         // is a has-many relationship
         if (hasMany(field.type)) {
           const to = schema.findObject((obj) => obj.name === name)
+          if (!to) {
+            continue
+          }
+          // if (to.name === def.name) {
+          //   console.log(`hasMany ${link} (self-relation)`, def.name, field.name)
+          // }
           graph.setEdge(def.name, name, <Edge>{
             type: 'hasMany',
             link: link,
@@ -71,6 +85,7 @@ export function load(schema: p1.Schema): Graph {
             to: to,
             field: field,
           })
+          continue
         }
       }
     }
@@ -81,6 +96,17 @@ export function load(schema: p1.Schema): Graph {
 
 export function print(g: Graph): string {
   return JSON.stringify(json.write(g), null, '  ')
+}
+
+function isSelfRelation(model: p1.ObjectTypeDefinition, dt: p1.Type): boolean {
+  switch (dt.kind) {
+    case 'ListType':
+      return false
+    case 'NonNullType':
+      return isSelfRelation(model, dt.inner())
+    case 'NamedType':
+      return model.name === dt.name
+  }
 }
 
 function hasOne(dt: p1.Type): boolean {

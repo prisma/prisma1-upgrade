@@ -1,0 +1,19 @@
+datasource db {
+  provider = "postgresql"
+  url      = "postgres://m@localhost:5432/prisma_test?schema=postgres1-has-one-optional%24dev"
+}
+
+model Profile {
+  createdAt DateTime
+  id        String   @default(cuid()) @id
+  updatedAt DateTime
+  userId    String   @unique
+  User      User     @relation(fields: [userId], references: [id])
+}
+
+model User {
+  createdAt DateTime
+  id        String   @default(cuid()) @id
+  updatedAt DateTime
+  Profile   Profile?
+}

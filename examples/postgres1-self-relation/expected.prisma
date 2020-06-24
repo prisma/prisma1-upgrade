@@ -1,0 +1,13 @@
+datasource db {
+  provider = "postgresql"
+  url      = "postgres://m@localhost:5432/prisma_test?schema=postgres1-self-relation%24dev"
+}
+
+model User {
+  createdAt  DateTime
+  id         String   @default(cuid()) @id
+  updatedAt  DateTime
+  userId     String?  @unique
+  User       User?    @relation("UserToUser_userId", fields: [userId], references: [id])
+  other_User User?    @relation("UserToUser_userId")
+}
