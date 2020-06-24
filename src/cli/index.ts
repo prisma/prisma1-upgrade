@@ -343,7 +343,6 @@ async function main(argv: string[]): Promise<void> {
     console.log(
       redent(`
         ${bold('➤ Breaking Changes Detected')}
-
         We've detected some changes that will break your Prisma 1 application
         client. If you apply these changes you'll need to migrate to Prisma 2
         all at once. This will give you better schema design and performance
