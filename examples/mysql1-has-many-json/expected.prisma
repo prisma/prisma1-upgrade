@@ -15,6 +15,7 @@ model Post {
 model User {
   createdAt DateTime
   id        String   @default(cuid()) @id
+  meta      Json?
   updatedAt DateTime
   Post      Post[]
 }
