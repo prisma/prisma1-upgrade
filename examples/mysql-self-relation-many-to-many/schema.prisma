@@ -1,0 +1,10 @@
+datasource db {
+  provider = "mysql"
+  url      = "mysql://root:prisma@0.0.0.0:3307/mysql-self-relation-many-to-many@dev"
+}
+
+model User {
+  id     String @default(cuid()) @id
+  User_A User[] @relation("UserInvitation", references: [id])
+  User_B User[] @relation("UserInvitation", references: [id])
+}

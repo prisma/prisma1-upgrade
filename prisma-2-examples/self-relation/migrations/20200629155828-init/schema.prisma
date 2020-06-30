@@ -1,0 +1,13 @@
+datasource db {
+  provider = "mysql"
+  url = "***"
+}
+
+model User {
+  id           String  @default(cuid()) @id
+  bestFriendId String  @unique
+  bestFriend   User    @relation("BestFriend", fields: [bestFriendId], references: [id])
+  user         User?   @relation("BestFriend")
+
+  @@index([bestFriendId], name: "BestFriend")
+}

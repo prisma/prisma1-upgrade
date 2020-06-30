@@ -1,0 +1,2 @@
+endpoint: http://localhost:4466/mysql-self-relation-many-to-many/dev
+datamodel: datamodel.graphql

@@ -1,0 +1,4 @@
+type User {
+  id: ID! @unique
+  invitedUsers: [User!]! @relation(name: "UserInvitation")
+}

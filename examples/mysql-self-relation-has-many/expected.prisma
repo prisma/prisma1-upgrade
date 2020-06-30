@@ -1,0 +1,37 @@
+datasource db {
+  provider = "mysql"
+  url      = "mysql://root:prisma@0.0.0.0:3307/mysql-self-relation@dev"
+}
+
+model User {
+  id     String @default(cuid()) @id
+  User_A User[] @relation("UserInvitation", references: [id])
+  User_B User[] @relation("UserInvitation", references: [id])
+}
+
+model User {
+  id            String @default(cuid()) @id
+
+  // virtual back-relation
+  invitedUsers  []User
+
+  // foreign key field
+  invitedUserId String?
+
+  // foreign key relation
+  invitedUser   User?
+}
+
+datasource db {
+  provider = "mysql"
+  url      = "mysql://root:prisma@0.0.0.0:3307/mysql-self-relation@dev"
+}
+
+model User {
+  id            String  @default(cuid()) @id
+  invitedUserId String?
+  invitedUser   User?   @relation("UserToUser_invitedUser", fields: [invitedUserId], references: [id])
+  invitedUsers  User[]  @relation("UserToUser_invitedUser")
+
+  @@index([invitedUser], name: "invitedUser")
+}

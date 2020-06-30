@@ -1,0 +1,2 @@
+endpoint: http://localhost:4467/postgres-self-relation-many-to-many/dev
+datamodel: datamodel.graphql

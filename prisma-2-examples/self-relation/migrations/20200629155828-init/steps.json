@@ -1,0 +1,14 @@
+{
+  "version": "0.3.14-fixed",
+  "steps": [
+    {
+      "tag": "UpdateArgument",
+      "location": {
+        "tag": "Source",
+        "source": "db"
+      },
+      "argument": "url",
+      "newValue": "\"mysql://root@localhost:3306/prisma_test2\""
+    }
+  ]
+}
