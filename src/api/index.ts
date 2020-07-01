@@ -262,6 +262,7 @@ export async function upgrade(input: Input): Promise<Output> {
   }
 
   // C: All relations are represented as m-n
+  // Migrate to 1:N
   for (let [edge1, edge2] of relations) {
     // console.log(
     //   edge1.from.name,
@@ -314,6 +315,7 @@ export async function upgrade(input: Input): Promise<Output> {
   }
 
   // C: All relations are represented as m-n
+  // Migrate to 1:1
   for (let [edge1, edge2] of relations) {
     // 1:1 relationship
     if (!isTableHasOne(edge1, edge2)) {
