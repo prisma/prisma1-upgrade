@@ -71,7 +71,7 @@ function usage() {
       npx prisma-upgrade
 
       ${gray(`# Specify a custom prisma.yml and schema.prisma path`)}
-      npx prisma-upgrade ./prisma.yml ./prisma.schema
+      npx prisma-upgrade ./prisma.yml ./schema.prisma
 
       ${gray(`# Specify a Prisma 1 endpoint or connection string`)}
       npx prisma-upgrade --url http://localhost:4467/postgres-env/dev
