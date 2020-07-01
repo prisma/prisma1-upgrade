@@ -5,3 +5,7 @@ ALTER TABLE "postgres-all$dev"."User" ALTER COLUMN "jsonData" SET DATA TYPE JSON
 ALTER TABLE "postgres-all$dev"."Post" ALTER COLUMN "createdAt" SET DEFAULT CURRENT_TIMESTAMP;
 ALTER TABLE "postgres-all$dev"."Post" ALTER COLUMN "published" SET DEFAULT false;
 ALTER TABLE "postgres-all$dev"."Profile" ADD UNIQUE ("user");
+ALTER TABLE "postgres-all$dev"."Post" ADD COLUMN "authorId" character varying(25) ;
+ALTER TABLE "postgres-all$dev"."Post" ADD CONSTRAINT "author" FOREIGN KEY ("authorId") REFERENCES "postgres-all$dev"."User"("id");
+UPDATE "postgres-all$dev"."Post" SET "authorId" = "postgres-all$dev"."_PostToUser"."B" FROM "postgres-all$dev"."_PostToUser" WHERE "postgres-all$dev"."_PostToUser"."A" = "postgres-all$dev"."Post"."id";
+DROP TABLE "postgres-all$dev"."_PostToUser";

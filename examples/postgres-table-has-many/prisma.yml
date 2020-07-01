@@ -1,0 +1,2 @@
+endpoint: http://localhost:4467/postgres-table-has-many/dev
+datamodel: datamodel.graphql

@@ -10,14 +10,15 @@ model Category {
 }
 
 model Post {
+  authorId  String?
   content   String?
   createdAt DateTime   @default(now())
   id        String     @default(cuid()) @id
   published Boolean    @default(false)
   title     String
   updatedAt DateTime   @updatedAt
+  User      User?      @relation(fields: [authorId], references: [id])
   Category  Category[] @relation(references: [id])
-  User      User[]     @relation(references: [id])
 }
 
 model Profile {
@@ -33,8 +34,8 @@ model User {
   jsonData Json?
   name     String
   role     Role     @default(CUSTOMER)
+  Post     Post[]
   Profile  Profile?
-  Post     Post[]   @relation(references: [id])
 }
 
 enum Role {

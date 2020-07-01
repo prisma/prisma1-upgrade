@@ -11,10 +11,10 @@ model AUser {
 }
 
 model Post {
-  authorId  String?
+  authorId  String
   createdAt DateTime
   id        String   @default(cuid()) @id
   updatedAt DateTime
-  AUser     AUser?   @relation(fields: [authorId], references: [id])
+  AUser     AUser    @relation(fields: [authorId], references: [id])
   @@index([authorId], name: "author")
 }

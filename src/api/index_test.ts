@@ -90,7 +90,16 @@ describe('mysql', function () {
         await db.query(`use prisma_test;`)
         db.query(await readFile(path.join(abspath, 'dump.sql'), 'utf8'))
         await new Promise((resolve) => setTimeout(() => resolve(), 100))
-        await test(db, engine, expected, expectedSQL, url, p1schema, p2schema)
+        await test(
+          abspath,
+          db,
+          engine,
+          expected,
+          expectedSQL,
+          url,
+          p1schema,
+          p2schema
+        )
       })
     })
   })
@@ -165,6 +174,7 @@ describe('postgres', () => {
         engine = new Inspector()
         await db.query(await readFile(path.join(abspath, 'dump.sql'), 'utf8'))
         await test(
+          abspath,
           db,
           engine,
           expected,
@@ -242,6 +252,7 @@ interface DB {
 }
 
 async function test(
+  abspath: string,
   db: DB,
   engine: Inspector,
   expected: string,
@@ -319,9 +330,9 @@ async function test(
       'expected 0 breakingOps the 2nd time around'
     )
   }
-
   // assert the operations
   const blockSQL = queries.concat(breakingQueries).join('\n')
+  // fs.writeFileSync(path.join(abspath, 'expected.sql'), blockSQL)
   if (blockSQL !== expectedSQL) {
     console.log('')
     console.log('Actual:')
@@ -337,6 +348,7 @@ async function test(
 
   // schema
   const actual = schema.toString()
+  // fs.writeFileSync(path.join(abspath, 'expected.prisma'), actual)
   if (expected !== actual) {
     console.log('')
     console.log('Actual:')

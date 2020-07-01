@@ -1,0 +1,2 @@
+endpoint: http://localhost:4466/mysql-table-has-many-required/dev
+datamodel: datamodel.graphql

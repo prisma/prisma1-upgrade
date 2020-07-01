@@ -1,0 +1,15 @@
+datasource db {
+  provider = "postgresql"
+  url      = "postgres://m@localhost:5432/prisma_test?schema=postgres-table-has-many%24dev"
+}
+
+model Post {
+  authorId String?
+  id       String  @default(cuid()) @id
+  User     User?   @relation(fields: [authorId], references: [id])
+}
+
+model User {
+  id   String @default(cuid()) @id
+  Post Post[]
+}

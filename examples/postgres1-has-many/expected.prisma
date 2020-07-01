@@ -4,11 +4,11 @@ datasource db {
 }
 
 model Post {
-  authorId  String?
+  authorId  String
   createdAt DateTime
   id        String   @default(cuid()) @id
   updatedAt DateTime
-  User      User?    @relation(fields: [authorId], references: [id])
+  User      User     @relation(fields: [authorId], references: [id])
 }
 
 model User {

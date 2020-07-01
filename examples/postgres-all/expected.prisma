@@ -1,30 +1,44 @@
+datasource db {
+  provider = "postgresql"
+  url      = "postgres://m@localhost:5432/prisma_test?schema=postgres-all%24dev"
+}
+
 model Category {
-  id   String @id
+  id   String @default(cuid()) @id
   name String
   Post Post[] @relation(references: [id])
 }
+
 model Post {
+  authorId  String?
   content   String?
   createdAt DateTime   @default(now())
-  id        String     @id
+  id        String     @default(cuid()) @id
   published Boolean    @default(false)
   title     String
-  updatedAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  User      User?      @relation(fields: [authorId], references: [id])
   Category  Category[] @relation(references: [id])
-  User      User[]     @relation(references: [id])
 }
+
 model Profile {
   bio  String?
-  id   String  @id
+  id   String  @default(cuid()) @id
   user String? @unique
-  User User?   @relation(fields: [user], references: [id])
+  User User    @relation(fields: [user], references: [id])
 }
+
 model User {
   email    String?  @unique
-  id       String   @id
+  id       String   @default(cuid()) @id
   jsonData Json?
   name     String
-  role     String   @default("CUSTOMER")
+  role     Role     @default(CUSTOMER)
+  Post     Post[]
   Profile  Profile?
-  Post     Post[]   @relation(references: [id])
+}
+
+enum Role {
+  ADMIN
+  CUSTOMER
 }

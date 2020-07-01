@@ -1,6 +1,6 @@
 -- MySQL dump 10.13  Distrib 5.7.29, for osx10.15 (x86_64)
 --
--- Host: 0.0.0.0    Database: mysql-ablog@dev
+-- Host: 0.0.0.0    Database: mysql-table-has-many@dev
 -- ------------------------------------------------------
 -- Server version	5.7.30
 
@@ -16,20 +16,6 @@
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
 --
--- Table structure for table `Category`
---
-
-DROP TABLE IF EXISTS `Category`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `Category` (
-  `id` char(25) CHARACTER SET utf8 NOT NULL,
-  `name` mediumtext COLLATE utf8mb4_unicode_ci NOT NULL,
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
 -- Table structure for table `Post`
 --
 
@@ -38,29 +24,7 @@ DROP TABLE IF EXISTS `Post`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `Post` (
   `id` char(25) CHARACTER SET utf8 NOT NULL,
-  `createdAt` datetime(3) NOT NULL,
-  `updatedAt` datetime(3) NOT NULL,
-  `title` mediumtext COLLATE utf8mb4_unicode_ci NOT NULL,
-  `content` mediumtext COLLATE utf8mb4_unicode_ci,
-  `published` tinyint(1) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Table structure for table `Profile`
---
-
-DROP TABLE IF EXISTS `Profile`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `Profile` (
-  `id` char(25) CHARACTER SET utf8 NOT NULL,
-  `bio` mediumtext COLLATE utf8mb4_unicode_ci,
-  `user` char(25) CHARACTER SET utf8 DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  KEY `user` (`user`),
-  CONSTRAINT `Profile_ibfk_1` FOREIGN KEY (`user`) REFERENCES `User` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -73,29 +37,7 @@ DROP TABLE IF EXISTS `User`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `User` (
   `id` char(25) CHARACTER SET utf8 NOT NULL,
-  `email` mediumtext COLLATE utf8mb4_unicode_ci,
-  `name` mediumtext COLLATE utf8mb4_unicode_ci NOT NULL,
-  `role` varchar(191) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `jsonData` mediumtext COLLATE utf8mb4_unicode_ci,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `email_UNIQUE` (`email`(191))
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Table structure for table `_CategoryToPost`
---
-
-DROP TABLE IF EXISTS `_CategoryToPost`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `_CategoryToPost` (
-  `A` char(25) CHARACTER SET utf8 NOT NULL,
-  `B` char(25) CHARACTER SET utf8 NOT NULL,
-  UNIQUE KEY `CategoryToPost_AB_unique` (`A`,`B`),
-  KEY `B` (`B`),
-  CONSTRAINT `_CategoryToPost_ibfk_1` FOREIGN KEY (`A`) REFERENCES `Category` (`id`) ON DELETE CASCADE,
-  CONSTRAINT `_CategoryToPost_ibfk_2` FOREIGN KEY (`B`) REFERENCES `Post` (`id`) ON DELETE CASCADE
+  PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -125,4 +67,4 @@ CREATE TABLE `_PostToUser` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2020-05-29 16:00:39
+-- Dump completed on 2020-07-01 16:33:20

@@ -10,14 +10,15 @@ model Category {
 }
 
 model Message {
+  authorId   String?
   content    String?
   created_at DateTime   @default(now()) @map("createdAt")
   id         String     @default(cuid()) @id
   published  Boolean    @default(false)
   slug       String     @map("title")
   updatedAt  DateTime   @updatedAt
+  User       User?      @relation(fields: [authorId], references: [id])
   Category   Category[] @relation("CategoryToMessage", references: [id])
-  User       User[]     @relation("MessageToUser", references: [id])
   @@map("Post")
 }
 
@@ -34,8 +35,8 @@ model User {
   settings Json?     @map("jsonData")
   name     String
   role     Role      @default(CUSTOMER)
+  Message  Message[]
   Profile  Profile?
-  Message  Message[] @relation("MessageToUser", references: [id])
 }
 
 enum Role {

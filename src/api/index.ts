@@ -553,16 +553,11 @@ function findUniqueEdge(edge1: graph.Edge, edge2: graph.Edge): graph.Edge {
 }
 
 function isTableHasMany(edge1: graph.Edge, edge2: graph.Edge): boolean {
-  return (
-    (edge1.type === 'hasOne' &&
-      edge1.link === 'TABLE' &&
-      edge2.type === 'hasMany' &&
-      edge2.link === 'TABLE') ||
-    (edge1.type === 'hasMany' &&
-      edge1.link === 'TABLE' &&
-      edge2.type === 'hasOne' &&
-      edge2.link === 'TABLE')
-  )
+  const isHasMany =
+    (edge1.type === 'hasOne' && edge2.type === 'hasMany') ||
+    (edge1.type === 'hasMany' && edge2.type === 'hasOne')
+  const isTable = edge1.link === 'TABLE' || edge2.link === 'TABLE'
+  return isHasMany && isTable
 }
 
 function isTableHasOne(edge1: graph.Edge, edge2: graph.Edge): boolean {

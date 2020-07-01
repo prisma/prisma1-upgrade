@@ -1,0 +1,9 @@
+type User {
+  id: ID! @id
+  posts: [Post!]! @relation(link: TABLE)
+}
+
+type Post {
+  id: ID! @id
+  author: User!
+}

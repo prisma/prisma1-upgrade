@@ -177,7 +177,7 @@ export class Postgres implements Translator {
   private SetEnumTypeOp(op: SetEnumTypeOp): string {
     const stmts: string[] = []
     const tableName = this.schema(op.schema, op.p1Model.dbname)
-    const enumName = this.schema(op.schema, op.p1Enum.name)
+    const enumName = this.schema(op.schema, op.p1Enum.dbname)
     const fieldName = op.p1Field.dbname
     const enumList = op.p1Enum.values
       .map((value) => `'${value.name}'`)
@@ -194,16 +194,17 @@ export class Postgres implements Translator {
 
   private MigrateHasManyOp(op: MigrateHasManyOp): string {
     const stmts: string[] = []
-    const modelNameMany = op.p1ModelMany.name
-    const modelNameOne = op.p1ModelOne.name
+    const modelNameMany = op.p1ModelMany.dbname
+    const modelNameOne = op.p1ModelOne.dbname
     const tableNameOne = this.schema(op.schema, modelNameOne)
     const tableNameMany = this.schema(op.schema, modelNameMany)
     const columnNameOneID = op.p1FieldOneID.name
     const columnNameMany = op.p1FieldManyID.name
     const foreignName = `${op.p1FieldOne.name}Id`
     const joinTableName = this.schema(op.schema, op.joinTableName)
+    const notNull = op.p1FieldOne.optional() ? '' : 'NOT NULL'
     stmts.push(
-      `ALTER TABLE ${tableNameOne} ADD COLUMN "${foreignName}" character varying(25);`
+      `ALTER TABLE ${tableNameOne} ADD COLUMN "${foreignName}" character varying(25) ${notNull};`
     )
     stmts.push(
       `ALTER TABLE ${tableNameOne} ADD CONSTRAINT "${op.p1FieldOne.name}" FOREIGN KEY ("${foreignName}") REFERENCES ${tableNameMany}("${columnNameMany}");`
@@ -222,12 +223,12 @@ export class Postgres implements Translator {
     const p1FieldToID = op.p1FieldToID
 
     const notNull = op.p1FieldFrom.type.optional() ? '' : 'NOT NULL'
-    const modelFromName = this.schema(op.schema, p1ModelFrom.name)
+    const modelFromName = this.schema(op.schema, p1ModelFrom.dbname)
     const modelFromColumn = cases.camelCase(
       p1ModelTo.name + ' ' + p1FieldToID.name
     )
     const fieldIDName = p1FieldToID.name
-    const modelToName = this.schema(op.schema, p1ModelTo.name)
+    const modelToName = this.schema(op.schema, p1ModelTo.dbname)
     const joinTableName = this.schema(op.schema, op.joinTableName)
     stmts.push(
       `ALTER TABLE ${modelFromName} ADD COLUMN "${modelFromColumn}" character varying(25) ${notNull} UNIQUE;`
@@ -350,16 +351,17 @@ export class MySQL5 implements Translator {
 
   private MigrateHasManyOp(op: MigrateHasManyOp): string {
     const stmts: string[] = []
-    const modelNameMany = op.p1ModelMany.name
-    const modelNameOne = op.p1ModelOne.name
+    const modelNameMany = op.p1ModelMany.dbname
+    const modelNameOne = op.p1ModelOne.dbname
     const tableNameOne = this.backtick(modelNameOne)
     const tableNameMany = this.backtick(modelNameMany)
     const columnNameOneID = this.backtick(op.p1FieldOneID.name)
     const columnNameMany = this.backtick(op.p1FieldManyID.name)
     const foreignName = this.backtick(`${op.p1FieldOne.name}Id`)
+    const notNull = op.p1FieldOne.optional() ? '' : 'NOT NULL'
     const joinTableName = this.backtick(op.joinTableName)
     stmts.push(
-      `ALTER TABLE ${tableNameOne} ADD COLUMN ${foreignName} char(25) CHARACTER SET utf8;`
+      `ALTER TABLE ${tableNameOne} ADD COLUMN ${foreignName} char(25) CHARACTER SET utf8 ${notNull};`
     )
     stmts.push(
       `ALTER TABLE ${tableNameOne} ADD CONSTRAINT ${op.p1FieldOne.name} FOREIGN KEY (${foreignName}) REFERENCES ${tableNameMany}(${columnNameMany});`
@@ -378,12 +380,12 @@ export class MySQL5 implements Translator {
     const p1FieldToID = op.p1FieldToID
 
     const notNull = op.p1FieldFrom.type.optional() ? '' : 'NOT NULL'
-    const modelFromName = this.backtick(p1ModelFrom.name)
+    const modelFromName = this.backtick(p1ModelFrom.dbname)
     const modelFromColumn = this.backtick(
       cases.camelCase(p1ModelTo.name + ' ' + p1FieldToID.name)
     )
     const fieldIDName = this.backtick(p1FieldToID.name)
-    const modelToName = this.backtick(p1ModelTo.name)
+    const modelToName = this.backtick(p1ModelTo.dbname)
     const joinTableName = this.backtick(op.joinTableName)
     stmts.push(
       `ALTER TABLE ${modelFromName} ADD COLUMN ${modelFromColumn} char(25) CHARACTER SET UTF8 ${notNull} UNIQUE;`

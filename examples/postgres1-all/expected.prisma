@@ -1,30 +1,50 @@
-model Category {
-  id   String @id
-  name String
-  Post Post[] @relation(references: [id])
+datasource db {
+  provider = "postgresql"
+  url      = "postgres://m@localhost:5432/prisma_test?schema=postgres1-all%24dev"
 }
+
+model Category {
+  createdAt DateTime
+  id        String   @default(cuid()) @id
+  name      String
+  updatedAt DateTime
+  Post      Post[]   @relation(references: [id])
+}
+
 model Post {
+  authorId  String?
   content   String?
   createdAt DateTime   @default(now())
-  id        String     @id
+  id        String     @default(cuid()) @id
   published Boolean    @default(false)
   title     String
-  updatedAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  User      User?      @relation(fields: [authorId], references: [id])
   Category  Category[] @relation(references: [id])
-  User      User[]     @relation(references: [id])
 }
+
 model Profile {
-  bio  String?
-  id   String  @id
-  user String? @unique
-  User User?   @relation(fields: [user], references: [id])
+  bio       String?
+  createdAt DateTime
+  id        String   @default(cuid()) @id
+  updatedAt DateTime
+  userId    String   @unique
+  User      User     @relation(fields: [userId], references: [id])
 }
+
 model User {
-  email    String?  @unique
-  id       String   @id
-  jsonData Json?
-  name     String
-  role     String   @default("CUSTOMER")
-  Profile  Profile?
-  Post     Post[]   @relation(references: [id])
+  createdAt DateTime
+  email     String?  @unique
+  id        String   @default(cuid()) @id
+  jsonData  Json?
+  name      String
+  role      Role     @default(CUSTOMER)
+  updatedAt DateTime
+  Post      Post[]
+  Profile   Profile?
+}
+
+enum Role {
+  ADMIN
+  CUSTOMER
 }
