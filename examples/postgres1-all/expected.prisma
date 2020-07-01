@@ -1,0 +1,30 @@
+model Category {
+  id   String @id
+  name String
+  Post Post[] @relation(references: [id])
+}
+model Post {
+  content   String?
+  createdAt DateTime   @default(now())
+  id        String     @id
+  published Boolean    @default(false)
+  title     String
+  updatedAt DateTime   @default(now())
+  Category  Category[] @relation(references: [id])
+  User      User[]     @relation(references: [id])
+}
+model Profile {
+  bio  String?
+  id   String  @id
+  user String? @unique
+  User User?   @relation(fields: [user], references: [id])
+}
+model User {
+  email    String?  @unique
+  id       String   @id
+  jsonData Json?
+  name     String
+  role     String   @default("CUSTOMER")
+  Profile  Profile?
+  Post     Post[]   @relation(references: [id])
+}

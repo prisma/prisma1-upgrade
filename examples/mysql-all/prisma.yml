@@ -1,0 +1,2 @@
+endpoint: http://localhost:4466/mysql-all/dev
+datamodel: datamodel.graphql
