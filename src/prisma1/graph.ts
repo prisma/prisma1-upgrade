@@ -98,17 +98,6 @@ export function print(g: Graph): string {
   return JSON.stringify(json.write(g), null, '  ')
 }
 
-function isSelfRelation(model: p1.ObjectTypeDefinition, dt: p1.Type): boolean {
-  switch (dt.kind) {
-    case 'ListType':
-      return false
-    case 'NonNullType':
-      return isSelfRelation(model, dt.inner())
-    case 'NamedType':
-      return model.name === dt.name
-  }
-}
-
 function hasOne(dt: p1.Type): boolean {
   switch (dt.kind) {
     case 'ListType':

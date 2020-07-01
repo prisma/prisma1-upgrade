@@ -252,7 +252,7 @@ interface DB {
 }
 
 async function test(
-  abspath: string,
+  _abspath: string,
   db: DB,
   engine: Inspector,
   expected: string,
