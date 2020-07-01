@@ -1,3 +1,9 @@
+# 0.0.23 / 2020-07-01
+
+- fix 1:N relationships with link:TABLE. add NOT NULL to required 1:1 and 1:N link:TABLE queries. add @db support for the 1:1 and 1:N relationship with link:TABLE
+- fix prisma.schema => schema.prisma
+- fix message indentation
+
 # 0.0.22 / 2020-06-24
 
 - add tests with both breaking changes and normal changes
