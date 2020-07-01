@@ -1,0 +1,13 @@
+datasource db {
+  provider = "mysql"
+  url      = "mysql://root@localhost:3306/prisma_test"
+}
+
+model User {
+  createdAt  DateTime
+  id         String   @default(cuid()) @id
+  updatedAt  DateTime
+  userId     String   @unique
+  User       User     @relation("UserToUser_userId", fields: [userId], references: [id])
+  other_User User?    @relation("UserToUser_userId")
+}

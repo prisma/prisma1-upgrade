@@ -1,1 +1,0 @@
-ALTER TABLE "postgres-self-relation$dev"."User" ADD UNIQUE ("invitedBy");

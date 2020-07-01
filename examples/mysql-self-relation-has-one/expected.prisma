@@ -1,0 +1,12 @@
+datasource db {
+  provider = "mysql"
+  url      = "mysql://root@localhost:3306/prisma_test"
+}
+
+model User {
+  bestFriend String? @unique
+  id         String  @default(cuid()) @id
+  User       User    @relation("UserToUser_bestFriend", fields: [bestFriend], references: [id])
+  other_User User?   @relation("UserToUser_bestFriend")
+  @@index([bestFriend], name: "bestFriend")
+}

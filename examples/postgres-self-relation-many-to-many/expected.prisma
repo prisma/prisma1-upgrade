@@ -1,11 +1,11 @@
 datasource db {
   provider = "postgresql"
-  url      = "postgres://m@localhost:5432/prisma_test?schema=postgres-self-relation%24dev"
+  url      = "postgres://m@localhost:5432/prisma_test?schema=postgres-self-relation-many-to-many%24dev"
 }
 
 model User {
-  id         String  @default(cuid()) @id
-  invitedBy  String? @unique
-  User       User?   @relation("UserToUser_invitedBy", fields: [invitedBy], references: [id])
-  other_User User?   @relation("UserToUser_invitedBy")
+  id          String  @default(cuid()) @id
+  invitedUser String?
+  User        User?   @relation("UserToUser_invitedUser", fields: [invitedUser], references: [id])
+  other_User  User[]  @relation("UserToUser_invitedUser")
 }

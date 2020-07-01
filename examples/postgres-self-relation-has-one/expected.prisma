@@ -1,11 +1,11 @@
 datasource db {
   provider = "postgresql"
-  url      = "postgres://m@localhost:5432/prisma_test?schema=postgres-self-relation%24dev"
+  url      = "postgres://m@localhost:5432/prisma_test?schema=postgres-self-relation-has-one%24dev"
 }
 
 model User {
+  bestFriend String? @unique
   id         String  @default(cuid()) @id
-  invitedBy  String? @unique
-  User       User?   @relation("UserToUser_invitedBy", fields: [invitedBy], references: [id])
-  other_User User?   @relation("UserToUser_invitedBy")
+  User       User    @relation("UserToUser_bestFriend", fields: [bestFriend], references: [id])
+  other_User User?   @relation("UserToUser_bestFriend")
 }

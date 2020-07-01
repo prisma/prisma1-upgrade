@@ -1,6 +1,6 @@
 -- MySQL dump 10.13  Distrib 5.7.29, for osx10.15 (x86_64)
 --
--- Host: 0.0.0.0    Database: mysql-self-relation2@dev
+-- Host: 0.0.0.0    Database: mysql-self-relation-has-one@dev
 -- ------------------------------------------------------
 -- Server version	5.7.30
 
@@ -40,4 +40,4 @@ CREATE TABLE `User` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2020-06-26 16:57:43
+-- Dump completed on 2020-07-01 17:35:18

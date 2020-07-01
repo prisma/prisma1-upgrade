@@ -1,11 +1,13 @@
 datasource db {
   provider = "postgresql"
-  url      = "postgres://m@localhost:5432/prisma_test?schema=postgres-self-relation%24dev"
+  url      = "postgres://m@localhost:5432/prisma_test?schema=postgres1-self-relation-has-one%24dev"
 }
 
 model User {
-  id         String  @default(cuid()) @id
-  invitedBy  String? @unique
-  User       User?   @relation("UserToUser_invitedBy", fields: [invitedBy], references: [id])
-  other_User User?   @relation("UserToUser_invitedBy")
+  createdAt  DateTime
+  id         String   @default(cuid()) @id
+  updatedAt  DateTime
+  userId     String   @unique
+  User       User     @relation("UserToUser_userId", fields: [userId], references: [id])
+  other_User User?    @relation("UserToUser_userId")
 }
