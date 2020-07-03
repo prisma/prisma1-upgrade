@@ -403,7 +403,7 @@ async function main(argv: string[]): Promise<void> {
       ${bold('➤ Next Steps')}
 
       After you executed one or more of the previous SQL statements against your database,
-      please run the following two commands to refresh your Prisma 2 Schema and check
+      please run the following two commands to refresh your Prisma 2 schema and check
       the changes.
 
         1. Run ${green(
