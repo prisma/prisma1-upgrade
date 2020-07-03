@@ -377,7 +377,6 @@ async function main(argv: string[]): Promise<void> {
               )}`
             )
             console.log()
-            console.log()
             console.log(queries.map((q) => redent(q, 4)).join('\n    '))
             console.log()
             console.log()
@@ -389,7 +388,6 @@ async function main(argv: string[]): Promise<void> {
                 `https://pris.ly/d/schema-incompatibilities#all-non-inline-relations-are-recognized-as-m-n`
               )}`
             )
-            console.log()
             console.log()
             console.log(queries.map((q) => redent(q, 4)).join('\n    '))
             console.log()
