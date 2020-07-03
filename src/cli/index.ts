@@ -371,6 +371,11 @@ async function main(argv: string[]): Promise<void> {
         switch (type) {
           case 'MigrateHasManyOp':
             console.log(`  ${bold(`Fix one-to-many table relations`)}`)
+            console.log(
+              `  ${gray(
+                `https://pris.ly/d/schema-incompatibilities#all-non-inline-relations-are-recognized-as-m-n`
+              )}`
+            )
             console.log()
             console.log()
             console.log(queries.map((q) => redent(q, 4)).join('\n    '))
@@ -379,6 +384,11 @@ async function main(argv: string[]): Promise<void> {
             break
           case 'MigrateOneToOneOp':
             console.log(`  ${bold(`Fix one-to-one table relations`)}`)
+            console.log(
+              `  ${gray(
+                `https://pris.ly/d/schema-incompatibilities#all-non-inline-relations-are-recognized-as-m-n`
+              )}`
+            )
             console.log()
             console.log()
             console.log(queries.map((q) => redent(q, 4)).join('\n    '))
