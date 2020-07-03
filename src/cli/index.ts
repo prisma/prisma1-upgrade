@@ -352,7 +352,7 @@ async function main(argv: string[]): Promise<void> {
         If you are upgrading all at once, you can safely perform these changes now.
 
         Learn more in the docs:
-        ${gray(underline('https://pris.ly/d/how-to-upgrade'))}.
+        ${gray(underline('https://pris.ly/d/how-to-upgrade'))}
       `)
     )
     const yes = await prompt.confirm(
