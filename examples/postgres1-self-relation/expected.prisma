@@ -4,10 +4,10 @@ datasource db {
 }
 
 model User {
-  createdAt  DateTime
-  id         String   @default(cuid()) @id
-  updatedAt  DateTime
-  userId     String?  @unique
-  User       User?    @relation("UserToUser_userId", fields: [userId], references: [id])
-  other_User User?    @relation("UserToUser_userId")
+  createdAt   DateTime
+  id          String   @default(cuid()) @id
+  invitedById String?
+  updatedAt   DateTime
+  User        User?    @relation("UserToUser_invitedById", fields: [invitedById], references: [id])
+  other_User  User[]   @relation("UserToUser_invitedById")
 }

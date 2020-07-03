@@ -1,1 +1,1 @@
-ALTER TABLE `User` ADD UNIQUE (`bestFriend`);
+ALTER TABLE `User` ADD UNIQUE (`invitee`);

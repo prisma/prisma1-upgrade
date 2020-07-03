@@ -26,15 +26,6 @@ CREATE SCHEMA management;
 ALTER SCHEMA management OWNER TO root;
 
 --
--- Name: postgres1-self-relation-has-many$dev; Type: SCHEMA; Schema: -; Owner: root
---
-
-CREATE SCHEMA "postgres1-self-relation-has-many$dev";
-
-
-ALTER SCHEMA "postgres1-self-relation-has-many$dev" OWNER TO root;
-
---
 -- Name: postgres1-self-relation-has-one$dev; Type: SCHEMA; Schema: -; Owner: root
 --
 
@@ -121,44 +112,6 @@ CREATE TABLE management."TelemetryInfo" (
 ALTER TABLE management."TelemetryInfo" OWNER TO root;
 
 --
--- Name: User; Type: TABLE; Schema: postgres1-self-relation-has-many$dev; Owner: root
---
-
-CREATE TABLE "postgres1-self-relation-has-many$dev"."User" (
-    id character varying(25) NOT NULL,
-    "updatedAt" timestamp(3) without time zone NOT NULL,
-    "createdAt" timestamp(3) without time zone NOT NULL
-);
-
-
-ALTER TABLE "postgres1-self-relation-has-many$dev"."User" OWNER TO root;
-
---
--- Name: _RelayId; Type: TABLE; Schema: postgres1-self-relation-has-many$dev; Owner: root
---
-
-CREATE TABLE "postgres1-self-relation-has-many$dev"."_RelayId" (
-    id character varying(36) NOT NULL,
-    "stableModelIdentifier" character varying(25) NOT NULL
-);
-
-
-ALTER TABLE "postgres1-self-relation-has-many$dev"."_RelayId" OWNER TO root;
-
---
--- Name: _UserInvitation; Type: TABLE; Schema: postgres1-self-relation-has-many$dev; Owner: root
---
-
-CREATE TABLE "postgres1-self-relation-has-many$dev"."_UserInvitation" (
-    id character(25) NOT NULL,
-    "A" character varying(25) NOT NULL,
-    "B" character varying(25) NOT NULL
-);
-
-
-ALTER TABLE "postgres1-self-relation-has-many$dev"."_UserInvitation" OWNER TO root;
-
---
 -- Name: User; Type: TABLE; Schema: postgres1-self-relation-has-one$dev; Owner: root
 --
 
@@ -172,17 +125,17 @@ CREATE TABLE "postgres1-self-relation-has-one$dev"."User" (
 ALTER TABLE "postgres1-self-relation-has-one$dev"."User" OWNER TO root;
 
 --
--- Name: _BestFriend; Type: TABLE; Schema: postgres1-self-relation-has-one$dev; Owner: root
+-- Name: _Invitation; Type: TABLE; Schema: postgres1-self-relation-has-one$dev; Owner: root
 --
 
-CREATE TABLE "postgres1-self-relation-has-one$dev"."_BestFriend" (
+CREATE TABLE "postgres1-self-relation-has-one$dev"."_Invitation" (
     id character(25) NOT NULL,
     "A" character varying(25) NOT NULL,
     "B" character varying(25) NOT NULL
 );
 
 
-ALTER TABLE "postgres1-self-relation-has-one$dev"."_BestFriend" OWNER TO root;
+ALTER TABLE "postgres1-self-relation-has-one$dev"."_Invitation" OWNER TO root;
 
 --
 -- Name: _RelayId; Type: TABLE; Schema: postgres1-self-relation-has-one$dev; Owner: root
@@ -237,30 +190,6 @@ ALTER TABLE ONLY management."TelemetryInfo"
 
 
 --
--- Name: User User_pkey; Type: CONSTRAINT; Schema: postgres1-self-relation-has-many$dev; Owner: root
---
-
-ALTER TABLE ONLY "postgres1-self-relation-has-many$dev"."User"
-    ADD CONSTRAINT "User_pkey" PRIMARY KEY (id);
-
-
---
--- Name: _UserInvitation _UserInvitation_pkey; Type: CONSTRAINT; Schema: postgres1-self-relation-has-many$dev; Owner: root
---
-
-ALTER TABLE ONLY "postgres1-self-relation-has-many$dev"."_UserInvitation"
-    ADD CONSTRAINT "_UserInvitation_pkey" PRIMARY KEY (id);
-
-
---
--- Name: _RelayId pk_RelayId; Type: CONSTRAINT; Schema: postgres1-self-relation-has-many$dev; Owner: root
---
-
-ALTER TABLE ONLY "postgres1-self-relation-has-many$dev"."_RelayId"
-    ADD CONSTRAINT "pk_RelayId" PRIMARY KEY (id);
-
-
---
 -- Name: User User_pkey; Type: CONSTRAINT; Schema: postgres1-self-relation-has-one$dev; Owner: root
 --
 
@@ -269,11 +198,11 @@ ALTER TABLE ONLY "postgres1-self-relation-has-one$dev"."User"
 
 
 --
--- Name: _BestFriend _BestFriend_pkey; Type: CONSTRAINT; Schema: postgres1-self-relation-has-one$dev; Owner: root
+-- Name: _Invitation _Invitation_pkey; Type: CONSTRAINT; Schema: postgres1-self-relation-has-one$dev; Owner: root
 --
 
-ALTER TABLE ONLY "postgres1-self-relation-has-one$dev"."_BestFriend"
-    ADD CONSTRAINT "_BestFriend_pkey" PRIMARY KEY (id);
+ALTER TABLE ONLY "postgres1-self-relation-has-one$dev"."_Invitation"
+    ADD CONSTRAINT "_Invitation_pkey" PRIMARY KEY (id);
 
 
 --
@@ -285,31 +214,17 @@ ALTER TABLE ONLY "postgres1-self-relation-has-one$dev"."_RelayId"
 
 
 --
--- Name: _UserInvitation_AB_unique; Type: INDEX; Schema: postgres1-self-relation-has-many$dev; Owner: root
+-- Name: _Invitation_AB_unique; Type: INDEX; Schema: postgres1-self-relation-has-one$dev; Owner: root
 --
 
-CREATE UNIQUE INDEX "_UserInvitation_AB_unique" ON "postgres1-self-relation-has-many$dev"."_UserInvitation" USING btree ("A", "B");
-
-
---
--- Name: _UserInvitation_B; Type: INDEX; Schema: postgres1-self-relation-has-many$dev; Owner: root
---
-
-CREATE INDEX "_UserInvitation_B" ON "postgres1-self-relation-has-many$dev"."_UserInvitation" USING btree ("B");
+CREATE UNIQUE INDEX "_Invitation_AB_unique" ON "postgres1-self-relation-has-one$dev"."_Invitation" USING btree ("A", "B");
 
 
 --
--- Name: _BestFriend_AB_unique; Type: INDEX; Schema: postgres1-self-relation-has-one$dev; Owner: root
+-- Name: _Invitation_B; Type: INDEX; Schema: postgres1-self-relation-has-one$dev; Owner: root
 --
 
-CREATE UNIQUE INDEX "_BestFriend_AB_unique" ON "postgres1-self-relation-has-one$dev"."_BestFriend" USING btree ("A", "B");
-
-
---
--- Name: _BestFriend_B; Type: INDEX; Schema: postgres1-self-relation-has-one$dev; Owner: root
---
-
-CREATE INDEX "_BestFriend_B" ON "postgres1-self-relation-has-one$dev"."_BestFriend" USING btree ("B");
+CREATE INDEX "_Invitation_B" ON "postgres1-self-relation-has-one$dev"."_Invitation" USING btree ("B");
 
 
 --
@@ -321,35 +236,19 @@ ALTER TABLE ONLY management."Migration"
 
 
 --
--- Name: _UserInvitation _UserInvitation_A_fkey; Type: FK CONSTRAINT; Schema: postgres1-self-relation-has-many$dev; Owner: root
+-- Name: _Invitation _Invitation_A_fkey; Type: FK CONSTRAINT; Schema: postgres1-self-relation-has-one$dev; Owner: root
 --
 
-ALTER TABLE ONLY "postgres1-self-relation-has-many$dev"."_UserInvitation"
-    ADD CONSTRAINT "_UserInvitation_A_fkey" FOREIGN KEY ("A") REFERENCES "postgres1-self-relation-has-many$dev"."User"(id) ON DELETE CASCADE;
-
-
---
--- Name: _UserInvitation _UserInvitation_B_fkey; Type: FK CONSTRAINT; Schema: postgres1-self-relation-has-many$dev; Owner: root
---
-
-ALTER TABLE ONLY "postgres1-self-relation-has-many$dev"."_UserInvitation"
-    ADD CONSTRAINT "_UserInvitation_B_fkey" FOREIGN KEY ("B") REFERENCES "postgres1-self-relation-has-many$dev"."User"(id) ON DELETE CASCADE;
+ALTER TABLE ONLY "postgres1-self-relation-has-one$dev"."_Invitation"
+    ADD CONSTRAINT "_Invitation_A_fkey" FOREIGN KEY ("A") REFERENCES "postgres1-self-relation-has-one$dev"."User"(id) ON DELETE CASCADE;
 
 
 --
--- Name: _BestFriend _BestFriend_A_fkey; Type: FK CONSTRAINT; Schema: postgres1-self-relation-has-one$dev; Owner: root
+-- Name: _Invitation _Invitation_B_fkey; Type: FK CONSTRAINT; Schema: postgres1-self-relation-has-one$dev; Owner: root
 --
 
-ALTER TABLE ONLY "postgres1-self-relation-has-one$dev"."_BestFriend"
-    ADD CONSTRAINT "_BestFriend_A_fkey" FOREIGN KEY ("A") REFERENCES "postgres1-self-relation-has-one$dev"."User"(id) ON DELETE CASCADE;
-
-
---
--- Name: _BestFriend _BestFriend_B_fkey; Type: FK CONSTRAINT; Schema: postgres1-self-relation-has-one$dev; Owner: root
---
-
-ALTER TABLE ONLY "postgres1-self-relation-has-one$dev"."_BestFriend"
-    ADD CONSTRAINT "_BestFriend_B_fkey" FOREIGN KEY ("B") REFERENCES "postgres1-self-relation-has-one$dev"."User"(id) ON DELETE CASCADE;
+ALTER TABLE ONLY "postgres1-self-relation-has-one$dev"."_Invitation"
+    ADD CONSTRAINT "_Invitation_B_fkey" FOREIGN KEY ("B") REFERENCES "postgres1-self-relation-has-one$dev"."User"(id) ON DELETE CASCADE;
 
 
 --

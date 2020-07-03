@@ -26,15 +26,6 @@ CREATE SCHEMA management;
 ALTER SCHEMA management OWNER TO root;
 
 --
--- Name: postgres-self-relation-has-many$dev; Type: SCHEMA; Schema: -; Owner: root
---
-
-CREATE SCHEMA "postgres-self-relation-has-many$dev";
-
-
-ALTER SCHEMA "postgres-self-relation-has-many$dev" OWNER TO root;
-
---
 -- Name: postgres-self-relation-has-one$dev; Type: SCHEMA; Schema: -; Owner: root
 --
 
@@ -121,24 +112,12 @@ CREATE TABLE management."TelemetryInfo" (
 ALTER TABLE management."TelemetryInfo" OWNER TO root;
 
 --
--- Name: User; Type: TABLE; Schema: postgres-self-relation-has-many$dev; Owner: root
---
-
-CREATE TABLE "postgres-self-relation-has-many$dev"."User" (
-    id character varying(25) NOT NULL,
-    "invitedUser" character varying(25)
-);
-
-
-ALTER TABLE "postgres-self-relation-has-many$dev"."User" OWNER TO root;
-
---
 -- Name: User; Type: TABLE; Schema: postgres-self-relation-has-one$dev; Owner: root
 --
 
 CREATE TABLE "postgres-self-relation-has-one$dev"."User" (
     id character varying(25) NOT NULL,
-    "bestFriend" character varying(25)
+    invitee character varying(25)
 );
 
 
@@ -185,14 +164,6 @@ ALTER TABLE ONLY management."TelemetryInfo"
 
 
 --
--- Name: User User_pkey; Type: CONSTRAINT; Schema: postgres-self-relation-has-many$dev; Owner: root
---
-
-ALTER TABLE ONLY "postgres-self-relation-has-many$dev"."User"
-    ADD CONSTRAINT "User_pkey" PRIMARY KEY (id);
-
-
---
 -- Name: User User_pkey; Type: CONSTRAINT; Schema: postgres-self-relation-has-one$dev; Owner: root
 --
 
@@ -209,19 +180,11 @@ ALTER TABLE ONLY management."Migration"
 
 
 --
--- Name: User User_invitedUser_fkey; Type: FK CONSTRAINT; Schema: postgres-self-relation-has-many$dev; Owner: root
---
-
-ALTER TABLE ONLY "postgres-self-relation-has-many$dev"."User"
-    ADD CONSTRAINT "User_invitedUser_fkey" FOREIGN KEY ("invitedUser") REFERENCES "postgres-self-relation-has-many$dev"."User"(id) ON DELETE SET NULL;
-
-
---
--- Name: User User_bestFriend_fkey; Type: FK CONSTRAINT; Schema: postgres-self-relation-has-one$dev; Owner: root
+-- Name: User User_invitee_fkey; Type: FK CONSTRAINT; Schema: postgres-self-relation-has-one$dev; Owner: root
 --
 
 ALTER TABLE ONLY "postgres-self-relation-has-one$dev"."User"
-    ADD CONSTRAINT "User_bestFriend_fkey" FOREIGN KEY ("bestFriend") REFERENCES "postgres-self-relation-has-one$dev"."User"(id) ON DELETE SET NULL;
+    ADD CONSTRAINT "User_invitee_fkey" FOREIGN KEY (invitee) REFERENCES "postgres-self-relation-has-one$dev"."User"(id) ON DELETE SET NULL;
 
 
 --

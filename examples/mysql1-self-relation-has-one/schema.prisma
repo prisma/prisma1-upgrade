@@ -7,6 +7,6 @@ model User {
   createdAt DateTime
   id        String   @default(cuid()) @id
   updatedAt DateTime
-  User_A    User[]   @relation("BestFriend", references: [id])
-  User_B    User[]   @relation("BestFriend", references: [id])
+  User_A    User[]   @relation("UserInvitation", references: [id])
+  User_B    User[]   @relation("UserInvitation", references: [id])
 }

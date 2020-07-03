@@ -4,10 +4,10 @@ datasource db {
 }
 
 model User {
-  bestFriend String?
   id         String  @default(cuid()) @id
-  User       User?   @relation("UserToUser_bestFriend", fields: [bestFriend], references: [id])
-  other_User User[]  @relation("UserToUser_bestFriend")
+  invitee    String?
+  User       User?   @relation("UserToUser_invitee", fields: [invitee], references: [id])
+  other_User User[]  @relation("UserToUser_invitee")
 
-  @@index([bestFriend], name: "bestFriend")
+  @@index([invitee], name: "invitee")
 }

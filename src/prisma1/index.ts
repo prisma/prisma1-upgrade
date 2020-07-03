@@ -450,7 +450,7 @@ export class ListType {
   }
 
   toString(): string {
-    return '[' + this.inner.toString() + ']'
+    return '[' + this.inner().toString() + ']'
   }
 
   isReference(): boolean {

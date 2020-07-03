@@ -4,9 +4,11 @@ datasource db {
 }
 
 model User {
-  id          String  @default(cuid()) @id
-  invitedUser String?
-  User        User?   @relation("UserToUser_invitedUser", fields: [invitedUser], references: [id])
-  other_User  User[]  @relation("UserToUser_invitedUser")
-  @@index([invitedUser], name: "invitedUser")
+  createdAt     DateTime
+  id            String   @default(cuid()) @id
+  invitedUserId String
+  updatedAt     DateTime
+  User          User     @relation("UserToUser_invitedUserId", fields: [invitedUserId], references: [id])
+  other_User    User[]   @relation("UserToUser_invitedUserId")
+  @@index([invitedUserId], name: "invitedUser")
 }

@@ -1,1 +1,1 @@
-ALTER TABLE "postgres-self-relation-has-one$dev"."User" ADD UNIQUE ("bestFriend");
+ALTER TABLE "postgres-self-relation-has-one$dev"."User" ADD UNIQUE ("invitee");

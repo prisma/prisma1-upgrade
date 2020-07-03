@@ -31,25 +31,6 @@ CREATE TABLE `User` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Table structure for table `_BestFriend`
---
-
-DROP TABLE IF EXISTS `_BestFriend`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `_BestFriend` (
-  `id` char(25) CHARACTER SET utf8 NOT NULL,
-  `A` char(25) CHARACTER SET utf8 NOT NULL,
-  `B` char(25) CHARACTER SET utf8 NOT NULL,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `BestFriend_AB_unique` (`A`,`B`),
-  KEY `B` (`B`),
-  CONSTRAINT `_BestFriend_ibfk_1` FOREIGN KEY (`A`) REFERENCES `User` (`id`) ON DELETE CASCADE,
-  CONSTRAINT `_BestFriend_ibfk_2` FOREIGN KEY (`B`) REFERENCES `User` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
 -- Table structure for table `_RelayId`
 --
 
@@ -62,6 +43,25 @@ CREATE TABLE `_RelayId` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `_UserInvitation`
+--
+
+DROP TABLE IF EXISTS `_UserInvitation`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `_UserInvitation` (
+  `id` char(25) CHARACTER SET utf8 NOT NULL,
+  `A` char(25) CHARACTER SET utf8 NOT NULL,
+  `B` char(25) CHARACTER SET utf8 NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `UserInvitation_AB_unique` (`A`,`B`),
+  KEY `B` (`B`),
+  CONSTRAINT `_UserInvitation_ibfk_1` FOREIGN KEY (`A`) REFERENCES `User` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `_UserInvitation_ibfk_2` FOREIGN KEY (`B`) REFERENCES `User` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
@@ -72,4 +72,4 @@ CREATE TABLE `_RelayId` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2020-06-30 18:39:19
+-- Dump completed on 2020-07-03 17:41:30

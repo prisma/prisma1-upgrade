@@ -202,32 +202,48 @@ export async function upgrade(input: Input): Promise<Output> {
   const g = graph.load(prisma1)
   const edges = g.edges()
   const relations: [graph.Edge, graph.Edge][] = []
-  const visited: { [name: string]: string[] } = {}
+  const named: { [name: string]: graph.Edge[] } = {}
+  // first try matching up edges by their @relation(name)
   for (let i = 0; i < edges.length; i++) {
-    const src = g.node(edges[i].v)
-    const dst = g.node(edges[i].w)
-    const edge1: graph.Edge = g.edge(edges[i].v, edges[i].w)
-
-    // relation with a back-relation
-    for (let j = 0; j < edges.length; j++) {
-      // check for an edge going in the opposite direction
-      if (edges[i].v !== edges[j].w || edges[j].v !== edges[i].w) {
-        continue
-      } else if (visited[src.name] && ~visited[src.name].indexOf(dst.name)) {
-        continue
-      }
-
-      // mark as visited
-      visited[src.name] = visited[src.name] || []
-      visited[src.name].push(dst.name)
-      visited[dst.name] = visited[dst.name] || []
-      visited[dst.name].push(src.name)
-
-      const edge2: graph.Edge = g.edge(edges[j].v, edges[j].w)
-      relations.push([edge1, edge2])
+    const edge = g.edge(edges[i].v, edges[i].w)
+    // skip edges without names, we'll cover them next
+    if (!edge.name) {
+      continue
     }
+    if (!named[edge.name]) {
+      named[edge.name] = []
+    }
+    named[edge.name].push(edge)
   }
-
+  for (let k in named) {
+    // skip
+    if (named[k].length !== 2) {
+      continue
+    }
+    relations.push([named[k][0], named[k][1]])
+  }
+  const backrelations: { [name: string]: graph.Edge[] } = {}
+  // second, match by back-relations
+  for (let i = 0; i < edges.length; i++) {
+    const edge = g.edge(edges[i].v, edges[i].w)
+    // skip edges with names since we covered them in the last step
+    if (edge.name) {
+      continue
+    }
+    const id = [edge.from.name, edge.to.name].sort().join(' ')
+    if (!backrelations[id]) {
+      backrelations[id] = []
+    }
+    backrelations[id].push(edge)
+  }
+  for (let k in backrelations) {
+    // skip
+    if (backrelations[k].length !== 2) {
+      continue
+    }
+    relations.push([backrelations[k][0], backrelations[k][1]])
+  }
+  // loop over the edges and establish relationships
   for (let [edge1, edge2] of relations) {
     // 1:1 relationship
     if (!isInlineOneToOne(edge1, edge2)) {
@@ -242,7 +258,7 @@ export async function upgrade(input: Input): Promise<Output> {
         type: 'AddUniqueConstraintOp',
         schema: pgSchema,
         table: uniqueEdge.from.name,
-        column: uniqueEdge.field.name,
+        column: uniqueEdge.fromField.name,
       })
     }
 
@@ -251,13 +267,13 @@ export async function upgrade(input: Input): Promise<Output> {
       (m, f) => edge1.from.name === m.name && edge1.to.name === f.name
     )
     if (p2Field1) {
-      p2Field1.setType(toP2Type(edge1.field.type))
+      p2Field1.setType(toP2Type(edge1.fromField.type))
     }
     const p2Field2 = prisma2.findField(
       (m, f) => edge2.from.name === m.name && edge2.to.name === f.name
     )
     if (p2Field2) {
-      p2Field2.setType(toP2Type(edge2.field.type))
+      p2Field2.setType(toP2Type(edge2.fromField.type))
     }
   }
 
@@ -301,15 +317,15 @@ export async function upgrade(input: Input): Promise<Output> {
       type: 'MigrateHasManyOp',
       schema: pgSchema,
       p1ModelOne: hasOne.from,
-      p1FieldOne: hasOne.field,
+      p1FieldOne: hasOne.fromField,
       p1FieldOneID: hasOneFieldID,
       p1ModelMany: hasMany.from,
       p1FieldManyID: hasManyFieldID,
       joinTableName: joinTableName(
         edge1.from,
-        edge1.field,
+        edge1.fromField,
         edge2.from,
-        edge2.field
+        edge2.fromField
       ),
     })
   }
@@ -321,7 +337,6 @@ export async function upgrade(input: Input): Promise<Output> {
     if (!isTableHasOne(edge1, edge2)) {
       continue
     }
-
     const p1From = edge1.from.name < edge2.from.name ? edge1 : edge2
     const p1To = edge1.from.name < edge2.from.name ? edge2 : edge1
     const p1FieldToID = p1To.from.fields.find((f) => f.type.named() === 'ID')
@@ -334,14 +349,14 @@ export async function upgrade(input: Input): Promise<Output> {
         type: 'MigrateOneToOneOp',
         schema: pgSchema,
         p1ModelFrom: p1From.from,
-        p1FieldFrom: p1From.field,
+        p1FieldFrom: p1From.fromField,
         p1ModelTo: p1To.from,
         p1FieldToID: p1FieldToID,
         joinTableName: joinTableName(
           edge1.from,
-          edge1.field,
+          edge1.fromField,
           edge2.from,
-          edge2.field
+          edge2.fromField
         ),
       })
     }
@@ -351,13 +366,13 @@ export async function upgrade(input: Input): Promise<Output> {
       (m, f) => edge1.from.name === m.name && edge1.to.name === f.name
     )
     if (p2Field1) {
-      p2Field1.setType(toP2Type(edge1.field.type))
+      p2Field1.setType(toP2Type(edge1.fromField.type))
     }
     const p2Field2 = prisma2.findField(
       (m, f) => edge2.from.name === m.name && edge2.to.name === f.name
     )
     if (p2Field2) {
-      p2Field2.setType(toP2Type(edge2.field.type))
+      p2Field2.setType(toP2Type(edge2.fromField.type))
     }
   }
 
@@ -478,7 +493,7 @@ function hasDefaultNow(field: p2.Field): boolean {
 function isOneToOne(schema: p2.Schema, edge: graph.Edge): boolean {
   const fromModel = schema.findModel((m) => m.name === edge.from.name)
   if (!fromModel) return false
-  const fromField = fromModel.findField((f) => f.name === edge.field.name)
+  const fromField = fromModel.findField((f) => f.name === edge.fromField.name)
   if (!fromField) return false
   const uniqueAttr = fromField.findAttribute((a) => a.name === 'unique')
   if (!uniqueAttr) return false
@@ -525,7 +540,9 @@ function isOneToMany(schema: p2.Schema, hasOneEdge: graph.Edge): boolean {
   if (!model) {
     return false
   }
-  const field = model.findField((f) => f.name === hasOneEdge.field.name + 'Id')
+  const field = model.findField(
+    (f) => f.name === hasOneEdge.fromField.name + 'Id'
+  )
   if (!field) {
     return false
   }

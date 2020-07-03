@@ -1,4 +1,5 @@
 type User {
   id: ID! @unique
-  bestFriend: User! @relation(name: "BestFriend", link: INLINE)
+  invitee: User! @relation(name: "UserInvitation", link: INLINE)
+  inviter: User @relation(name: "UserInvitation", link: INLINE)
 }

@@ -24,10 +24,10 @@ DROP TABLE IF EXISTS `User`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `User` (
   `id` char(25) CHARACTER SET utf8 NOT NULL,
-  `bestFriend` char(25) CHARACTER SET utf8 DEFAULT NULL,
+  `invitee` char(25) CHARACTER SET utf8 DEFAULT NULL,
   PRIMARY KEY (`id`),
-  KEY `bestFriend` (`bestFriend`),
-  CONSTRAINT `User_ibfk_1` FOREIGN KEY (`bestFriend`) REFERENCES `User` (`id`) ON DELETE SET NULL
+  KEY `invitee` (`invitee`),
+  CONSTRAINT `User_ibfk_1` FOREIGN KEY (`invitee`) REFERENCES `User` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -40,4 +40,4 @@ CREATE TABLE `User` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2020-07-01 17:35:18
+-- Dump completed on 2020-07-03 17:41:04
