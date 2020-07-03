@@ -345,7 +345,7 @@ async function main(argv: string[]): Promise<void> {
         ${bold('➤ Breaking changes detected')}
 
         In order to fully optimize your database schema, you'll need to run a few SQL
-        statements that can break your Prisma 1 setup. Note that these changes are optional 
+        statements that will break your Prisma 1 setup. Note that these changes are optional 
         and if you are upgrading gradually and running Prisma 1 and Prisma 2 side-by-side, 
         you should not perform these changes yet. Instead, you can perform them whenever
         you are ready to completely remove Prisma 1 from your project.
