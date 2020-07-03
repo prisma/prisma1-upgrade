@@ -1,3 +1,7 @@
+# 0.0.24 / 2020-07-03
+
+- add support for self-relations
+
 # 0.0.23 / 2020-07-01
 
 - fix 1:N relationships with link:TABLE. add NOT NULL to required 1:1 and 1:N link:TABLE queries. add @db support for the 1:1 and 1:N relationship with link:TABLE
