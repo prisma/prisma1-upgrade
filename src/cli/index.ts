@@ -429,10 +429,6 @@ async function main(argv: string[]): Promise<void> {
       As a last step, some final adjustments will be made to your Prisma 2 schema
       to carry over some Prisma-level attributes that aren't picked up by introspection.
 
-      As a last step, some final adjustments will be made to your Prisma 2
-      schema to carry over some Prisma-level attributes that aren't picked
-      up by introspection.
-
       ${bold('Warning')}
       Your current Prisma 2 schema will be overwritten, so please
       make sure you have a backup!
