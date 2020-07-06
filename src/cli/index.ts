@@ -128,7 +128,7 @@ async function main(argv: string[]): Promise<void> {
   schemaPrisma = path.resolve(wd, schemaPrisma)
   if (!(await exists(schemaPrisma))) {
     return fatal(
-      `Prisma 2.0 schema doesn't exist in "${schemaPrisma}". Run \`prisma-upgrade -h\` for more details.`
+      `Prisma 2 schema doesn't exist in "${schemaPrisma}". Run \`prisma-upgrade -h\` for more details.`
     )
   }
 
@@ -150,7 +150,7 @@ async function main(argv: string[]): Promise<void> {
       redent(`
       Error parsing the Prisma 2 file.
 
-      Are you sure "${schemaPrisma}" is a valid Prisma 2.0 schema file?
+      Are you sure "${schemaPrisma}" is a valid Prisma 2 schema file?
 
       Run ${green(`\`prisma-upgrade -h\``)} for more details.
 
@@ -196,14 +196,14 @@ async function main(argv: string[]): Promise<void> {
       ◮ Welcome to the interactive ${bold(
         'Prisma Upgrade CLI'
       )} that helps with the
-      upgrade process from Prisma 1 to Prisma 2.0.
+      upgrade process from Prisma 1 to Prisma 2.
 
       Please read the docs to learn more about the upgrade process:
       ${gray(underline('https://pris.ly/d/how-to-upgrade'))}
 
       ${bold('➤ Goal')}
       The Upgrade CLI helps you resolve the schema incompatibilities
-      betweeen Prisma 1 and Prisma 2.0. Learn more in the docs:
+      betweeen Prisma 1 and Prisma 2. Learn more in the docs:
       ${gray(underline('https://pris.ly/d/schema-incompatibilities'))}
 
       ${bold('➤ How it works')}
@@ -274,7 +274,7 @@ async function main(argv: string[]): Promise<void> {
           break
         case 'SetCreatedAtOp':
           console.log(
-            `  ${bold(`Replicate \`@createdAt\` behavior in Prisma 2.0`)}`
+            `  ${bold(`Replicate \`@createdAt\` behavior in Prisma 2`)}`
           )
           console.log(
             `  ${gray(
@@ -342,21 +342,26 @@ async function main(argv: string[]): Promise<void> {
 
     console.log(
       redent(`
-        ${bold('➤ Breaking Changes Detected')}
-        We've detected some changes that will break your Prisma 1 application
-        client. If you apply these changes you'll need to migrate to Prisma 2
-        all at once. This will give you better schema design and performance
-        so it's recommended if you can. You can read more about the tradeoffs
-        at ${gray(underline('https://pris.ly/d/how-to-upgrade'))}.
+        ${bold('➤ Breaking changes detected')}
+
+        In order to fully optimize your database schema, you'll need to run a few SQL
+        statements that will break your Prisma 1 setup. Note that these changes are optional 
+        and if you are upgrading gradually and running Prisma 1 and Prisma 2 side-by-side, 
+        you should not perform these changes yet. Instead, you can perform them whenever
+        you are ready to completely remove Prisma 1 from your project.
+        If you are upgrading all at once, you can safely perform these changes now.
+
+        Learn more in the docs:
+        ${gray(underline('https://pris.ly/d/how-to-upgrade'))}
       `)
     )
     const yes = await prompt.confirm(
-      `Do you want to make these breaking changes? [Y/n]? `
+      `Do you want to view the breaking SQL statements now? [Y/n]? `
     )
     if (yes) {
       clear(true)
 
-      console.log(`${bold('➤ Adjust your database schema')}`)
+      console.log(`${bold('➤ Adjust your database schema (these changes break Prisma 1)')}`)
       console.log(`Run the following SQL statements against your database:`)
       console.log()
 
@@ -366,7 +371,11 @@ async function main(argv: string[]): Promise<void> {
         switch (type) {
           case 'MigrateHasManyOp':
             console.log(`  ${bold(`Fix one-to-many table relations`)}`)
-            console.log()
+            console.log(
+              `  ${gray(
+                `https://pris.ly/d/schema-incompatibilities#all-non-inline-relations-are-recognized-as-m-n`
+              )}`
+            )
             console.log()
             console.log(queries.map((q) => redent(q, 4)).join('\n    '))
             console.log()
@@ -374,7 +383,11 @@ async function main(argv: string[]): Promise<void> {
             break
           case 'MigrateOneToOneOp':
             console.log(`  ${bold(`Fix one-to-one table relations`)}`)
-            console.log()
+            console.log(
+              `  ${gray(
+                `https://pris.ly/d/schema-incompatibilities#all-non-inline-relations-are-recognized-as-m-n`
+              )}`
+            )
             console.log()
             console.log(queries.map((q) => redent(q, 4)).join('\n    '))
             console.log()
@@ -389,8 +402,8 @@ async function main(argv: string[]): Promise<void> {
     redent(`
       ${bold('➤ Next Steps')}
 
-      After you executed one or more of the above SQL statements against your database,
-      please run the following two commands to refresh your Prisma 2 Schema and check
+      After you executed one or more of the previous SQL statements against your database,
+      please run the following two commands to refresh your Prisma 2 schema and check
       the changes.
 
         1. Run ${green(
@@ -416,12 +429,12 @@ async function main(argv: string[]): Promise<void> {
       As a last step, some final adjustments will be made to your Prisma 2 schema
       to carry over some Prisma-level attributes that aren't picked up by introspection.
 
-      As a last step, some final adjustments will be made to your Prisma 2.0
+      As a last step, some final adjustments will be made to your Prisma 2
       schema to carry over some Prisma-level attributes that aren't picked
       up by introspection.
 
       ${bold('Warning')}
-      Your current Prisma 2.0 schema will be overwritten, so please
+      Your current Prisma 2 schema will be overwritten, so please
       make sure you have a backup!
   `)
   )
