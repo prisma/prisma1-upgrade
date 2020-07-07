@@ -1,3 +1,7 @@
+# 0.0.26 / 2020-07-07
+
+- remove console.log
+
 # 0.0.25 / 2020-07-07
 
 - fix has-many SQL statements for DM1.0 (thanks @alan345!)
