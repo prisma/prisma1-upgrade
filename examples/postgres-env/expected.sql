@@ -6,6 +6,6 @@ ALTER TABLE "postgres-env$dev"."Post" ALTER COLUMN "createdAt" SET DEFAULT CURRE
 ALTER TABLE "postgres-env$dev"."Post" ALTER COLUMN "published" SET DEFAULT false;
 ALTER TABLE "postgres-env$dev"."Profile" ADD UNIQUE ("user");
 ALTER TABLE "postgres-env$dev"."Post" ADD COLUMN "authorId" character varying(25) ;
+UPDATE "postgres-env$dev"."Post" SET "authorId" = "postgres-env$dev"."_PostToUser"."A" FROM "postgres-env$dev"."_PostToUser" WHERE "postgres-env$dev"."_PostToUser"."B" = "postgres-env$dev"."Post"."id";
 ALTER TABLE "postgres-env$dev"."Post" ADD CONSTRAINT "author" FOREIGN KEY ("authorId") REFERENCES "postgres-env$dev"."User"("id");
-UPDATE "postgres-env$dev"."Post" SET "authorId" = "postgres-env$dev"."_PostToUser"."B" FROM "postgres-env$dev"."_PostToUser" WHERE "postgres-env$dev"."_PostToUser"."A" = "postgres-env$dev"."Post"."id";
 DROP TABLE "postgres-env$dev"."_PostToUser";
