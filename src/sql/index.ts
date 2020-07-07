@@ -207,10 +207,10 @@ export class Postgres implements Translator {
       `ALTER TABLE ${tableNameOne} ADD COLUMN "${foreignName}" character varying(25) ${notNull};`
     )
     stmts.push(
-      `ALTER TABLE ${tableNameOne} ADD CONSTRAINT "${op.p1FieldOne.name}" FOREIGN KEY ("${foreignName}") REFERENCES ${tableNameMany}("${columnNameMany}");`
+      `UPDATE ${tableNameOne} SET "${foreignName}" = ${joinTableName}."A" FROM ${joinTableName} WHERE ${joinTableName}."B" = ${tableNameOne}."${columnNameOneID}";`
     )
     stmts.push(
-      `UPDATE ${tableNameOne} SET "${foreignName}" = ${joinTableName}."B" FROM ${joinTableName} WHERE ${joinTableName}."A" = ${tableNameOne}."${columnNameOneID}";`
+      `ALTER TABLE ${tableNameOne} ADD CONSTRAINT "${op.p1FieldOne.name}" FOREIGN KEY ("${foreignName}") REFERENCES ${tableNameMany}("${columnNameMany}");`
     )
     stmts.push(`DROP TABLE ${joinTableName};`)
     return stmts.join('\n')
@@ -364,10 +364,10 @@ export class MySQL5 implements Translator {
       `ALTER TABLE ${tableNameOne} ADD COLUMN ${foreignName} char(25) CHARACTER SET utf8 ${notNull};`
     )
     stmts.push(
-      `ALTER TABLE ${tableNameOne} ADD CONSTRAINT ${op.p1FieldOne.name} FOREIGN KEY (${foreignName}) REFERENCES ${tableNameMany}(${columnNameMany});`
+      `UPDATE ${tableNameOne}, ${joinTableName} SET ${tableNameOne}.${foreignName} = ${joinTableName}.A where ${joinTableName}.B = ${tableNameOne}.${columnNameOneID};`
     )
     stmts.push(
-      `UPDATE ${tableNameOne}, ${joinTableName} SET ${tableNameOne}.${foreignName} = ${joinTableName}.B where ${joinTableName}.A = ${tableNameOne}.${columnNameOneID};`
+      `ALTER TABLE ${tableNameOne} ADD CONSTRAINT ${op.p1FieldOne.name} FOREIGN KEY (${foreignName}) REFERENCES ${tableNameMany}(${columnNameMany});`
     )
     stmts.push(`DROP TABLE ${joinTableName};`)
     return stmts.join('\n')
