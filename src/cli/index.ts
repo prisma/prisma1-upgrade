@@ -188,7 +188,6 @@ async function main(argv: string[]): Promise<void> {
     prisma2,
     url,
   })
-  console.log(ops.length, breakingOps.length)
 
   if (ops.length || breakingOps.length) {
     console.log(
@@ -345,8 +344,8 @@ async function main(argv: string[]): Promise<void> {
         ${bold('➤ Breaking changes detected')}
 
         In order to fully optimize your database schema, you'll need to run a few SQL
-        statements that will break your Prisma 1 setup. Note that these changes are optional 
-        and if you are upgrading gradually and running Prisma 1 and Prisma 2 side-by-side, 
+        statements that will break your Prisma 1 setup. Note that these changes are optional
+        and if you are upgrading gradually and running Prisma 1 and Prisma 2 side-by-side,
         you should not perform these changes yet. Instead, you can perform them whenever
         you are ready to completely remove Prisma 1 from your project.
         If you are upgrading all at once, you can safely perform these changes now.
@@ -361,7 +360,11 @@ async function main(argv: string[]): Promise<void> {
     if (yes) {
       clear(true)
 
-      console.log(`${bold('➤ Adjust your database schema (these changes break Prisma 1)')}`)
+      console.log(
+        `${bold(
+          '➤ Adjust your database schema (these changes break Prisma 1)'
+        )}`
+      )
       console.log(`Run the following SQL statements against your database:`)
       console.log()
 
