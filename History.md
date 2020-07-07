@@ -1,3 +1,7 @@
+# 0.0.25 / 2020-07-07
+
+- fix has-many SQL statements for DM1.0 (thanks @alan345!)
+
 # 0.0.24 / 2020-07-03
 
 - add support for self-relations
