@@ -189,7 +189,16 @@ async function main(argv: string[]): Promise<void> {
     url,
   })
 
-  if (ops.length || breakingOps.length) {
+  // HACK: AlterIdOp has no difference in P1 => P2, so we can't
+  // know if we ran the command or not.
+  //
+  // Always the ops if we only have those operations, otherwise
+  // exclude those operations in our checks if we have other
+  // more than just those operations
+  const opsWithoutID = ops.filter((op) => op.type !== 'AlterVarCharOp')
+  const hasOps = ops.length > opsWithoutID.length ? !!opsWithoutID.length : true
+
+  if (hasOps || breakingOps.length) {
     console.log(
       redent(`
       ◮ Welcome to the interactive ${bold(
@@ -237,7 +246,7 @@ async function main(argv: string[]): Promise<void> {
     clear(true)
   }
 
-  if (ops.length) {
+  if (hasOps) {
     const provider = prisma2.provider()
 
     const segments = new Map<sql.Op['type'], sql.Op[]>()

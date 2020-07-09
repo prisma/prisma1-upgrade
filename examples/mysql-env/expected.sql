@@ -1,10 +1,14 @@
+ALTER TABLE `User` CHANGE `id` `id` char(25) CHARACTER SET utf8 NOT NULL;
 ALTER TABLE `User` CHANGE `role` `role` ENUM('ADMIN', 'CUSTOMER') NOT NULL;
 ALTER TABLE `User` CHANGE `role` `role` ENUM('ADMIN', 'CUSTOMER') NOT NULL DEFAULT 'CUSTOMER';
 ALTER TABLE `User` CHANGE `jsonData` `jsonData` JSON ;
+ALTER TABLE `Post` CHANGE `id` `id` char(25) CHARACTER SET utf8 NOT NULL;
 ALTER TABLE `Post` CHANGE `createdAt` `createdAt` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP;
 ALTER TABLE `Post` CHANGE `published` `published` TINYINT(1) NOT NULL DEFAULT 0;
+ALTER TABLE `Profile` CHANGE `id` `id` char(25) CHARACTER SET utf8 NOT NULL;
+ALTER TABLE `Category` CHANGE `id` `id` char(25) CHARACTER SET utf8 NOT NULL;
 ALTER TABLE `Profile` ADD UNIQUE (`user`);
-ALTER TABLE `Post` ADD COLUMN `authorId` char(25) CHARACTER SET utf8 ;
+ALTER TABLE `Post` ADD COLUMN `authorId` char(30) CHARACTER SET utf8 ;
 UPDATE `Post`, `_PostToUser` SET `Post`.`authorId` = `_PostToUser`.A where `_PostToUser`.B = `Post`.`id`;
 ALTER TABLE `Post` ADD CONSTRAINT author FOREIGN KEY (`authorId`) REFERENCES `User`(`id`);
 DROP TABLE `_PostToUser`;

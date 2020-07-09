@@ -122,6 +122,16 @@ export async function upgrade(input: Input): Promise<Output> {
         continue
       }
 
+      // update the ID's varchar(25) => varchar(30)
+      if (isPrisma1ID(prisma1, p1Field)) {
+        ops.push({
+          type: 'AlterVarCharOp',
+          schema: pgSchema,
+          p1Model,
+          p1Field,
+        })
+      }
+
       // H: JSON is represented as String
       if (p1Field.type.named() === 'Json' && !isJsonType(p2Field)) {
         ops.push({
@@ -705,4 +715,22 @@ function joinTableName(
     return ta
   }
   return '_' + av
+}
+
+function isPrisma1ID(
+  p1Schema: p1.Schema,
+  p1Field: p1.FieldDefinition
+): boolean {
+  switch (p1Schema.version()) {
+    case '1.0':
+      return !!(
+        p1Field.type.named() === 'ID' &&
+        p1Field.findDirective((d) => d.name === 'unique')
+      )
+    default:
+      return !!(
+        p1Field.type.named() === 'ID' &&
+        p1Field.findDirective((d) => d.name === 'id')
+      )
+  }
 }

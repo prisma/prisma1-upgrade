@@ -23,6 +23,7 @@ function getTranslator(provider: string): Translator {
 }
 
 export type Op =
+  | AlterVarCharOp
   | SetDefaultOp
   | SetCreatedAtOp
   | AddUniqueConstraintOp
@@ -30,6 +31,13 @@ export type Op =
   | SetEnumTypeOp
   | MigrateHasManyOp
   | MigrateOneToOneOp
+
+export type AlterVarCharOp = {
+  type: 'AlterVarCharOp'
+  schema?: string
+  p1Model: p1.ObjectTypeDefinition
+  p1Field: p1.FieldDefinition
+}
 
 export type SetDefaultOp = {
   type: 'SetDefaultOp'
@@ -105,6 +113,8 @@ export interface Translator {
 export class Postgres implements Translator {
   translate(op: Op): string {
     switch (op.type) {
+      case 'AlterVarCharOp':
+        return this.AlterVarCharOp(op)
       case 'SetCreatedAtOp':
         return this.SetCreatedAtOp(op)
       case 'SetDefaultOp':
@@ -126,6 +136,12 @@ export class Postgres implements Translator {
 
   private schema(schema: string | undefined, table: string): string {
     return schema ? `"${schema}"."${table}"` : `"${table}"`
+  }
+
+  private AlterVarCharOp(op: AlterVarCharOp): string {
+    const tableName = this.schema(op.schema, op.p1Model.dbname)
+    const fieldName = op.p1Field.dbname
+    return `ALTER TABLE ${tableName} ALTER COLUMN "${fieldName}" SET DATA TYPE character varying(30);`
   }
 
   private SetCreatedAtOp(op: SetCreatedAtOp): string {
@@ -204,7 +220,7 @@ export class Postgres implements Translator {
     const joinTableName = this.schema(op.schema, op.joinTableName)
     const notNull = op.p1FieldOne.optional() ? '' : 'NOT NULL'
     stmts.push(
-      `ALTER TABLE ${tableNameOne} ADD COLUMN "${foreignName}" character varying(25) ${notNull};`
+      `ALTER TABLE ${tableNameOne} ADD COLUMN "${foreignName}" character varying(30) ${notNull};`
     )
     stmts.push(
       `UPDATE ${tableNameOne} SET "${foreignName}" = ${joinTableName}."A" FROM ${joinTableName} WHERE ${joinTableName}."B" = ${tableNameOne}."${columnNameOneID}";`
@@ -231,7 +247,7 @@ export class Postgres implements Translator {
     const modelToName = this.schema(op.schema, p1ModelTo.dbname)
     const joinTableName = this.schema(op.schema, op.joinTableName)
     stmts.push(
-      `ALTER TABLE ${modelFromName} ADD COLUMN "${modelFromColumn}" character varying(25) ${notNull} UNIQUE;`
+      `ALTER TABLE ${modelFromName} ADD COLUMN "${modelFromColumn}" character varying(30) ${notNull} UNIQUE;`
     )
     stmts.push(
       `ALTER TABLE ${modelFromName} ADD FOREIGN KEY ("${modelFromColumn}") REFERENCES ${modelToName} ("${fieldIDName}");`
@@ -244,6 +260,8 @@ export class Postgres implements Translator {
 export class MySQL5 implements Translator {
   translate(op: Op): string {
     switch (op.type) {
+      case 'AlterVarCharOp':
+        return this.AlterVarCharOp(op)
       case 'SetDefaultOp':
         return this.SetDefaultOp(op)
       case 'SetCreatedAtOp':
@@ -318,6 +336,19 @@ export class MySQL5 implements Translator {
     }
   }
 
+  private AlterVarCharOp(op: AlterVarCharOp): string {
+    const modelName = this.backtick(op.p1Model.dbname)
+    const fieldName = this.backtick(op.p1Field.dbname)
+    const notNull = op.p1Field.optional() ? '' : 'NOT NULL'
+    const stmts: string[] = []
+    // stmts.push(`SET foreign_key_checks = 0;`)
+    stmts.push(
+      `ALTER TABLE ${modelName} CHANGE ${fieldName} ${fieldName} char(30) CHARACTER SET utf8 ${notNull};`
+    )
+    // stmts.push(`SET foreign_key_checks = 1;`)
+    return stmts.join('\n')
+  }
+
   private SetCreatedAtOp(op: SetCreatedAtOp): string {
     const modelName = this.backtick(op.p1Model.dbname)
     const fieldName = this.backtick(op.p1Field.dbname)
@@ -364,7 +395,7 @@ export class MySQL5 implements Translator {
     const columnNameOneIDLetter = foreignName > columnNameOneID ? 'A' : 'B'
 
     stmts.push(
-      `ALTER TABLE ${tableNameOne} ADD COLUMN ${foreignName} char(25) CHARACTER SET utf8 ${notNull};`
+      `ALTER TABLE ${tableNameOne} ADD COLUMN ${foreignName} char(30) CHARACTER SET utf8 ${notNull};`
     )
     stmts.push(
       `UPDATE ${tableNameOne}, ${joinTableName} SET ${tableNameOne}.${foreignName} = ${joinTableName}.${foreignNameLetter} where ${joinTableName}.${columnNameOneIDLetter} = ${tableNameOne}.${columnNameOneID};`
@@ -391,7 +422,7 @@ export class MySQL5 implements Translator {
     const modelToName = this.backtick(p1ModelTo.dbname)
     const joinTableName = this.backtick(op.joinTableName)
     stmts.push(
-      `ALTER TABLE ${modelFromName} ADD COLUMN ${modelFromColumn} char(25) CHARACTER SET UTF8 ${notNull} UNIQUE;`
+      `ALTER TABLE ${modelFromName} ADD COLUMN ${modelFromColumn} char(30) CHARACTER SET UTF8 ${notNull} UNIQUE;`
     )
     stmts.push(
       `ALTER TABLE ${modelFromName} ADD FOREIGN KEY (${modelFromColumn}) REFERENCES ${modelToName} (${fieldIDName});`
