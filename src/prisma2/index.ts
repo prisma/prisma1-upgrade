@@ -138,6 +138,12 @@ export class Schema {
   toString(): string {
     return print(this.n)
   }
+
+  toTestString(): string {
+    const clone: ast.Schema = JSON.parse(JSON.stringify(this.n))
+    clone.blocks = clone.blocks.filter((block) => block.type !== 'datasource')
+    return print(clone)
+  }
 }
 
 export class Datasource {

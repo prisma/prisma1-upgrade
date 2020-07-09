@@ -1,8 +1,3 @@
-datasource db {
-  provider = "postgresql"
-  url      = "postgres://m@localhost:5432/prisma_test?schema=postgres-alias%24dev"
-}
-
 model Category {
   id      String    @default(cuid()) @id
   name    String

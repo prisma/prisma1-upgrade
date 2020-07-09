@@ -1,8 +1,3 @@
-datasource db {
-  provider = "mysql"
-  url      = "mysql://root@localhost:3306/prisma_test"
-}
-
 model Home {
   createdAt DateTime @default(now())
   id        Int      @default(autoincrement()) @id
