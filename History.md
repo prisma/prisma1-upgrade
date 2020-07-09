@@ -1,3 +1,7 @@
+# 0.0.27 / 2020-07-09
+
+- fix alphanumeric issue with join table
+
 # 0.0.26 / 2020-07-07
 
 - remove console.log
