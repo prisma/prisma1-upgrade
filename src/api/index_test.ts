@@ -332,7 +332,7 @@ async function test(
   }
   // assert the operations
   const blockSQL = queries.concat(breakingQueries).join('\n')
-  fs.writeFileSync(path.join(abspath, 'expected.sql'), blockSQL)
+  // fs.writeFileSync(path.join(abspath, 'expected.sql'), blockSQL)
   if (blockSQL !== expectedSQL) {
     console.log('')
     console.log('Actual:')

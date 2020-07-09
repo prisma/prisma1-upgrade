@@ -360,11 +360,14 @@ export class MySQL5 implements Translator {
     const foreignName = this.backtick(`${op.p1FieldOne.name}Id`)
     const notNull = op.p1FieldOne.optional() ? '' : 'NOT NULL'
     const joinTableName = this.backtick(op.joinTableName)
+    const foreignNameLetter = foreignName < columnNameOneID ? 'A' : 'B'
+    const columnNameOneIDLetter = foreignName > columnNameOneID ? 'A' : 'B'
+
     stmts.push(
       `ALTER TABLE ${tableNameOne} ADD COLUMN ${foreignName} char(25) CHARACTER SET utf8 ${notNull};`
     )
     stmts.push(
-      `UPDATE ${tableNameOne}, ${joinTableName} SET ${tableNameOne}.${foreignName} = ${joinTableName}.A where ${joinTableName}.B = ${tableNameOne}.${columnNameOneID};`
+      `UPDATE ${tableNameOne}, ${joinTableName} SET ${tableNameOne}.${foreignName} = ${joinTableName}.${foreignNameLetter} where ${joinTableName}.${columnNameOneIDLetter} = ${tableNameOne}.${columnNameOneID};`
     )
     stmts.push(
       `ALTER TABLE ${tableNameOne} ADD CONSTRAINT ${op.p1FieldOne.name} FOREIGN KEY (${foreignName}) REFERENCES ${tableNameMany}(${columnNameMany});`

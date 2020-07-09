@@ -1,0 +1,20 @@
+type UserRoleCompanie {
+  id: ID! @unique
+  companie: Companie! @relation(name: "UserRoleCompaniesRelation")
+}
+
+type Companie {
+  id: ID! @unique
+  userRoleCompanies: [UserRoleCompanie!]!
+    @relation(name: "UserRoleCompaniesRelation", onDelete: CASCADE)
+}
+
+type IssuedCard {
+  id: ID! @unique
+  user: User! @relation(name: "UserIssuedCardRelation")
+}
+
+type User {
+  id: ID! @unique
+  issuedCards: [IssuedCard!]! @relation(name: "UserIssuedCardRelation")
+}

@@ -1,0 +1,36 @@
+datasource db {
+  provider = "mysql"
+  url      = "mysql://root@localhost:3306/prisma_test"
+}
+
+model Companie {
+  createdAt        DateTime
+  id               String             @default(cuid()) @id
+  updatedAt        DateTime
+  UserRoleCompanie UserRoleCompanie[]
+}
+
+model IssuedCard {
+  createdAt DateTime
+  id        String   @default(cuid()) @id
+  updatedAt DateTime
+  userId    String
+  User      User     @relation(fields: [userId], references: [id])
+  @@index([userId], name: "user")
+}
+
+model User {
+  createdAt  DateTime
+  id         String       @default(cuid()) @id
+  updatedAt  DateTime
+  IssuedCard IssuedCard[]
+}
+
+model UserRoleCompanie {
+  companieId String
+  createdAt  DateTime
+  id         String   @default(cuid()) @id
+  updatedAt  DateTime
+  Companie   Companie @relation(fields: [companieId], references: [id])
+  @@index([companieId], name: "companie")
+}
