@@ -348,7 +348,7 @@ async function test(
 
   // schema
   const actual = schema.toTestString()
-  fs.writeFileSync(path.join(abspath, 'expected.prisma'), actual)
+  // fs.writeFileSync(path.join(abspath, 'expected.prisma'), actual)
   if (expected !== actual) {
     console.log('')
     console.log('Actual:')
