@@ -1,0 +1,17 @@
+datasource db {
+  provider = "postgresql"
+  url      = "postgres://root:prisma@0.0.0.0:5433/prisma?schema=postgres-media%24dev"
+}
+
+model Media {
+  id    String  @default(cuid()) @id
+  title String?
+  User  User[]  @relation("UserMedias", references: [id])
+}
+
+model User {
+  firstName String
+  id        String  @default(cuid()) @id
+  lastName  String
+  Media     Media[] @relation("UserMedias", references: [id])
+}

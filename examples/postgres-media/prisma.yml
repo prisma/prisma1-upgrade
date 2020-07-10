@@ -1,0 +1,2 @@
+endpoint: http://localhost:4467/postgres-media/dev
+datamodel: datamodel.graphql
