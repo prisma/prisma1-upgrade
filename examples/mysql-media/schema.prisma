@@ -1,0 +1,17 @@
+datasource db {
+  provider = "mysql"
+  url      = "mysql://root:prisma@0.0.0.0:3307/mysql-media@dev"
+}
+
+model Media {
+  id    String  @default(cuid()) @id
+  title String?
+  User  User[]  @relation("UserMedias", references: [id])
+}
+
+model User {
+  firstName String
+  id        String  @default(cuid()) @id
+  lastName  String
+  Media     Media[] @relation("UserMedias", references: [id])
+}

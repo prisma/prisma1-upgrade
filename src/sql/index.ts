@@ -371,13 +371,15 @@ export class MySQL5 implements Translator {
     const columnNameOneIDLetter = foreignName > columnNameOneID ? 'A' : 'B'
 
     stmts.push(
-      `ALTER TABLE ${tableNameOne} ADD COLUMN ${foreignName} char(25) CHARACTER SET utf8`
+      `ALTER TABLE ${tableNameOne} ADD COLUMN ${foreignName} char(25) CHARACTER SET utf8;`
     )
     stmts.push(
       `UPDATE ${tableNameOne}, ${joinTableName} SET ${tableNameOne}.${foreignName} = ${joinTableName}.${foreignNameLetter} where ${joinTableName}.${columnNameOneIDLetter} = ${tableNameOne}.${columnNameOneID};`
     )
     if (notNull) {
-      ;`ALTER TABLE ${tableNameOne} ADD COLUMN ${foreignName} char(25) CHARACTER SET utf8 ${notNull}`
+      stmts.push(
+        `ALTER TABLE ${tableNameOne} CHANGE ${foreignName} ${foreignName} char(25) CHARACTER SET utf8 ${notNull};`
+      )
     }
     stmts.push(
       `ALTER TABLE ${tableNameOne} ADD CONSTRAINT ${op.p1FieldOne.name} FOREIGN KEY (${foreignName}) REFERENCES ${tableNameMany}(${columnNameMany});`

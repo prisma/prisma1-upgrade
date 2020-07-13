@@ -1,0 +1,12 @@
+type User {
+  id: ID! @id
+  firstName: String!
+  lastName: String!
+  medias: [Media]! @relation(link: TABLE, name: "UserMedias", onDelete: CASCADE)
+}
+
+type Media {
+  id: ID! @id
+  title: String
+  publisher: User! @relation(name: "UserMedias")
+}
