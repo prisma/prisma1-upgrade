@@ -1,3 +1,8 @@
+# 0.0.28 / 2020-07-13
+
+- fix has-many operation for Postgres & MySQL using example data. Thanks @Aldrian!
+- remove datasource from all tests in order to make tests more portable
+
 # 0.0.27 / 2020-07-09
 
 - fix alphanumeric issue with join table
