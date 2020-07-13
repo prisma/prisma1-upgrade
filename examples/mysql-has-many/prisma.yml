@@ -1,0 +1,2 @@
+endpoint: http://localhost:4466/mysql-has-many/dev
+datamodel: datamodel.graphql

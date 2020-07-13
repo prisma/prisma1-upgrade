@@ -252,7 +252,7 @@ interface DB {
 }
 
 async function test(
-  abspath: string,
+  _abspath: string,
   db: DB,
   engine: Inspector,
   expected: string,
@@ -276,7 +276,7 @@ async function test(
   // var p2schema = new p2.Schema(schemaPrisma)
 
   // await db.query(dump)
-  var { ops, breakingOps, schema } = await api.upgrade({
+  var { ops, breakingOps, idOps, schema } = await api.upgrade({
     url: url,
     prisma1: p1schema,
     prisma2: p2schema,
@@ -296,6 +296,17 @@ async function test(
   // run the breaking queries
   const breakingQueries = sql.translate(schema.provider(), breakingOps)
   for (let query of breakingQueries) {
+    try {
+      await db.query(query)
+    } catch (e) {
+      console.log(query)
+      throw e
+    }
+  }
+
+  // run the id ops
+  const idQueries = sql.translate(schema.provider(), idOps)
+  for (let query of idQueries) {
     try {
       await db.query(query)
     } catch (e) {

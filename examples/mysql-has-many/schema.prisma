@@ -1,0 +1,17 @@
+datasource db {
+  provider = "mysql"
+  url      = "mysql://root:prisma@0.0.0.0:3307/mysql-has-many@dev"
+}
+
+model Post {
+  id   String  @default(cuid()) @id
+  user String?
+  User User?   @relation(fields: [user], references: [id])
+
+  @@index([user], name: "user")
+}
+
+model User {
+  id   String @default(cuid()) @id
+  Post Post[]
+}

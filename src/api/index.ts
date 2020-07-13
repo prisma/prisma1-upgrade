@@ -17,6 +17,7 @@ type Output = {
   warnings: string[]
   ops: sql.Op[]
   breakingOps: sql.Op[]
+  idOps: sql.Op[]
 }
 
 // upgrade performs a set of rules
@@ -376,11 +377,46 @@ export async function upgrade(input: Input): Promise<Output> {
     }
   }
 
+  // Migrate varchar(25) => varchar(30)
+  const idOps: sql.Op[] = []
+  let idOp: sql.AlterIDsOp = {
+    type: 'AlterIDsOp',
+    pairs: [],
+  }
+  for (let model of prisma2.models) {
+    for (let field of model.fields) {
+      const attributeWithID = field.findAttribute((a) => a.name === 'id')
+      if (attributeWithID) {
+        idOp.pairs.push({ model, field })
+        continue
+      }
+      const attributeWithRelation = field.findAttribute(
+        (a) => a.name === 'relation'
+      )
+      if (attributeWithRelation) {
+        const fieldName = getFieldName(attributeWithRelation)
+        if (!fieldName) {
+          continue
+        }
+        let scalar = model.findField((f) => f.name === fieldName)
+        if (!scalar) {
+          continue
+        }
+        idOp.pairs.push({ model, field: scalar })
+        continue
+      }
+    }
+  }
+  if (idOp.pairs.length) {
+    idOps.push(idOp)
+  }
+
   return {
     schema: prisma2,
     warnings,
     ops,
     breakingOps,
+    idOps,
   }
 }
 
@@ -705,4 +741,22 @@ function joinTableName(
     return ta
   }
   return '_' + av
+}
+
+function getFieldName(a: p2.Attribute): string | undefined {
+  const arg = a.arguments.find((a) => a.key === 'fields')
+  if (!arg) {
+    console.log('returning.')
+    return
+  }
+  const value = arg.value
+  if (value.type !== 'list_value') {
+    console.log('returning.')
+    return
+  }
+  const inner = value.values[0]
+  if (!inner || inner.type !== 'reference_value') {
+    return
+  }
+  return inner.name.name
 }

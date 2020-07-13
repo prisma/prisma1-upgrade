@@ -1,5 +1,6 @@
 import * as cases from 'change-case'
 import * as p1 from '../prisma1'
+import * as p2 from '../prisma2'
 
 export function translate(provider: string, ops: Op[]): string[] {
   const printer = getTranslator(provider)
@@ -30,6 +31,7 @@ export type Op =
   | SetEnumTypeOp
   | MigrateHasManyOp
   | MigrateOneToOneOp
+  | AlterIDsOp
 
 export type SetDefaultOp = {
   type: 'SetDefaultOp'
@@ -98,6 +100,14 @@ export type MigrateOneToOneOp = {
   joinTableName: string
 }
 
+export type AlterIDsOp = {
+  type: 'AlterIDsOp'
+  pairs: {
+    model: p2.Model
+    field: p2.Field
+  }[]
+}
+
 export interface Translator {
   translate(op: Op): string
 }
@@ -119,6 +129,8 @@ export class Postgres implements Translator {
         return this.MigrateHasManyOp(op)
       case 'MigrateOneToOneOp':
         return this.MigrateOneToOneOp(op)
+      case 'AlterIDsOp':
+        return this.AlterIDsOp(op)
       default:
         throw new Error('Postgres: unhandled op: ' + op!.type)
     }
@@ -246,6 +258,11 @@ export class Postgres implements Translator {
     stmts.push(`DROP TABLE ${joinTableName};`)
     return stmts.join('\n')
   }
+
+  private AlterIDsOp(_op: AlterIDsOp): string {
+    const stmts: string[] = []
+    return stmts.join('\n')
+  }
 }
 
 export class MySQL5 implements Translator {
@@ -265,6 +282,8 @@ export class MySQL5 implements Translator {
         return this.MigrateHasManyOp(op)
       case 'MigrateOneToOneOp':
         return this.MigrateOneToOneOp(op)
+      case 'AlterIDsOp':
+        return this.AlterIDsOp(op)
       default:
         throw new Error('MySQL5: unhandled op: ' + op!.type)
     }
@@ -409,6 +428,11 @@ export class MySQL5 implements Translator {
       `ALTER TABLE ${modelFromName} ADD FOREIGN KEY (${modelFromColumn}) REFERENCES ${modelToName} (${fieldIDName});`
     )
     stmts.push(`DROP TABLE ${joinTableName};`)
+    return stmts.join('\n')
+  }
+
+  private AlterIDsOp(_op: AlterIDsOp): string {
+    const stmts: string[] = []
     return stmts.join('\n')
   }
 }

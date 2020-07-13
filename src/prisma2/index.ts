@@ -703,8 +703,18 @@ export class Attribute {
 
 export class Argument {
   constructor(private readonly n: ast.AttributeArgument) {}
-  get value(): Value {
-    return new Value(this.n.value)
+
+  get key(): string | undefined {
+    switch (this.n.type) {
+      case 'keyed_argument':
+        return this.n.name.name
+      default:
+        return undefined
+    }
+  }
+
+  get value(): ast.Value {
+    return this.n.value
   }
 }
 
