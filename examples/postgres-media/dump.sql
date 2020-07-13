@@ -246,5 +246,6 @@ ALTER TABLE ONLY "postgres-media$dev"."_UserMedias"
 -- PostgreSQL database dump complete
 --
 
--- INSERT INTO "postgres-media$dev"."User"("id", "firstName", "lastName") VALUES('cjwutc93401ip06672ur6do5t', 'Philippe', 'Demo') RETURNING "id", "firstName", "lastName";
--- INSERT INTO "postgres-media$dev"."Media"("id", "title", "publisherId") VALUES('cjwvwyc5s04vh0667qlzqgg5n', 'Introduction to Web Accessibility and W3C Standards', 'cjwutc93401ip06672ur6do5t');
+INSERT INTO "postgres-media$dev"."User"("id", "firstName", "lastName") VALUES('cjwutc93401ip06672ur6do5t', 'Philippe', 'Demo');
+INSERT INTO "postgres-media$dev"."Media"("id", "title") VALUES('cjwvwyc5s04vh0667qlzqgg5n', 'Introduction to Web Accessibility and W3C Standards');
+INSERT INTO "postgres-media$dev"."_UserMedias"("A", "B") VALUES('cjwvwyc5s04vh0667qlzqgg5n', 'cjwutc93401ip06672ur6do5t');

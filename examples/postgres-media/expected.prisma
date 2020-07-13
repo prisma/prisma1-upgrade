@@ -1,0 +1,13 @@
+model Media {
+  id          String  @default(cuid()) @id
+  publisherId String
+  title       String?
+  User        User    @relation(fields: [publisherId], references: [id])
+}
+
+model User {
+  firstName String
+  id        String  @default(cuid()) @id
+  lastName  String
+  Media     Media[]
+}

@@ -203,12 +203,19 @@ export class Postgres implements Translator {
     const foreignName = `${op.p1FieldOne.name}Id`
     const joinTableName = this.schema(op.schema, op.joinTableName)
     const notNull = op.p1FieldOne.optional() ? '' : 'NOT NULL'
+    const foreignNameLetter = foreignName < columnNameOneID ? 'A' : 'B'
+    const columnNameOneIDLetter = foreignName > columnNameOneID ? 'A' : 'B'
     stmts.push(
-      `ALTER TABLE ${tableNameOne} ADD COLUMN "${foreignName}" character varying(25) ${notNull};`
+      `ALTER TABLE ${tableNameOne} ADD COLUMN "${foreignName}" CHARACTER VARYING(25);`
     )
     stmts.push(
-      `UPDATE ${tableNameOne} SET "${foreignName}" = ${joinTableName}."A" FROM ${joinTableName} WHERE ${joinTableName}."B" = ${tableNameOne}."${columnNameOneID}";`
+      `UPDATE ${tableNameOne} SET "${foreignName}" = ${joinTableName}."${foreignNameLetter}" FROM ${joinTableName} WHERE ${joinTableName}."${columnNameOneIDLetter}" = ${tableNameOne}."${columnNameOneID}";`
     )
+    if (notNull) {
+      stmts.push(
+        `ALTER TABLE ${tableNameOne} ALTER COLUMN "${foreignName}" set ${notNull};`
+      )
+    }
     stmts.push(
       `ALTER TABLE ${tableNameOne} ADD CONSTRAINT "${op.p1FieldOne.name}" FOREIGN KEY ("${foreignName}") REFERENCES ${tableNameMany}("${columnNameMany}");`
     )
@@ -364,11 +371,14 @@ export class MySQL5 implements Translator {
     const columnNameOneIDLetter = foreignName > columnNameOneID ? 'A' : 'B'
 
     stmts.push(
-      `ALTER TABLE ${tableNameOne} ADD COLUMN ${foreignName} char(25) CHARACTER SET utf8 ${notNull};`
+      `ALTER TABLE ${tableNameOne} ADD COLUMN ${foreignName} char(25) CHARACTER SET utf8`
     )
     stmts.push(
       `UPDATE ${tableNameOne}, ${joinTableName} SET ${tableNameOne}.${foreignName} = ${joinTableName}.${foreignNameLetter} where ${joinTableName}.${columnNameOneIDLetter} = ${tableNameOne}.${columnNameOneID};`
     )
+    if (notNull) {
+      ;`ALTER TABLE ${tableNameOne} ADD COLUMN ${foreignName} char(25) CHARACTER SET utf8 ${notNull}`
+    }
     stmts.push(
       `ALTER TABLE ${tableNameOne} ADD CONSTRAINT ${op.p1FieldOne.name} FOREIGN KEY (${foreignName}) REFERENCES ${tableNameMany}(${columnNameMany});`
     )
