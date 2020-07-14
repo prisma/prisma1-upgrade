@@ -1,5 +1,6 @@
 type UserRoleCompanie {
   id: ID! @unique
+  companieRole: UserRoleCompanie!
   companie: Companie! @relation(name: "UserRoleCompaniesRelation")
 }
 
@@ -9,12 +10,20 @@ type Companie {
     @relation(name: "UserRoleCompaniesRelation", onDelete: CASCADE)
 }
 
+enum CompanieRole {
+  OWNER
+  ADMIN
+  PURCHASER
+}
+
 type IssuedCard {
   id: ID! @unique
+  name: String!
   user: User! @relation(name: "UserIssuedCardRelation")
 }
 
 type User {
   id: ID! @unique
+  firstName: String!
   issuedCards: [IssuedCard!]! @relation(name: "UserIssuedCardRelation")
 }

@@ -24,6 +24,7 @@ DROP TABLE IF EXISTS `Companie`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `Companie` (
   `id` char(25) CHARACTER SET utf8 NOT NULL,
+  `companieRole` mediumtext COLLATE utf8mb4_unicode_ci NOT NULL,
   `updatedAt` datetime(3) NOT NULL,
   `createdAt` datetime(3) NOT NULL,
   PRIMARY KEY (`id`)
@@ -39,6 +40,7 @@ DROP TABLE IF EXISTS `IssuedCard`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `IssuedCard` (
   `id` char(25) CHARACTER SET utf8 NOT NULL,
+  `name` mediumtext COLLATE utf8mb4_unicode_ci NOT NULL,
   `updatedAt` datetime(3) NOT NULL,
   `createdAt` datetime(3) NOT NULL,
   PRIMARY KEY (`id`)
@@ -54,6 +56,7 @@ DROP TABLE IF EXISTS `User`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `User` (
   `id` char(25) CHARACTER SET utf8 NOT NULL,
+  `firstName` mediumtext COLLATE utf8mb4_unicode_ci NOT NULL,
   `updatedAt` datetime(3) NOT NULL,
   `createdAt` datetime(3) NOT NULL,
   PRIMARY KEY (`id`)
@@ -136,4 +139,4 @@ CREATE TABLE `_UserRoleCompaniesRelation` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2020-07-09 13:56:22
+-- Dump completed on 2020-07-14 13:08:36

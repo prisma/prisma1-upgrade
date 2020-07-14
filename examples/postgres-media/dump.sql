@@ -137,6 +137,17 @@ CREATE TABLE "postgres-media$dev"."User" (
 ALTER TABLE "postgres-media$dev"."User" OWNER TO root;
 
 --
+-- Name: WebTV; Type: TABLE; Schema: postgres-media$dev; Owner: root
+--
+
+CREATE TABLE "postgres-media$dev"."WebTV" (
+    id character varying(25) NOT NULL
+);
+
+
+ALTER TABLE "postgres-media$dev"."WebTV" OWNER TO root;
+
+--
 -- Name: _UserMedias; Type: TABLE; Schema: postgres-media$dev; Owner: root
 --
 
@@ -147,6 +158,18 @@ CREATE TABLE "postgres-media$dev"."_UserMedias" (
 
 
 ALTER TABLE "postgres-media$dev"."_UserMedias" OWNER TO root;
+
+--
+-- Name: _UserWebTVs; Type: TABLE; Schema: postgres-media$dev; Owner: root
+--
+
+CREATE TABLE "postgres-media$dev"."_UserWebTVs" (
+    "A" character varying(25) NOT NULL,
+    "B" character varying(25) NOT NULL
+);
+
+
+ALTER TABLE "postgres-media$dev"."_UserWebTVs" OWNER TO root;
 
 --
 -- Name: CloudSecret CloudSecret_pkey; Type: CONSTRAINT; Schema: management; Owner: root
@@ -205,6 +228,14 @@ ALTER TABLE ONLY "postgres-media$dev"."User"
 
 
 --
+-- Name: WebTV WebTV_pkey; Type: CONSTRAINT; Schema: postgres-media$dev; Owner: root
+--
+
+ALTER TABLE ONLY "postgres-media$dev"."WebTV"
+    ADD CONSTRAINT "WebTV_pkey" PRIMARY KEY (id);
+
+
+--
 -- Name: _UserMedias_AB_unique; Type: INDEX; Schema: postgres-media$dev; Owner: root
 --
 
@@ -216,6 +247,20 @@ CREATE UNIQUE INDEX "_UserMedias_AB_unique" ON "postgres-media$dev"."_UserMedias
 --
 
 CREATE INDEX "_UserMedias_B" ON "postgres-media$dev"."_UserMedias" USING btree ("B");
+
+
+--
+-- Name: _UserWebTVs_AB_unique; Type: INDEX; Schema: postgres-media$dev; Owner: root
+--
+
+CREATE UNIQUE INDEX "_UserWebTVs_AB_unique" ON "postgres-media$dev"."_UserWebTVs" USING btree ("A", "B");
+
+
+--
+-- Name: _UserWebTVs_B; Type: INDEX; Schema: postgres-media$dev; Owner: root
+--
+
+CREATE INDEX "_UserWebTVs_B" ON "postgres-media$dev"."_UserWebTVs" USING btree ("B");
 
 
 --
@@ -243,9 +288,25 @@ ALTER TABLE ONLY "postgres-media$dev"."_UserMedias"
 
 
 --
+-- Name: _UserWebTVs _UserWebTVs_A_fkey; Type: FK CONSTRAINT; Schema: postgres-media$dev; Owner: root
+--
+
+ALTER TABLE ONLY "postgres-media$dev"."_UserWebTVs"
+    ADD CONSTRAINT "_UserWebTVs_A_fkey" FOREIGN KEY ("A") REFERENCES "postgres-media$dev"."User"(id) ON DELETE CASCADE;
+
+
+--
+-- Name: _UserWebTVs _UserWebTVs_B_fkey; Type: FK CONSTRAINT; Schema: postgres-media$dev; Owner: root
+--
+
+ALTER TABLE ONLY "postgres-media$dev"."_UserWebTVs"
+    ADD CONSTRAINT "_UserWebTVs_B_fkey" FOREIGN KEY ("B") REFERENCES "postgres-media$dev"."WebTV"(id) ON DELETE CASCADE;
+
+
+--
 -- PostgreSQL database dump complete
 --
 
-INSERT INTO "postgres-media$dev"."User"("id", "firstName", "lastName") VALUES('cjwutc93401ip06672ur6do5t', 'Philippe', 'Demo');
-INSERT INTO "postgres-media$dev"."Media"("id", "title") VALUES('cjwvwyc5s04vh0667qlzqgg5n', 'Introduction to Web Accessibility and W3C Standards');
-INSERT INTO "postgres-media$dev"."_UserMedias"("A", "B") VALUES('cjwvwyc5s04vh0667qlzqgg5n', 'cjwutc93401ip06672ur6do5t');
+INSERT INTO "postgres-media$dev"."WebTV"("id") VALUES ('ck7boze7jvl4a0732fh3w2h7g');
+INSERT INTO "postgres-media$dev"."User"("id","firstName","lastName") VALUES ('cjwutc93401ip06672ur6do5t','Max','Mook');
+INSERT INTO "postgres-media$dev"."_UserWebTVs"("A","B") VALUES ('cjwutc93401ip06672ur6do5t','ck7boze7jvl4a0732fh3w2h7g');

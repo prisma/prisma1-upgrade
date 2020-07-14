@@ -14,4 +14,10 @@ model User {
   id        String  @default(cuid()) @id
   lastName  String
   Media     Media[] @relation("UserMedias", references: [id])
+  WebTV     WebTV[] @relation("UserWebTVs", references: [id])
+}
+
+model WebTV {
+  id   String @default(cuid()) @id
+  User User[] @relation("UserWebTVs", references: [id])
 }

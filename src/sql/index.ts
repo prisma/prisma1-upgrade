@@ -216,8 +216,8 @@ export class Postgres implements Translator {
     const foreignName = `${op.p1FieldOne.name}Id`
     const joinTableName = this.schema(op.schema, op.joinTableName)
     const notNull = op.p1FieldOne.optional() ? '' : 'NOT NULL'
-    const foreignNameLetter = foreignName < columnNameOneID ? 'A' : 'B'
-    const columnNameOneIDLetter = foreignName > columnNameOneID ? 'A' : 'B'
+    const columnNameOneIDLetter = modelNameMany > modelNameOne ? 'A' : 'B'
+    const foreignNameLetter = modelNameMany < modelNameOne ? 'A' : 'B'
     stmts.push(
       `ALTER TABLE ${tableNameOne} ADD COLUMN "${foreignName}" CHARACTER VARYING(25);`
     )
@@ -394,8 +394,8 @@ export class MySQL5 implements Translator {
     const foreignName = this.backtick(`${op.p1FieldOne.name}Id`)
     const notNull = op.p1FieldOne.optional() ? '' : 'NOT NULL'
     const joinTableName = this.backtick(op.joinTableName)
-    const foreignNameLetter = foreignName < columnNameOneID ? 'A' : 'B'
-    const columnNameOneIDLetter = foreignName > columnNameOneID ? 'A' : 'B'
+    const foreignNameLetter = modelNameMany < modelNameOne ? 'A' : 'B'
+    const columnNameOneIDLetter = modelNameMany > modelNameOne ? 'A' : 'B'
 
     stmts.push(
       `ALTER TABLE ${tableNameOne} ADD COLUMN ${foreignName} char(25) CHARACTER SET utf8;`

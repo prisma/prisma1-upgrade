@@ -4,6 +4,7 @@ datasource db {
 }
 
 model Companie {
+  companieRole     String
   createdAt        DateTime
   id               String             @default(cuid()) @id
   updatedAt        DateTime
@@ -13,12 +14,14 @@ model Companie {
 model IssuedCard {
   createdAt DateTime
   id        String   @default(cuid()) @id
+  name      String
   updatedAt DateTime
   User      User[]   @relation("UserIssuedCardRelation", references: [id])
 }
 
 model User {
   createdAt  DateTime
+  firstName  String
   id         String       @default(cuid()) @id
   updatedAt  DateTime
   IssuedCard IssuedCard[] @relation("UserIssuedCardRelation", references: [id])

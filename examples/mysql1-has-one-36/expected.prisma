@@ -1,4 +1,5 @@
 model Companie {
+  companieRole     String
   createdAt        DateTime
   id               String             @default(cuid()) @id
   updatedAt        DateTime
@@ -8,6 +9,7 @@ model Companie {
 model IssuedCard {
   createdAt DateTime
   id        String   @default(cuid()) @id
+  name      String
   updatedAt DateTime
   userId    String
   User      User     @relation(fields: [userId], references: [id])
@@ -16,6 +18,7 @@ model IssuedCard {
 
 model User {
   createdAt  DateTime
+  firstName  String
   id         String       @default(cuid()) @id
   updatedAt  DateTime
   IssuedCard IssuedCard[]
