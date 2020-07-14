@@ -1,3 +1,11 @@
+# 0.0.29 / 2020-07-14
+
+- fix column ordering for table relations
+- fix indentation for multi-line queries
+- fix ids and update tests
+- migrate varchar(25) => varchar(30)
+- identify ids and columns with foreign keys
+
 # 0.0.28 / 2020-07-13
 
 - fix has-many operation for Postgres & MySQL using example data. Thanks @Aldrian!
