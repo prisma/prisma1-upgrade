@@ -197,12 +197,12 @@ export class Postgres implements Translator {
       .join(', ')
     if (!this.enums[enumName]) {
       this.enums[enumName] = true
-      stmts.push(`CREATE TYPE ${enumName} AS ENUM (${enumList})`)
+      stmts.push(`CREATE TYPE ${enumName} AS ENUM (${enumList});`)
     }
     stmts.push(
       `ALTER TABLE ${tableName} ALTER COLUMN "${fieldName}" SET DATA TYPE ${enumName} using "${fieldName}"::${enumName};`
     )
-    return stmts.join(';\n')
+    return stmts.join('\n')
   }
 
   private MigrateHasManyOp(op: MigrateHasManyOp): string {
@@ -263,7 +263,7 @@ export class Postgres implements Translator {
   private AlterIDsOp(op: AlterIDsOp): string {
     const stmts: string[] = []
     for (let pair of op.pairs) {
-      const modelName = this.schema(op.schema, pair.model.name)
+      const modelName = this.schema(op.schema, pair.model.dbname)
       const fieldName = pair.field.name
       stmts.push(
         `ALTER TABLE ${modelName} ALTER COLUMN "${fieldName}" SET DATA TYPE character varying(30);`
@@ -443,7 +443,7 @@ export class MySQL5 implements Translator {
     const stmts: string[] = []
     stmts.push(`SET FOREIGN_KEY_CHECKS=0;`)
     for (let pair of op.pairs) {
-      const modelName = this.backtick(pair.model.name)
+      const modelName = this.backtick(pair.model.dbname)
       const fieldName = this.backtick(pair.field.name)
       const notNull = pair.field.type.optional() ? '' : 'NOT NULL'
       stmts.push(

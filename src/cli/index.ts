@@ -183,7 +183,7 @@ async function main(argv: string[]): Promise<void> {
     )
   }
 
-  const { ops, schema, breakingOps } = await api.upgrade({
+  const { ops, schema, breakingOps, idOps } = await api.upgrade({
     prisma1,
     prisma2,
     url,
@@ -237,11 +237,13 @@ async function main(argv: string[]): Promise<void> {
     clear(true)
   }
 
-  if (ops.length) {
+  // Non-breaking operations
+  const nonBreakingOps = ops.concat(idOps)
+  if (nonBreakingOps.length) {
     const provider = prisma2.provider()
 
     const segments = new Map<sql.Op['type'], sql.Op[]>()
-    for (let op of ops) {
+    for (let op of nonBreakingOps) {
       if (!segments.has(op.type)) {
         segments.set(op.type, [])
       }
@@ -323,6 +325,20 @@ async function main(argv: string[]): Promise<void> {
           console.log()
           console.log()
           break
+        case 'AlterIDsOp':
+          console.log(
+            `  ${bold(`Migrate IDs from varchar(25) to varchar(30)`)}`
+          )
+          // console.log(
+          //   `  ${gray(
+          //     `https://pris.ly/d/schema-incompatibilities#enums-are-represented-as-text-in-database`
+          //   )}`
+          // )
+          console.log()
+          console.log('    ' + queries.join('\n    '))
+          console.log()
+          console.log()
+          break
       }
     }
   }
@@ -380,7 +396,7 @@ async function main(argv: string[]): Promise<void> {
               )}`
             )
             console.log()
-            console.log(queries.map((q) => redent(q, 4)).join('\n    '))
+            console.log('    ' + queries.join('\n    '))
             console.log()
             console.log()
             break
@@ -392,7 +408,7 @@ async function main(argv: string[]): Promise<void> {
               )}`
             )
             console.log()
-            console.log(queries.map((q) => redent(q, 4)).join('\n    '))
+            console.log('    ' + queries.join('\n    '))
             console.log()
             console.log()
             break

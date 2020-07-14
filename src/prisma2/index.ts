@@ -289,6 +289,18 @@ export class Model {
     return this.n.name.name
   }
 
+  get dbname(): string {
+    const map = this.attributes.find((a) => a.name === 'map')
+    if (!map) {
+      return this.n.name.name
+    }
+    const arg = map.arguments[0]
+    if (!arg || arg.value.type !== 'string_value') {
+      return this.n.name.name
+    }
+    return arg.value.value
+  }
+
   get fields(): Field[] {
     let fields: ast.Field[] = []
     for (let prop of this.n.properties) {

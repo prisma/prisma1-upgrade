@@ -47,7 +47,7 @@ export async function upgrade(input: Input): Promise<Output> {
       if (p2Model.name !== p1Model.dbname) {
         continue
       }
-      // add @map
+      // add @@map
       // K: @db on types/fields to determine the name of table/column in the underlying database
       if (p2Model.name !== p1Model.name) {
         p2Model.rename(p1Model.name)
@@ -388,6 +388,10 @@ export async function upgrade(input: Input): Promise<Output> {
     for (let field of model.fields) {
       const attributeWithID = field.findAttribute((a) => a.name === 'id')
       if (attributeWithID) {
+        const type = field.type.innermost().toString()
+        if (type !== 'String') {
+          continue
+        }
         idOp.pairs.push({ model, field })
         continue
       }
@@ -401,6 +405,10 @@ export async function upgrade(input: Input): Promise<Output> {
         }
         let scalar = model.findField((f) => f.name === fieldName)
         if (!scalar) {
+          continue
+        }
+        const type = scalar.type.innermost().toString()
+        if (type !== 'String') {
           continue
         }
         idOp.pairs.push({ model, field: scalar })
@@ -747,12 +755,10 @@ function joinTableName(
 function getFieldName(a: p2.Attribute): string | undefined {
   const arg = a.arguments.find((a) => a.key === 'fields')
   if (!arg) {
-    console.log('returning.')
     return
   }
   const value = arg.value
   if (value.type !== 'list_value') {
-    console.log('returning.')
     return
   }
   const inner = value.values[0]
