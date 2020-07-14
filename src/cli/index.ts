@@ -269,7 +269,7 @@ async function main(argv: string[]): Promise<void> {
             )}`
           )
           console.log()
-          console.log('    ' + queries.join('\n    '))
+          console.log(redent(queries.join('\n'), 4))
           console.log()
           console.log()
           break
@@ -283,7 +283,7 @@ async function main(argv: string[]): Promise<void> {
             )}`
           )
           console.log()
-          console.log('    ' + queries.join('\n    '))
+          console.log(redent(queries.join('\n'), 4))
           console.log()
           console.log()
           break
@@ -297,7 +297,7 @@ async function main(argv: string[]): Promise<void> {
             )}`
           )
           console.log()
-          console.log('    ' + queries.join('\n    '))
+          console.log(redent(queries.join('\n'), 4))
           console.log()
           console.log()
           break
@@ -309,7 +309,7 @@ async function main(argv: string[]): Promise<void> {
             )}`
           )
           console.log()
-          console.log('    ' + queries.join('\n    '))
+          console.log(redent(queries.join('\n'), 4))
           console.log()
           console.log()
           break
@@ -321,7 +321,7 @@ async function main(argv: string[]): Promise<void> {
             )}`
           )
           console.log()
-          console.log('    ' + queries.join('\n    '))
+          console.log(redent(queries.join('\n'), 4))
           console.log()
           console.log()
           break
@@ -335,7 +335,7 @@ async function main(argv: string[]): Promise<void> {
           //   )}`
           // )
           console.log()
-          console.log('    ' + queries.join('\n    '))
+          console.log(redent(queries.join('\n'), 4))
           console.log()
           console.log()
           break
@@ -396,7 +396,7 @@ async function main(argv: string[]): Promise<void> {
               )}`
             )
             console.log()
-            console.log('    ' + queries.join('\n    '))
+            console.log(redent(queries.join('\n'), 4))
             console.log()
             console.log()
             break
@@ -408,7 +408,7 @@ async function main(argv: string[]): Promise<void> {
               )}`
             )
             console.log()
-            console.log('    ' + queries.join('\n    '))
+            console.log(redent(queries.join('\n'), 4))
             console.log()
             console.log()
             break
