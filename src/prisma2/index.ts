@@ -498,7 +498,7 @@ export class Field {
 export class DataType {
   constructor(private n: ast.DataType) {}
 
-  get optional(): boolean {
+  optional(): boolean {
     return this.n.type === 'optional_type'
   }
 

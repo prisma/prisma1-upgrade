@@ -381,6 +381,7 @@ export async function upgrade(input: Input): Promise<Output> {
   const idOps: sql.Op[] = []
   let idOp: sql.AlterIDsOp = {
     type: 'AlterIDsOp',
+    schema: pgSchema,
     pairs: [],
   }
   for (let model of prisma2.models) {

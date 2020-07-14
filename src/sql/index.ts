@@ -102,6 +102,7 @@ export type MigrateOneToOneOp = {
 
 export type AlterIDsOp = {
   type: 'AlterIDsOp'
+  schema: string
   pairs: {
     model: p2.Model
     field: p2.Field
@@ -259,8 +260,15 @@ export class Postgres implements Translator {
     return stmts.join('\n')
   }
 
-  private AlterIDsOp(_op: AlterIDsOp): string {
+  private AlterIDsOp(op: AlterIDsOp): string {
     const stmts: string[] = []
+    for (let pair of op.pairs) {
+      const modelName = this.schema(op.schema, pair.model.name)
+      const fieldName = pair.field.name
+      stmts.push(
+        `ALTER TABLE ${modelName} ALTER COLUMN "${fieldName}" SET DATA TYPE character varying(30);`
+      )
+    }
     return stmts.join('\n')
   }
 }
@@ -431,8 +439,18 @@ export class MySQL5 implements Translator {
     return stmts.join('\n')
   }
 
-  private AlterIDsOp(_op: AlterIDsOp): string {
+  private AlterIDsOp(op: AlterIDsOp): string {
     const stmts: string[] = []
+    stmts.push(`SET FOREIGN_KEY_CHECKS=0;`)
+    for (let pair of op.pairs) {
+      const modelName = this.backtick(pair.model.name)
+      const fieldName = this.backtick(pair.field.name)
+      const notNull = pair.field.type.optional() ? '' : 'NOT NULL'
+      stmts.push(
+        `ALTER TABLE ${modelName} CHANGE ${fieldName} ${fieldName} char(30) CHARACTER SET utf8 ${notNull};`
+      )
+    }
+    stmts.push(`SET FOREIGN_KEY_CHECKS=1;`)
     return stmts.join('\n')
   }
 }
