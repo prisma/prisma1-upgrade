@@ -278,7 +278,7 @@ export async function upgrade(input: Input): Promise<Output> {
     }
   }
 
-  // C: All relations are represented as m-n
+  // C: All Table relations are represented as m-n
   // Migrate to 1:N
   for (let [edge1, edge2] of relations) {
     // console.log(
@@ -331,7 +331,7 @@ export async function upgrade(input: Input): Promise<Output> {
     })
   }
 
-  // C: All relations are represented as m-n
+  // C: All Table relations are represented as m-n
   // Migrate to 1:1
   for (let [edge1, edge2] of relations) {
     // 1:1 relationship
@@ -375,6 +375,25 @@ export async function upgrade(input: Input): Promise<Output> {
     if (p2Field2) {
       p2Field2.setType(toP2Type(edge2.fromField.type))
     }
+  }
+
+  // Migrate INLINE has-many relations with NOT NULL
+  // on both sides
+  for (let [edge1, edge2] of relations) {
+    // 1:1 relationship
+    if (!isInlineRequiredHasMany(edge1, edge2)) {
+      continue
+    }
+    const hasOne = edge1.type === 'hasOne' ? edge1 : edge2
+    const hasMany = edge1.type === 'hasMany' ? edge1 : edge2
+    breakingOps.push({
+      type: 'MigrateRequiredHasManyOp',
+      schema: pgSchema,
+      p1HasOneModel: hasOne.from,
+      p1HasOneField: hasOne.fromField,
+      p1HasManyModel: hasMany.from,
+      p1HasManyField: hasMany.fromField,
+    })
   }
 
   // Migrate varchar(25) => varchar(30)
@@ -620,6 +639,31 @@ function isTableHasMany(edge1: graph.Edge, edge2: graph.Edge): boolean {
     (edge1.type === 'hasMany' && edge2.type === 'hasOne')
   const isTable = edge1.link === 'TABLE' || edge2.link === 'TABLE'
   return isHasMany && isTable
+}
+
+function isInlineRequiredHasMany(
+  edge1: graph.Edge,
+  edge2: graph.Edge
+): boolean {
+  const hasOne =
+    edge1.type === 'hasOne' ? edge1 : edge2.type === 'hasOne' ? edge2 : null
+  if (!hasOne) {
+    return false
+  }
+  if (hasOne.fromField.optional()) {
+    return false
+  }
+  const isHasMany =
+    (edge1.type === 'hasOne' && edge2.type === 'hasMany') ||
+    (edge1.type === 'hasMany' && edge2.type === 'hasOne')
+  if (!isHasMany) {
+    return false
+  }
+  const isInline = edge1.link !== 'TABLE' && edge2.link !== 'TABLE'
+  if (!isInline) {
+    return false
+  }
+  return true
 }
 
 function isTableHasOne(edge1: graph.Edge, edge2: graph.Edge): boolean {

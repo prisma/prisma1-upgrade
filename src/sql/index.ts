@@ -32,6 +32,7 @@ export type Op =
   | MigrateHasManyOp
   | MigrateOneToOneOp
   | AlterIDsOp
+  | MigrateRequiredHasManyOp
 
 export type SetDefaultOp = {
   type: 'SetDefaultOp'
@@ -100,6 +101,15 @@ export type MigrateOneToOneOp = {
   joinTableName: string
 }
 
+export type MigrateRequiredHasManyOp = {
+  type: 'MigrateRequiredHasManyOp'
+  schema?: string
+  p1HasOneModel: p1.ObjectTypeDefinition
+  p1HasOneField: p1.FieldDefinition
+  p1HasManyModel: p1.ObjectTypeDefinition
+  p1HasManyField: p1.FieldDefinition
+}
+
 export type AlterIDsOp = {
   type: 'AlterIDsOp'
   schema: string
@@ -130,6 +140,8 @@ export class Postgres implements Translator {
         return this.MigrateHasManyOp(op)
       case 'MigrateOneToOneOp':
         return this.MigrateOneToOneOp(op)
+      case 'MigrateRequiredHasManyOp':
+        return this.MigrateRequiredHasManyOp(op)
       case 'AlterIDsOp':
         return this.AlterIDsOp(op)
       default:
@@ -260,6 +272,14 @@ export class Postgres implements Translator {
     return stmts.join('\n')
   }
 
+  private MigrateRequiredHasManyOp(op: MigrateRequiredHasManyOp): string {
+    const stmts: string[] = []
+    stmts.push(
+      `ALTER TABLE "postgres-has-many$dev"."Post" DROP CONSTRAINT "Post_user_fkey", ADD CONSTRAINT "Post_user_fkey" FOREIGN KEY ("user") REFERENCES "postgres-has-many$dev"."User"("id"), ALTER COLUMN "user" SET NOT NULL;`
+    )
+    return stmts.join('\n')
+  }
+
   private AlterIDsOp(op: AlterIDsOp): string {
     const stmts: string[] = []
     for (let pair of op.pairs) {
@@ -290,6 +310,8 @@ export class MySQL5 implements Translator {
         return this.MigrateHasManyOp(op)
       case 'MigrateOneToOneOp':
         return this.MigrateOneToOneOp(op)
+      case 'MigrateRequiredHasManyOp':
+        return this.MigrateRequiredHasManyOp(op)
       case 'AlterIDsOp':
         return this.AlterIDsOp(op)
       default:
@@ -436,6 +458,20 @@ export class MySQL5 implements Translator {
       `ALTER TABLE ${modelFromName} ADD FOREIGN KEY (${modelFromColumn}) REFERENCES ${modelToName} (${fieldIDName});`
     )
     stmts.push(`DROP TABLE ${joinTableName};`)
+    return stmts.join('\n')
+  }
+
+  private MigrateRequiredHasManyOp(op: MigrateRequiredHasManyOp): string {
+    const stmts: string[] = []
+    stmts.push(
+      'ALTER TABLE `prisma_test`.`Post` DROP FOREIGN KEY `Post_ibfk_1`;'
+    )
+    stmts.push(
+      "ALTER TABLE `prisma_test`.`Post` CHANGE `user` `user` char(25) character set utf8 collate utf8_general_ci NOT NULL COMMENT '';"
+    )
+    stmts.push(
+      'ALTER TABLE `prisma_test`.`Post` ADD FOREIGN KEY (`user`) REFERENCES `prisma_test`.`User` (`id`);'
+    )
     return stmts.join('\n')
   }
 
