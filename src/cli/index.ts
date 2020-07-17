@@ -329,11 +329,11 @@ async function main(argv: string[]): Promise<void> {
           console.log(
             `  ${bold(`Migrate IDs from varchar(25) to varchar(30)`)}`
           )
-          // console.log(
-          //   `  ${gray(
-          //     `https://pris.ly/d/schema-incompatibilities#enums-are-represented-as-text-in-database`
-          //   )}`
-          // )
+          console.log(
+            `  ${gray(
+              `https://pris.ly/d/schema-incompatibilities#mismatching-cuid-length`
+            )}`
+          )
           console.log()
           console.log(redent(queries.join('\n'), 4))
           console.log()
