@@ -16,7 +16,7 @@ model Post {
   updatedAt DateTime   @updatedAt
   User      User?      @relation(fields: [authorId], references: [id])
   Category  Category[] @relation(references: [id])
-  @@index([authorId], name: "author")
+  @@index([authorId], name: "authorId")
 }
 
 model Profile {

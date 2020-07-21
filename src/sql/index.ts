@@ -230,7 +230,7 @@ export class Postgres implements Translator {
       )
     }
     stmts.push(
-      `ALTER TABLE ${tableNameOne} ADD CONSTRAINT "${op.p1FieldOne.name}" FOREIGN KEY ("${foreignName}") REFERENCES ${tableNameMany}("${columnNameMany}");`
+      `ALTER TABLE ${tableNameOne} ADD FOREIGN KEY ("${foreignName}") REFERENCES ${tableNameMany}("${columnNameMany}");`
     )
     stmts.push(`DROP TABLE ${joinTableName};`)
     return stmts.join('\n')
@@ -409,7 +409,7 @@ export class MySQL5 implements Translator {
       )
     }
     stmts.push(
-      `ALTER TABLE ${tableNameOne} ADD CONSTRAINT ${op.p1FieldOne.name} FOREIGN KEY (${foreignName}) REFERENCES ${tableNameMany}(${columnNameMany});`
+      `ALTER TABLE ${tableNameOne} ADD FOREIGN KEY (${foreignName}) REFERENCES ${tableNameMany}(${columnNameMany});`
     )
     stmts.push(`DROP TABLE ${joinTableName};`)
     return stmts.join('\n')

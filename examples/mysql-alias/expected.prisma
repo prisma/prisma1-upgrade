@@ -14,7 +14,7 @@ model Message {
   updatedAt  DateTime   @updatedAt
   User       User?      @relation(fields: [authorId], references: [id])
   Category   Category[] @relation("CategoryToMessage", references: [id])
-  @@index([authorId], name: "author")
+  @@index([authorId], name: "authorId")
   @@map("Post")
 }
 

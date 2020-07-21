@@ -5,5 +5,5 @@ model User {
   updatedAt     DateTime
   User          User     @relation("UserToUser_invitedUserId", fields: [invitedUserId], references: [id])
   other_User    User[]   @relation("UserToUser_invitedUserId")
-  @@index([invitedUserId], name: "invitedUser")
+  @@index([invitedUserId], name: "invitedUserId")
 }

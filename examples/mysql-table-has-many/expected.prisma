@@ -2,7 +2,7 @@ model Post {
   authorId String?
   id       String  @default(cuid()) @id
   User     User?   @relation(fields: [authorId], references: [id])
-  @@index([authorId], name: "author")
+  @@index([authorId], name: "authorId")
 }
 
 model User {

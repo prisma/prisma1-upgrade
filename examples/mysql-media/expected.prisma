@@ -3,7 +3,7 @@ model Media {
   publisherId String
   title       String?
   User        User    @relation(fields: [publisherId], references: [id])
-  @@index([publisherId], name: "publisher")
+  @@index([publisherId], name: "publisherId")
 }
 
 model User {
