@@ -1,3 +1,8 @@
+# 0.0.30 / 2020-07-21
+
+- remove explicit constraint name to allow the db to pick the name. fixes #46
+- Add docs link to ID migration section in CLI output
+
 # 0.0.29 / 2020-07-14
 
 - fix column ordering for table relations
