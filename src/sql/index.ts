@@ -463,14 +463,19 @@ export class MySQL5 implements Translator {
 
   private MigrateRequiredHasManyOp(op: MigrateRequiredHasManyOp): string {
     const stmts: string[] = []
+    const hasOneModelName = this.backtick(op.p1HasOneModel.dbname)
+    const hasManyModelName = this.backtick(op.p1HasManyModel.dbname)
+    const hasManyFieldName = this.backtick(op.p1HasManyField.name)
+    const fieldName = this.backtick(op.p1HasOneField.name)
+    const notNull = op.p1HasOneField.optional() ? '' : 'NOT NULL'
+    // stmts.push(
+    //   `ALTER TABLE ${hasOneModelName} DROP FOREIGN KEY `Post_ibfk_1`;`
+    // )
     stmts.push(
-      'ALTER TABLE `prisma_test`.`Post` DROP FOREIGN KEY `Post_ibfk_1`;'
+      `ALTER TABLE ${hasOneModelName} CHANGE ${fieldName} ${fieldName} char(25) character set utf8 collate utf8_general_ci ${notNull};`
     )
     stmts.push(
-      "ALTER TABLE `prisma_test`.`Post` CHANGE `user` `user` char(25) character set utf8 collate utf8_general_ci NOT NULL COMMENT '';"
-    )
-    stmts.push(
-      'ALTER TABLE `prisma_test`.`Post` ADD FOREIGN KEY (`user`) REFERENCES `prisma_test`.`User` (`id`);'
+      `ALTER TABLE ${hasOneModelName} ADD FOREIGN KEY (${fieldName}) REFERENCES ${hasManyModelName} (${hasManyFieldName});`
     )
     return stmts.join('\n')
   }
