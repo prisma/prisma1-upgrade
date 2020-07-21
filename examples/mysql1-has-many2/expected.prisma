@@ -11,5 +11,5 @@ model Post {
   id        String   @default(cuid()) @id
   updatedAt DateTime
   AUser     AUser    @relation(fields: [authorId], references: [id])
-  @@index([authorId], name: "author")
+  @@index([authorId], name: "authorId")
 }

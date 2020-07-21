@@ -7,5 +7,5 @@ ALTER TABLE "postgres-alias$dev"."Post" ALTER COLUMN "published" SET DEFAULT fal
 ALTER TABLE "postgres-alias$dev"."Profile" ADD UNIQUE ("user");
 ALTER TABLE "postgres-alias$dev"."Post" ADD COLUMN "authorId" CHARACTER VARYING(25);
 UPDATE "postgres-alias$dev"."Post" SET "authorId" = "postgres-alias$dev"."_MessageToUser"."B" FROM "postgres-alias$dev"."_MessageToUser" WHERE "postgres-alias$dev"."_MessageToUser"."A" = "postgres-alias$dev"."Post"."id";
-ALTER TABLE "postgres-alias$dev"."Post" ADD CONSTRAINT "author" FOREIGN KEY ("authorId") REFERENCES "postgres-alias$dev"."User"("id");
+ALTER TABLE "postgres-alias$dev"."Post" ADD FOREIGN KEY ("authorId") REFERENCES "postgres-alias$dev"."User"("id");
 DROP TABLE "postgres-alias$dev"."_MessageToUser";
