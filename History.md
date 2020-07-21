@@ -1,3 +1,7 @@
+# 0.0.31 / 2020-07-21
+
+- bump prismafile. fixes: #54.
+
 # 0.0.30 / 2020-07-21
 
 - remove explicit constraint name to allow the db to pick the name. fixes #46
