@@ -363,7 +363,7 @@ export class Model {
     for (let field of fields) {
       field.setName(name)
       field.setInnermostType({
-        type: 'reference_type',
+        type: 'named_type',
         name: {
           type: 'identifier',
           name: name,
@@ -561,44 +561,11 @@ export class DataType {
         return `${this.DataType(n.inner)}[]`
       case 'optional_type':
         return `${this.DataType(n.inner)}?`
-      case 'reference_type':
-        return `${this.ReferenceType(n)}`
-      case 'string_type':
-        return this.StringType(n)
-      case 'boolean_type':
-        return this.BooleanType(n)
-      case 'datetime_type':
-        return this.DateTimeType(n)
-      case 'int_type':
-        return this.IntType(n)
-      case 'float_type':
-        return this.FloatType(n)
-      case 'json_type':
-        return this.JsonType(n)
+      case 'named_type':
+        return `${this.Identifier(n.name)}`
       default:
         throw new Error(`Unhandled Datatype: ${n!.type}`)
     }
-  }
-  private ReferenceType(n: ast.ReferenceType): string {
-    return this.Identifier(n.name)
-  }
-  private StringType(n: ast.StringType): string {
-    return n.name
-  }
-  private BooleanType(n: ast.BooleanType): string {
-    return n.name
-  }
-  private DateTimeType(n: ast.DateTimeType): string {
-    return n.name
-  }
-  private IntType(n: ast.IntType): string {
-    return n.name
-  }
-  private FloatType(n: ast.FloatType): string {
-    return n.name
-  }
-  private JsonType(n: ast.JsonType): string {
-    return n.name
   }
   private Identifier(n: ast.Identifier): string {
     return n.name
@@ -696,8 +663,8 @@ export class Attribute {
   }
   private MapValue(n: ast.MapValue): string {
     let obj: string = '{'
-    for (let k in n.map) {
-      obj += `${k}: ${this.Value(n.map[k])},`
+    for (let field of n.fields) {
+      obj += `${field.key}: ${this.Value(field.value)},`
     }
     obj += '}'
     return obj

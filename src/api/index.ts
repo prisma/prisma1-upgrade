@@ -704,8 +704,8 @@ function toP2Type(dt: p1.Type, optional: boolean = true): p2ast.DataType {
       return toP2Type(dt.inner(), false)
     case 'NamedType':
       // TODO: this should include other types like String
-      const namedType: p2ast.ReferenceType = {
-        type: 'reference_type',
+      const namedType: p2ast.NamedType = {
+        type: 'named_type',
         name: {
           type: 'identifier',
           name: dt.name,

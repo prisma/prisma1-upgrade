@@ -40,7 +40,7 @@
     "is-url": "1.2.4",
     "js-yaml": "3.14.0",
     "kleur": "3.0.3",
-    "prismafile": "1.0.7",
+    "prismafile": "1.0.9",
     "redent": "3.0.0"
   },
   "devDependencies": {
