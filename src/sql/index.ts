@@ -1,6 +1,7 @@
 import * as cases from 'change-case'
 import * as p1 from '../prisma1'
 import * as p2 from '../prisma2'
+import redent from 'redent'
 
 export function translate(provider: string, ops: Op[]): string[] {
   const printer = getTranslator(provider)
@@ -274,8 +275,17 @@ export class Postgres implements Translator {
 
   private MigrateRequiredHasManyOp(op: MigrateRequiredHasManyOp): string {
     const stmts: string[] = []
+    const hasOneModelName = this.schema(op.schema, op.p1HasOneModel.dbname)
+    const hasManyModelName = this.schema(op.schema, op.p1HasManyModel.dbname)
+    const hasManyFieldName = op.p1HasManyField.name
+    const hasOneFieldName = op.p1HasOneField.name
+    const constraintName = `${op.p1HasOneModel.dbname}_${hasOneFieldName}_fkey`
     stmts.push(
-      `ALTER TABLE "postgres-has-many$dev"."Post" DROP CONSTRAINT "Post_user_fkey", ADD CONSTRAINT "Post_user_fkey" FOREIGN KEY ("user") REFERENCES "postgres-has-many$dev"."User"("id"), ALTER COLUMN "user" SET NOT NULL;`
+      undent(`
+      ALTER TABLE ${hasOneModelName} DROP CONSTRAINT "${constraintName}",
+      ADD CONSTRAINT "${constraintName}" FOREIGN KEY ("${hasOneFieldName}") REFERENCES ${hasManyModelName}("${hasManyFieldName}"),
+      ALTER COLUMN "${hasOneFieldName}" SET NOT NULL;
+    `)
     )
     return stmts.join('\n')
   }
@@ -462,22 +472,11 @@ export class MySQL5 implements Translator {
   }
 
   private MigrateRequiredHasManyOp(op: MigrateRequiredHasManyOp): string {
-    const stmts: string[] = []
-    const hasOneModelName = this.backtick(op.p1HasOneModel.dbname)
-    const hasManyModelName = this.backtick(op.p1HasManyModel.dbname)
-    const hasManyFieldName = this.backtick(op.p1HasManyField.name)
-    const fieldName = this.backtick(op.p1HasOneField.name)
-    const notNull = op.p1HasOneField.optional() ? '' : 'NOT NULL'
-    // stmts.push(
-    //   `ALTER TABLE ${hasOneModelName} DROP FOREIGN KEY `Post_ibfk_1`;`
-    // )
-    stmts.push(
-      `ALTER TABLE ${hasOneModelName} CHANGE ${fieldName} ${fieldName} char(25) character set utf8 collate utf8_general_ci ${notNull};`
-    )
-    stmts.push(
-      `ALTER TABLE ${hasOneModelName} ADD FOREIGN KEY (${fieldName}) REFERENCES ${hasManyModelName} (${hasManyFieldName});`
-    )
-    return stmts.join('\n')
+    return undent(`
+      -- Warning: MySQL required has-many's are not supported yet,
+      -- see https://github.com/prisma/upgrade/issues/56 for the
+      -- details on how to fix this yourself.
+    `)
   }
 
   private AlterIDsOp(op: AlterIDsOp): string {
@@ -494,4 +493,8 @@ export class MySQL5 implements Translator {
     stmts.push(`SET FOREIGN_KEY_CHECKS=1;`)
     return stmts.join('\n')
   }
+}
+
+function undent(str: string): string {
+  return redent(str).trim()
 }

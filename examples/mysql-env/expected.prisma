@@ -20,7 +20,7 @@ model Post {
 model Profile {
   bio  String?
   id   String  @default(cuid()) @id
-  user String @unique
+  user String? @unique
   User User    @relation(fields: [user], references: [id])
   @@index([user], name: "user")
 }

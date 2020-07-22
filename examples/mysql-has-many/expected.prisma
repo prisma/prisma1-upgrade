@@ -1,7 +1,7 @@
 model Post {
-  id   String @default(cuid()) @id
-  user String
-  User User   @relation(fields: [user], references: [id])
+  id   String  @default(cuid()) @id
+  user String?
+  User User?   @relation(fields: [user], references: [id])
   @@index([user], name: "user")
 }
 

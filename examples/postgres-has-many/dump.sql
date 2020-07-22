@@ -112,27 +112,27 @@ CREATE TABLE management."TelemetryInfo" (
 ALTER TABLE management."TelemetryInfo" OWNER TO root;
 
 --
--- Name: Post; Type: TABLE; Schema: postgres-has-many$dev; Owner: root
+-- Name: PostModel; Type: TABLE; Schema: postgres-has-many$dev; Owner: root
 --
 
-CREATE TABLE "postgres-has-many$dev"."Post" (
+CREATE TABLE "postgres-has-many$dev"."PostModel" (
     id character varying(25) NOT NULL,
     "user" character varying(25)
 );
 
 
-ALTER TABLE "postgres-has-many$dev"."Post" OWNER TO root;
+ALTER TABLE "postgres-has-many$dev"."PostModel" OWNER TO root;
 
 --
--- Name: User; Type: TABLE; Schema: postgres-has-many$dev; Owner: root
+-- Name: UserModel; Type: TABLE; Schema: postgres-has-many$dev; Owner: root
 --
 
-CREATE TABLE "postgres-has-many$dev"."User" (
+CREATE TABLE "postgres-has-many$dev"."UserModel" (
     id character varying(25) NOT NULL
 );
 
 
-ALTER TABLE "postgres-has-many$dev"."User" OWNER TO root;
+ALTER TABLE "postgres-has-many$dev"."UserModel" OWNER TO root;
 
 --
 -- Name: CloudSecret CloudSecret_pkey; Type: CONSTRAINT; Schema: management; Owner: root
@@ -175,19 +175,19 @@ ALTER TABLE ONLY management."TelemetryInfo"
 
 
 --
--- Name: Post Post_pkey; Type: CONSTRAINT; Schema: postgres-has-many$dev; Owner: root
+-- Name: PostModel PostModel_pkey; Type: CONSTRAINT; Schema: postgres-has-many$dev; Owner: root
 --
 
-ALTER TABLE ONLY "postgres-has-many$dev"."Post"
-    ADD CONSTRAINT "Post_pkey" PRIMARY KEY (id);
+ALTER TABLE ONLY "postgres-has-many$dev"."PostModel"
+    ADD CONSTRAINT "PostModel_pkey" PRIMARY KEY (id);
 
 
 --
--- Name: User User_pkey; Type: CONSTRAINT; Schema: postgres-has-many$dev; Owner: root
+-- Name: UserModel UserModel_pkey; Type: CONSTRAINT; Schema: postgres-has-many$dev; Owner: root
 --
 
-ALTER TABLE ONLY "postgres-has-many$dev"."User"
-    ADD CONSTRAINT "User_pkey" PRIMARY KEY (id);
+ALTER TABLE ONLY "postgres-has-many$dev"."UserModel"
+    ADD CONSTRAINT "UserModel_pkey" PRIMARY KEY (id);
 
 
 --
@@ -199,11 +199,11 @@ ALTER TABLE ONLY management."Migration"
 
 
 --
--- Name: Post Post_user_fkey; Type: FK CONSTRAINT; Schema: postgres-has-many$dev; Owner: root
+-- Name: PostModel PostModel_user_fkey; Type: FK CONSTRAINT; Schema: postgres-has-many$dev; Owner: root
 --
 
-ALTER TABLE ONLY "postgres-has-many$dev"."Post"
-    ADD CONSTRAINT "Post_user_fkey" FOREIGN KEY ("user") REFERENCES "postgres-has-many$dev"."User"(id) ON DELETE SET NULL;
+ALTER TABLE ONLY "postgres-has-many$dev"."PostModel"
+    ADD CONSTRAINT "PostModel_user_fkey" FOREIGN KEY ("user") REFERENCES "postgres-has-many$dev"."UserModel"(id) ON DELETE SET NULL;
 
 
 --

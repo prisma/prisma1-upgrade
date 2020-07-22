@@ -293,8 +293,10 @@ async function test(
     }
   }
 
+  const provider = schema.provider()
+
   // run the breaking queries
-  const breakingQueries = sql.translate(schema.provider(), breakingOps)
+  const breakingQueries = sql.translate(provider, breakingOps)
   for (let query of breakingQueries) {
     try {
       await db.query(query)
@@ -305,7 +307,7 @@ async function test(
   }
 
   // run the id ops
-  const idQueries = sql.translate(schema.provider(), idOps)
+  const idQueries = sql.translate(provider, idOps)
   for (let query of idQueries) {
     try {
       await db.query(query)
@@ -332,18 +334,28 @@ async function test(
     assert.equal(0, ops.length, 'expected 0 ops the 2nd time around')
   }
 
-  // if (breakingOps.length) {
-  //   // console.log(schema.toString())
-  //   // console.log(breakingOps)
-  //   assert.equal(
-  //     0,
-  //     breakingOps.length,
-  //     'expected 0 breakingOps the 2nd time around'
-  //   )
-  // }
+  // filter out MySQL required has many since there's nothing we can do
+  // about them
+  const remainingOps: sql.Op[] = []
+  for (let op of breakingOps) {
+    if (op.type === 'MigrateRequiredHasManyOp' && provider === 'mysql') {
+      continue
+    }
+    remainingOps.push(op)
+  }
+  if (remainingOps.length) {
+    console.log(schema.toString())
+    console.log(remainingOps)
+    assert.equal(
+      0,
+      remainingOps.length,
+      'expected 0 remainingOps the 2nd time around'
+    )
+  }
+
   // assert the operations
   const blockSQL = queries.concat(breakingQueries).join('\n')
-  // fs.writeFileSync(path.join(abspath, 'expected.sql'), blockSQL)
+  // fs.writeFileSync(path.join(_abspath, 'expected.sql'), blockSQL)
   if (blockSQL !== expectedSQL) {
     console.log('')
     console.log('Actual:')
@@ -359,7 +371,7 @@ async function test(
 
   // schema
   const actual = schema.toTestString()
-  // fs.writeFileSync(path.join(abspath, 'expected.prisma'), actual)
+  // fs.writeFileSync(path.join(_abspath, 'expected.prisma'), actual)
   if (expected !== actual) {
     console.log('')
     console.log('Actual:')

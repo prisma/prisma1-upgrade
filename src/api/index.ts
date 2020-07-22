@@ -385,14 +385,21 @@ export async function upgrade(input: Input): Promise<Output> {
       continue
     }
     const hasOne = edge1.type === 'hasOne' ? edge1 : edge2
-    const hasMany = edge1.type === 'hasMany' ? edge1 : edge2
+    // skip over ops that have already been applied
+    const p2Field = prisma2.findField(
+      (m, f) => hasOne.from.name === m.name && hasOne.to.name === f.name
+    )
+    if (!p2Field || !p2Field.type.optional()) {
+      continue
+    }
+    // const hasMany = edge1.type === 'hasMany' ? edge1 : edge2
     breakingOps.push({
       type: 'MigrateRequiredHasManyOp',
       schema: pgSchema,
       p1HasOneModel: hasOne.from,
       p1HasOneField: hasOne.fromField,
-      p1HasManyModel: hasMany.from,
-      p1HasManyField: hasMany.fromField,
+      p1HasManyModel: hasOne.to,
+      p1HasManyField: hasOne.toField,
     })
   }
 
@@ -661,6 +668,11 @@ function isInlineRequiredHasMany(
   }
   const isInline = edge1.link !== 'TABLE' && edge2.link !== 'TABLE'
   if (!isInline) {
+    return false
+  }
+  // ensure it's not a self-relation because self-relations
+  // must be optional otherwise you can't create one
+  if (edge1.from.name === edge1.to.name) {
     return false
   }
   return true
