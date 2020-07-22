@@ -1,3 +1,7 @@
+# 0.0.32 / 2020-07-22
+
+- add required has-many support for postgres, add a warning for mysql. Fixes: #38
+
 # 0.0.31 / 2020-07-21
 
 - bump prismafile. fixes: #54.
