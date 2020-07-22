@@ -1,6 +1,7 @@
 import * as cases from 'change-case'
 import * as p1 from '../prisma1'
 import * as p2 from '../prisma2'
+import redent from 'redent'
 
 export function translate(provider: string, ops: Op[]): string[] {
   const printer = getTranslator(provider)
@@ -32,6 +33,7 @@ export type Op =
   | MigrateHasManyOp
   | MigrateOneToOneOp
   | AlterIDsOp
+  | MigrateRequiredHasManyOp
 
 export type SetDefaultOp = {
   type: 'SetDefaultOp'
@@ -100,6 +102,15 @@ export type MigrateOneToOneOp = {
   joinTableName: string
 }
 
+export type MigrateRequiredHasManyOp = {
+  type: 'MigrateRequiredHasManyOp'
+  schema?: string
+  p1HasOneModel: p1.ObjectTypeDefinition
+  p1HasOneField: p1.FieldDefinition
+  p1HasManyModel: p1.ObjectTypeDefinition
+  p1HasManyField: p1.FieldDefinition
+}
+
 export type AlterIDsOp = {
   type: 'AlterIDsOp'
   schema: string
@@ -130,6 +141,8 @@ export class Postgres implements Translator {
         return this.MigrateHasManyOp(op)
       case 'MigrateOneToOneOp':
         return this.MigrateOneToOneOp(op)
+      case 'MigrateRequiredHasManyOp':
+        return this.MigrateRequiredHasManyOp(op)
       case 'AlterIDsOp':
         return this.AlterIDsOp(op)
       default:
@@ -260,6 +273,23 @@ export class Postgres implements Translator {
     return stmts.join('\n')
   }
 
+  private MigrateRequiredHasManyOp(op: MigrateRequiredHasManyOp): string {
+    const stmts: string[] = []
+    const hasOneModelName = this.schema(op.schema, op.p1HasOneModel.dbname)
+    const hasManyModelName = this.schema(op.schema, op.p1HasManyModel.dbname)
+    const hasManyFieldName = op.p1HasManyField.name
+    const hasOneFieldName = op.p1HasOneField.name
+    const constraintName = `${op.p1HasOneModel.dbname}_${hasOneFieldName}_fkey`
+    stmts.push(
+      undent(`
+      ALTER TABLE ${hasOneModelName} DROP CONSTRAINT "${constraintName}",
+      ADD CONSTRAINT "${constraintName}" FOREIGN KEY ("${hasOneFieldName}") REFERENCES ${hasManyModelName}("${hasManyFieldName}"),
+      ALTER COLUMN "${hasOneFieldName}" SET NOT NULL;
+    `)
+    )
+    return stmts.join('\n')
+  }
+
   private AlterIDsOp(op: AlterIDsOp): string {
     const stmts: string[] = []
     for (let pair of op.pairs) {
@@ -290,6 +320,8 @@ export class MySQL5 implements Translator {
         return this.MigrateHasManyOp(op)
       case 'MigrateOneToOneOp':
         return this.MigrateOneToOneOp(op)
+      case 'MigrateRequiredHasManyOp':
+        return this.MigrateRequiredHasManyOp(op)
       case 'AlterIDsOp':
         return this.AlterIDsOp(op)
       default:
@@ -439,6 +471,14 @@ export class MySQL5 implements Translator {
     return stmts.join('\n')
   }
 
+  private MigrateRequiredHasManyOp(op: MigrateRequiredHasManyOp): string {
+    return undent(`
+      -- Warning: MySQL required has-many's are not supported yet,
+      -- see https://github.com/prisma/upgrade/issues/56 for the
+      -- details on how to fix this yourself.
+    `)
+  }
+
   private AlterIDsOp(op: AlterIDsOp): string {
     const stmts: string[] = []
     stmts.push(`SET FOREIGN_KEY_CHECKS=0;`)
@@ -453,4 +493,8 @@ export class MySQL5 implements Translator {
     stmts.push(`SET FOREIGN_KEY_CHECKS=1;`)
     return stmts.join('\n')
   }
+}
+
+function undent(str: string): string {
+  return redent(str).trim()
 }

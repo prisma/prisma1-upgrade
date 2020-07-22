@@ -1,9 +1,9 @@
-type User {
+type UserModel {
   id: ID! @id
-  posts: [Post!]!
+  posts: [PostModel!]!
 }
 
-type Post {
+type PostModel {
   id: ID! @id
-  user: User!
+  user: UserModel!
 }
