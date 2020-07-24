@@ -34,6 +34,7 @@ export type Op =
   | MigrateOneToOneOp
   | AlterIDsOp
   | MigrateRequiredHasManyOp
+  | MigrateScalarListOp
 
 export type SetDefaultOp = {
   type: 'SetDefaultOp'
@@ -120,6 +121,13 @@ export type AlterIDsOp = {
   }[]
 }
 
+export type MigrateScalarListOp = {
+  type: 'MigrateScalarListOp'
+  schema: string
+  p1Model: p1.ObjectTypeDefinition
+  p1Field: p1.FieldDefinition
+}
+
 export interface Translator {
   translate(op: Op): string
 }
@@ -145,6 +153,8 @@ export class Postgres implements Translator {
         return this.MigrateRequiredHasManyOp(op)
       case 'AlterIDsOp':
         return this.AlterIDsOp(op)
+      case 'MigrateScalarListOp':
+        return this.MigrateScalarListOp(op)
       default:
         throw new Error('Postgres: unhandled op: ' + op!.type)
     }
@@ -300,6 +310,60 @@ export class Postgres implements Translator {
       )
     }
     return stmts.join('\n')
+  }
+
+  private MigrateScalarListOp(op: MigrateScalarListOp): string {
+    const stmts: string[] = []
+    const modelName = this.schema(op.schema, op.p1Model.dbname)
+    const fieldName = op.p1Field.dbname
+    const typeTable = `${op.p1Model.dbname}_${fieldName}`
+    const typeName = this.schema(op.schema, typeTable)
+    const type = this.namedTypeToPgType(op.p1Field.type.named())
+
+    // ENUM
+    // TODO: FINISH
+    if (op.p1Field.type.isReference()) {
+      const typeTable = `${op.p1Model.dbname}_${fieldName}_enum`
+      const enumName = this.schema(op.schema, typeTable)
+      stmts.push(`CREATE TYPE ${enumName} AS ENUM ();`)
+    }
+
+    stmts.push(`ALTER TABLE ${modelName} ADD COLUMN "${fieldName}" ${type}[];`)
+    stmts.push(`
+      UPDATE ${modelName} u
+        SET "${fieldName}" = t."value"
+      FROM (
+        SELECT "nodeId", array_agg(value ORDER BY position) as value
+        FROM ${typeName}
+        GROUP BY "nodeId"
+      ) t
+      WHERE t."nodeId" = u."id";
+    `)
+    stmts.push(
+      `ALTER TABLE ${modelName} ALTER COLUMN "${fieldName}" SET NOT NULL;`
+    )
+    stmts.push(`DROP TABLE ${typeName};`)
+    return stmts.join('\n')
+  }
+
+  namedTypeToPgType(type: string): string {
+    switch (type) {
+      case 'String':
+        return 'text'
+      case 'Int':
+        return 'integer'
+      case 'Float':
+        return 'double'
+      case 'DateTime':
+        return 'timestamp'
+      case 'Json':
+        return 'json'
+      case 'Boolean':
+        return 'boolean'
+      default:
+        // enum
+        return 'text'
+    }
   }
 }
 
@@ -471,7 +535,7 @@ export class MySQL5 implements Translator {
     return stmts.join('\n')
   }
 
-  private MigrateRequiredHasManyOp(op: MigrateRequiredHasManyOp): string {
+  private MigrateRequiredHasManyOp(_op: MigrateRequiredHasManyOp): string {
     return undent(`
       -- Warning: MySQL required has-many's are not supported yet,
       -- see https://github.com/prisma/upgrade/issues/56 for the

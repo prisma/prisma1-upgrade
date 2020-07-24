@@ -1,0 +1,10 @@
+type User {
+  id: ID! @unique
+  coinflips: [Boolean!]! @scalarList(strategy: RELATION)
+  roles: [Role!]! @scalarList(strategy: RELATION)
+}
+
+enum Role {
+  ADMIN
+  CUSTOMER
+}

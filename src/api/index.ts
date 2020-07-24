@@ -197,6 +197,39 @@ export async function upgrade(input: Input): Promise<Output> {
     }
   }
 
+  // Handle scalar lists
+  if (provider === 'postgres' || provider === 'postgresql') {
+    for (let p1Model of prisma1.objects) {
+      const p2Model = prisma2.findModel((m) => m.name === p1Model.name)
+      if (!p2Model) {
+        continue
+      }
+      for (let p1Field of p1Model.fields) {
+        if (!p1Field.type.list()) {
+          continue
+        }
+        // already been applied
+        const p2Field = p2Model.findField((f) => f.name === p1Field.name)
+        if (p2Field) {
+          continue
+        }
+        breakingOps.push({
+          type: 'MigrateScalarListOp',
+          schema: pgSchema,
+          p1Model: p1Model,
+          p1Field: p1Field,
+        })
+        // remove the P2 scalar since we've dropped it in the operation
+        const p2ModelList = prisma2.findModel((m) => {
+          return m.name === `${p1Model.name}_${p1Field.name}`
+        })
+        if (p2ModelList) {
+          p2ModelList.remove()
+        }
+      }
+    }
+  }
+
   // B: 1-1 relations Datamodel v1.1
   // loop over edges and apply back-relation rules
   // to break up cycles and place the fields in the proper place
@@ -416,6 +449,9 @@ export async function upgrade(input: Input): Promise<Output> {
       if (attributeWithID) {
         const type = field.type.innermost().toString()
         if (type !== 'String') {
+          continue
+        }
+        if (field.name === 'nodeId') {
           continue
         }
         idOp.pairs.push({ model, field })

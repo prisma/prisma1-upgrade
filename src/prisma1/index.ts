@@ -406,6 +406,10 @@ export class NamedType {
     return this.def.kind
   }
 
+  list(): boolean {
+    return false
+  }
+
   optional(): boolean {
     return true
   }
@@ -445,6 +449,10 @@ export class ListType {
     return true
   }
 
+  list(): boolean {
+    return true
+  }
+
   named(): string {
     return this.inner().named()
   }
@@ -476,6 +484,10 @@ export class NonNullType {
 
   optional(): boolean {
     return false
+  }
+
+  list(): boolean {
+    return this.inner().list()
   }
 
   named(): string {
