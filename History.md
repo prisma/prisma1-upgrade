@@ -1,3 +1,7 @@
+# 0.0.33 / 2020-07-27
+
+- add support for all scalar lists including enums (_Postgres only_)
+
 # 0.0.32 / 2020-07-22
 
 - add required has-many support for postgres, add a warning for mysql. Fixes: #38
