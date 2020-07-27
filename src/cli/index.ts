@@ -412,6 +412,20 @@ async function main(argv: string[]): Promise<void> {
             console.log()
             console.log()
             break
+          case 'MigrateEnumListOp':
+            console.log(`  ${bold(`Fix enum lists`)}`)
+            console.log()
+            console.log(redent(queries.join('\n'), 4))
+            console.log()
+            console.log()
+            break
+          case 'MigrateScalarListOp':
+            console.log(`  ${bold(`Fix simple scalar lists`)}`)
+            console.log()
+            console.log(redent(queries.join('\n'), 4))
+            console.log()
+            console.log()
+            break
         }
       }
     }
