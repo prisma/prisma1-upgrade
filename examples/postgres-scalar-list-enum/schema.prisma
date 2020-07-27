@@ -1,0 +1,18 @@
+datasource db {
+  provider = "postgresql"
+  url      = "postgres://root:prisma@0.0.0.0:5433/prisma?schema=postgres-scalar-list-enum%24dev"
+}
+
+model User {
+  id         String       @default(cuid()) @id
+  User_roles User_roles[]
+}
+
+model User_roles {
+  nodeId   String
+  position Int
+  value    String
+  User     User   @relation(fields: [nodeId], references: [id])
+
+  @@id([nodeId, position])
+}

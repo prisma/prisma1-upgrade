@@ -319,7 +319,6 @@ async function test(
 
   // re-introspect
   const datamodel = await engine.inspect(schema.toString())
-
   // apply p2schema again
   var p2schema = new p2.Schema(datamodel)
   var { ops, breakingOps, schema } = await api.upgrade({

@@ -144,6 +144,11 @@ export class Schema {
     clone.blocks = clone.blocks.filter((block) => block.type !== 'datasource')
     return print(clone)
   }
+
+  removeModel(block: ast.Block) {
+    const i = this.n.blocks.indexOf(block)
+    if (~i) this.n.blocks.splice(i, 1)
+  }
 }
 
 export class Datasource {
@@ -327,6 +332,10 @@ export class Model {
         return field
       }
     }
+  }
+
+  remove() {
+    this.s.removeModel(this.n)
   }
 
   rename(name: string) {

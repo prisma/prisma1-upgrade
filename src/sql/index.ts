@@ -34,6 +34,8 @@ export type Op =
   | MigrateOneToOneOp
   | AlterIDsOp
   | MigrateRequiredHasManyOp
+  | MigrateScalarListOp
+  | MigrateEnumListOp
 
 export type SetDefaultOp = {
   type: 'SetDefaultOp'
@@ -120,6 +122,21 @@ export type AlterIDsOp = {
   }[]
 }
 
+export type MigrateScalarListOp = {
+  type: 'MigrateScalarListOp'
+  schema: string
+  p1Model: p1.ObjectTypeDefinition
+  p1Field: p1.FieldDefinition
+}
+
+export type MigrateEnumListOp = {
+  type: 'MigrateEnumListOp'
+  schema: string
+  p1Model: p1.ObjectTypeDefinition
+  p1Field: p1.FieldDefinition
+  p1Enum: p1.EnumTypeDefinition
+}
+
 export interface Translator {
   translate(op: Op): string
 }
@@ -145,6 +162,10 @@ export class Postgres implements Translator {
         return this.MigrateRequiredHasManyOp(op)
       case 'AlterIDsOp':
         return this.AlterIDsOp(op)
+      case 'MigrateScalarListOp':
+        return this.MigrateScalarListOp(op)
+      case 'MigrateEnumListOp':
+        return this.MigrateEnumListOp(op)
       default:
         throw new Error('Postgres: unhandled op: ' + op!.type)
     }
@@ -300,6 +321,85 @@ export class Postgres implements Translator {
       )
     }
     return stmts.join('\n')
+  }
+
+  private MigrateEnumListOp(op: MigrateEnumListOp): string {
+    const stmts: string[] = []
+    const modelName = this.schema(op.schema, op.p1Model.dbname)
+    const fieldName = op.p1Field.dbname
+    const typeTable = `${op.p1Model.dbname}_${fieldName}`
+    const typeName = this.schema(op.schema, typeTable)
+    const enm = op.p1Enum
+    const enumName = this.schema(op.schema, enm.dbname)
+    const values = enm.values.map((v) => `'${v.name}'`).join(', ')
+    stmts.push(`CREATE TYPE ${enumName} AS ENUM (${values});`)
+    stmts.push(
+      `ALTER TABLE ${modelName} ADD COLUMN "${fieldName}" ${enumName}[];`
+    )
+    stmts.push(
+      undent(`
+        UPDATE ${modelName} u
+          SET "${fieldName}" = t."value"::${enumName}[]
+        FROM (
+          SELECT "nodeId", array_agg(value ORDER BY position) as value
+          FROM ${typeName}
+          GROUP BY "nodeId"
+        ) t
+        WHERE t."nodeId" = u."id";
+      `)
+    )
+    stmts.push(
+      `ALTER TABLE ${modelName} ALTER COLUMN "${fieldName}" SET NOT NULL;`
+    )
+    stmts.push(`DROP TABLE ${typeName};`)
+    return stmts.join('\n')
+  }
+
+  private MigrateScalarListOp(op: MigrateScalarListOp): string {
+    const stmts: string[] = []
+    const modelName = this.schema(op.schema, op.p1Model.dbname)
+    const fieldName = op.p1Field.dbname
+    const typeTable = `${op.p1Model.dbname}_${fieldName}`
+    const typeName = this.schema(op.schema, typeTable)
+    const type = this.namedTypeToPgType(op.p1Field.type.named())
+    stmts.push(`ALTER TABLE ${modelName} ADD COLUMN "${fieldName}" ${type}[];`)
+    stmts.push(
+      undent(`
+        UPDATE ${modelName} u
+          SET "${fieldName}" = t."value"::${type}[]
+        FROM (
+          SELECT "nodeId", array_agg(value ORDER BY position) as value
+          FROM ${typeName}
+          GROUP BY "nodeId"
+        ) t
+        WHERE t."nodeId" = u."id";
+      `)
+    )
+    stmts.push(
+      `ALTER TABLE ${modelName} ALTER COLUMN "${fieldName}" SET NOT NULL;`
+    )
+    stmts.push(`DROP TABLE ${typeName};`)
+    return stmts.join('\n')
+  }
+
+  namedTypeToPgType(type: string): string {
+    switch (type) {
+      case 'String':
+        return 'text'
+      case 'Int':
+        return 'integer'
+      case 'Float':
+        return 'double'
+      case 'DateTime':
+        return 'timestamp'
+      case 'Json':
+        return 'json'
+      case 'Boolean':
+        return 'boolean'
+      default:
+        // enum
+        return 'text'
+    }
   }
 }
 
@@ -471,7 +571,7 @@ export class MySQL5 implements Translator {
     return stmts.join('\n')
   }
 
-  private MigrateRequiredHasManyOp(op: MigrateRequiredHasManyOp): string {
+  private MigrateRequiredHasManyOp(_op: MigrateRequiredHasManyOp): string {
     return undent(`
       -- Warning: MySQL required has-many's are not supported yet,
       -- see https://github.com/prisma/upgrade/issues/56 for the

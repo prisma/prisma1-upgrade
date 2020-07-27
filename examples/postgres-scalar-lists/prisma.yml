@@ -1,0 +1,2 @@
+endpoint: http://localhost:4467/postgres-scalar-lists/dev
+datamodel: datamodel.graphql

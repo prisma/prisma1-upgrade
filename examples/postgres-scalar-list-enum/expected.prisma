@@ -1,0 +1,9 @@
+model User {
+  id    String @default(cuid()) @id
+  roles Role[]
+}
+
+enum Role {
+  ADMIN
+  CUSTOMER
+}
