@@ -1,0 +1,12 @@
+model User {
+  coinflips Boolean[]
+  createdAt DateTime
+  id        String    @default(cuid()) @id
+  roles     Role[]
+  updatedAt DateTime
+}
+
+enum Role {
+  ADMIN
+  CUSTOMER
+}

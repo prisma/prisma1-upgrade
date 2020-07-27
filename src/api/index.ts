@@ -213,12 +213,27 @@ export async function upgrade(input: Input): Promise<Output> {
         if (p2Field) {
           continue
         }
-        breakingOps.push({
-          type: 'MigrateScalarListOp',
-          schema: pgSchema,
-          p1Model: p1Model,
-          p1Field: p1Field,
-        })
+        if (p1Field.type.isReference()) {
+          let p1Enum: p1.EnumTypeDefinition | undefined
+          p1Enum = prisma1.enums.find((e) => p1Field.type.named() === e.name)
+          if (!p1Enum) {
+            continue
+          }
+          breakingOps.push({
+            type: 'MigrateEnumListOp',
+            schema: pgSchema,
+            p1Model: p1Model,
+            p1Field: p1Field,
+            p1Enum: p1Enum,
+          })
+        } else {
+          breakingOps.push({
+            type: 'MigrateScalarListOp',
+            schema: pgSchema,
+            p1Model: p1Model,
+            p1Field: p1Field,
+          })
+        }
         // remove the P2 scalar since we've dropped it in the operation
         const p2ModelList = prisma2.findModel((m) => {
           return m.name === `${p1Model.name}_${p1Field.name}`

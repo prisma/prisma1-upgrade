@@ -1,0 +1,9 @@
+type User {
+  id: ID! @id
+  roles: [Role!]! @scalarList(strategy: RELATION)
+}
+
+enum Role {
+  ADMIN
+  CUSTOMER
+}
