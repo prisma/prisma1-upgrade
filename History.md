@@ -1,3 +1,7 @@
+# 0.0.34 / 2020-07-27
+
+- expose scalar list updates in `0.0.33` to the CLI
+
 # 0.0.33 / 2020-07-27
 
 - add support for all scalar lists including enums (_Postgres only_)
