@@ -14,21 +14,13 @@ model IdentificationDocument {
 }
 
 model Tagline {
-  createdAt          DateTime             @default(now())
-  description        String?
-  excerpt            String
-  id                 String               @default(cuid()) @id
-  updatedAt          DateTime             @updatedAt
-  Tagline_visibility Tagline_visibility[]
-  User               User[]
-}
-
-model Tagline_visibility {
-  nodeId   String
-  position Int
-  value    String
-  Tagline  Tagline @relation(fields: [nodeId], references: [id])
-  @@id([nodeId, position])
+  createdAt   DateTime            @default(now())
+  description String?
+  excerpt     String
+  id          String              @default(cuid()) @id
+  updatedAt   DateTime            @updatedAt
+  visibility  TaglineVisibility[]
+  User        User[]
 }
 
 model TaxDocument {
@@ -41,20 +33,12 @@ model TaxDocument {
 }
 
 model Thought {
-  baseIdea        String?
-  createdAt       DateTime          @default(now())
-  id              String            @default(cuid()) @id
-  updatedAt       DateTime          @updatedAt
-  Thought_content Thought_content[]
-  User            User[]            @relation(references: [id])
-}
-
-model Thought_content {
-  nodeId   String
-  position Int
-  value    String
-  Thought  Thought @relation(fields: [nodeId], references: [id])
-  @@id([nodeId, position])
+  baseIdea  String?
+  content   String[]
+  createdAt DateTime @default(now())
+  id        String   @default(cuid()) @id
+  updatedAt DateTime @updatedAt
+  User      User[]   @relation(references: [id])
 }
 
 model User {
@@ -95,6 +79,15 @@ model Work {
   title       String?
   updatedAt   DateTime @updatedAt
   User        User[]   @relation(references: [id])
+}
+
+enum TaglineVisibility {
+  HOME
+  MOBILE_HOME
+  MOBILE_PROFILE
+  MOBILE_SETTINGS
+  PROFILE
+  SETTINGS
 }
 
 enum UserType {

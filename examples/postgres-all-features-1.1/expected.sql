@@ -9,3 +9,26 @@ ALTER TABLE "postgres-all-features-1-1$dev"."Thought" ALTER COLUMN "createdAt" S
 ALTER TABLE "postgres-all-features-1-1$dev"."Tagline" ALTER COLUMN "createdAt" SET DEFAULT CURRENT_TIMESTAMP;
 ALTER TABLE "postgres-all-features-1-1$dev"."User" ADD UNIQUE ("identificationDocument");
 ALTER TABLE "postgres-all-features-1-1$dev"."User" ADD UNIQUE ("taxDocument");
+ALTER TABLE "postgres-all-features-1-1$dev"."Thought" ADD COLUMN "content" text[];
+UPDATE "postgres-all-features-1-1$dev"."Thought" u
+  SET "content" = t."value"::text[]
+FROM (
+  SELECT "nodeId", array_agg(value ORDER BY position) as value
+  FROM "postgres-all-features-1-1$dev"."Thought_content"
+  GROUP BY "nodeId"
+) t
+WHERE t."nodeId" = u."id";
+ALTER TABLE "postgres-all-features-1-1$dev"."Thought" ALTER COLUMN "content" SET NOT NULL;
+DROP TABLE "postgres-all-features-1-1$dev"."Thought_content";
+CREATE TYPE "postgres-all-features-1-1$dev"."TaglineVisibility" AS ENUM ('HOME', 'PROFILE', 'SETTINGS', 'MOBILE_HOME', 'MOBILE_PROFILE', 'MOBILE_SETTINGS');
+ALTER TABLE "postgres-all-features-1-1$dev"."Tagline" ADD COLUMN "visibility" "postgres-all-features-1-1$dev"."TaglineVisibility"[];
+UPDATE "postgres-all-features-1-1$dev"."Tagline" u
+  SET "visibility" = t."value"::"postgres-all-features-1-1$dev"."TaglineVisibility"[]
+FROM (
+  SELECT "nodeId", array_agg(value ORDER BY position) as value
+  FROM "postgres-all-features-1-1$dev"."Tagline_visibility"
+  GROUP BY "nodeId"
+) t
+WHERE t."nodeId" = u."id";
+ALTER TABLE "postgres-all-features-1-1$dev"."Tagline" ALTER COLUMN "visibility" SET NOT NULL;
+DROP TABLE "postgres-all-features-1-1$dev"."Tagline_visibility";
