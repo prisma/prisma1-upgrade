@@ -136,6 +136,19 @@ CREATE TABLE "postgres-scalar-lists$dev"."User_coinflips" (
 ALTER TABLE "postgres-scalar-lists$dev"."User_coinflips" OWNER TO root;
 
 --
+-- Name: User_names; Type: TABLE; Schema: postgres-scalar-lists$dev; Owner: root
+--
+
+CREATE TABLE "postgres-scalar-lists$dev"."User_names" (
+    "nodeId" character varying(25) NOT NULL,
+    "position" integer NOT NULL,
+    value text NOT NULL
+);
+
+
+ALTER TABLE "postgres-scalar-lists$dev"."User_names" OWNER TO root;
+
+--
 -- Name: User_roles; Type: TABLE; Schema: postgres-scalar-lists$dev; Owner: root
 --
 
@@ -197,6 +210,14 @@ ALTER TABLE ONLY "postgres-scalar-lists$dev"."User_coinflips"
 
 
 --
+-- Name: User_names User_names_pkey; Type: CONSTRAINT; Schema: postgres-scalar-lists$dev; Owner: root
+--
+
+ALTER TABLE ONLY "postgres-scalar-lists$dev"."User_names"
+    ADD CONSTRAINT "User_names_pkey" PRIMARY KEY ("nodeId", "position");
+
+
+--
 -- Name: User User_pkey; Type: CONSTRAINT; Schema: postgres-scalar-lists$dev; Owner: root
 --
 
@@ -226,6 +247,14 @@ ALTER TABLE ONLY management."Migration"
 
 ALTER TABLE ONLY "postgres-scalar-lists$dev"."User_coinflips"
     ADD CONSTRAINT "User_coinflips_nodeId_fkey" FOREIGN KEY ("nodeId") REFERENCES "postgres-scalar-lists$dev"."User"(id);
+
+
+--
+-- Name: User_names User_names_nodeId_fkey; Type: FK CONSTRAINT; Schema: postgres-scalar-lists$dev; Owner: root
+--
+
+ALTER TABLE ONLY "postgres-scalar-lists$dev"."User_names"
+    ADD CONSTRAINT "User_names_nodeId_fkey" FOREIGN KEY ("nodeId") REFERENCES "postgres-scalar-lists$dev"."User"(id);
 
 
 --

@@ -21,3 +21,13 @@ FROM (
 WHERE t."nodeId" = u."id";
 ALTER TABLE "postgres-scalar-lists$dev"."User" ALTER COLUMN "roles" SET NOT NULL;
 DROP TABLE "postgres-scalar-lists$dev"."User_roles";
+ALTER TABLE "postgres-scalar-lists$dev"."User" ADD COLUMN "names" text[];
+UPDATE "postgres-scalar-lists$dev"."User" u
+  SET "names" = t."value"::text[]
+FROM (
+  SELECT "nodeId", array_agg(value ORDER BY position) as value
+  FROM "postgres-scalar-lists$dev"."User_names"
+  GROUP BY "nodeId"
+) t
+WHERE t."nodeId" = u."id";
+DROP TABLE "postgres-scalar-lists$dev"."User_names";

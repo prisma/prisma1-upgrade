@@ -327,6 +327,8 @@ export class Postgres implements Translator {
     const stmts: string[] = []
     const modelName = this.schema(op.schema, op.p1Model.dbname)
     const fieldName = op.p1Field.dbname
+    const typeString = op.p1Field.type.toString().replace(/^\[+|\]+!*$/g, '')
+    const notNull = typeString[typeString.length - 1] === '!'
     const typeTable = `${op.p1Model.dbname}_${fieldName}`
     const typeName = this.schema(op.schema, typeTable)
     const enm = op.p1Enum
@@ -348,9 +350,11 @@ export class Postgres implements Translator {
         WHERE t."nodeId" = u."id";
       `)
     )
-    stmts.push(
-      `ALTER TABLE ${modelName} ALTER COLUMN "${fieldName}" SET NOT NULL;`
-    )
+    if (notNull) {
+      stmts.push(
+        `ALTER TABLE ${modelName} ALTER COLUMN "${fieldName}" SET NOT NULL;`
+      )
+    }
     stmts.push(`DROP TABLE ${typeName};`)
     return stmts.join('\n')
   }
@@ -362,6 +366,8 @@ export class Postgres implements Translator {
     const typeTable = `${op.p1Model.dbname}_${fieldName}`
     const typeName = this.schema(op.schema, typeTable)
     const type = this.namedTypeToPgType(op.p1Field.type.named())
+    const typeString = op.p1Field.type.toString().replace(/^\[+|\]+!*$/g, '')
+    const notNull = typeString[typeString.length - 1] === '!'
     stmts.push(`ALTER TABLE ${modelName} ADD COLUMN "${fieldName}" ${type}[];`)
     stmts.push(
       undent(`
@@ -375,9 +381,11 @@ export class Postgres implements Translator {
         WHERE t."nodeId" = u."id";
       `)
     )
-    stmts.push(
-      `ALTER TABLE ${modelName} ALTER COLUMN "${fieldName}" SET NOT NULL;`
-    )
+    if (notNull) {
+      stmts.push(
+        `ALTER TABLE ${modelName} ALTER COLUMN "${fieldName}" SET NOT NULL;`
+      )
+    }
     stmts.push(`DROP TABLE ${typeName};`)
     return stmts.join('\n')
   }

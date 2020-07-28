@@ -2,6 +2,7 @@ type User {
   id: ID! @id
   coinflips: [Boolean!]! @scalarList(strategy: RELATION)
   roles: [Role!]! @scalarList(strategy: RELATION)
+  names: [String]! @scalarList(strategy: RELATION)
 }
 
 enum Role {

@@ -6,6 +6,7 @@ datasource db {
 model User {
   id             String           @default(cuid()) @id
   User_coinflips User_coinflips[]
+  User_names     User_names[]
   User_roles     User_roles[]
 }
 
@@ -14,6 +15,15 @@ model User_coinflips {
   position Int
   value    Boolean
   User     User    @relation(fields: [nodeId], references: [id])
+
+  @@id([nodeId, position])
+}
+
+model User_names {
+  nodeId   String
+  position Int
+  value    String
+  User     User   @relation(fields: [nodeId], references: [id])
 
   @@id([nodeId, position])
 }
