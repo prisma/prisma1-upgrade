@@ -1,3 +1,7 @@
+# 0.0.35 / 2020-07-28
+
+- support nullable lists in Postgres, even though Prisma 2 doesn't yet support this from a client perspective
+
 # 0.0.34 / 2020-07-27
 
 - expose scalar list updates in `0.0.33` to the CLI
