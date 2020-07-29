@@ -18,7 +18,6 @@ FROM (
   GROUP BY "nodeId"
 ) t
 WHERE t."nodeId" = u."id";
-ALTER TABLE "postgres-all-features-1-1$dev"."Thought" ALTER COLUMN "content" SET NOT NULL;
 DROP TABLE "postgres-all-features-1-1$dev"."Thought_content";
 CREATE TYPE "postgres-all-features-1-1$dev"."TaglineVisibility" AS ENUM ('HOME', 'PROFILE', 'SETTINGS', 'MOBILE_HOME', 'MOBILE_PROFILE', 'MOBILE_SETTINGS');
 ALTER TABLE "postgres-all-features-1-1$dev"."Tagline" ADD COLUMN "visibility" "postgres-all-features-1-1$dev"."TaglineVisibility"[];
@@ -30,5 +29,4 @@ FROM (
   GROUP BY "nodeId"
 ) t
 WHERE t."nodeId" = u."id";
-ALTER TABLE "postgres-all-features-1-1$dev"."Tagline" ALTER COLUMN "visibility" SET NOT NULL;
 DROP TABLE "postgres-all-features-1-1$dev"."Tagline_visibility";
