@@ -1,34 +1,34 @@
 model Companie {
-  companieRole     String
-  createdAt        DateTime
   id               String             @default(cuid()) @id
+  companieRole     String
   updatedAt        DateTime
+  createdAt        DateTime
   UserRoleCompanie UserRoleCompanie[]
 }
 
 model IssuedCard {
-  createdAt DateTime
   id        String   @default(cuid()) @id
   name      String
   updatedAt DateTime
+  createdAt DateTime
   userId    String
   User      User     @relation(fields: [userId], references: [id])
   @@index([userId], name: "userId")
 }
 
 model User {
-  createdAt  DateTime
-  firstName  String
   id         String       @default(cuid()) @id
+  firstName  String
   updatedAt  DateTime
+  createdAt  DateTime
   IssuedCard IssuedCard[]
 }
 
 model UserRoleCompanie {
-  companieId String
-  createdAt  DateTime
   id         String   @default(cuid()) @id
   updatedAt  DateTime
+  createdAt  DateTime
+  companieId String
   Companie   Companie @relation(fields: [companieId], references: [id])
   @@index([companieId], name: "companieId")
 }

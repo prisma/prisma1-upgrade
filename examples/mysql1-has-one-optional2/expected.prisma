@@ -1,14 +1,14 @@
 model Profile {
-  createdAt DateTime
   id        String   @default(cuid()) @id
   updatedAt DateTime
+  createdAt DateTime
   userId    String   @unique
   User      User     @relation(fields: [userId], references: [id])
 }
 
 model User {
-  createdAt DateTime
   id        String   @default(cuid()) @id
   updatedAt DateTime
+  createdAt DateTime
   Profile   Profile?
 }

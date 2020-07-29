@@ -1,7 +1,7 @@
 model User {
-  createdAt  DateTime
   id         String   @default(cuid()) @id
   updatedAt  DateTime
+  createdAt  DateTime
   userId     String   @unique
   User       User     @relation("UserToUser_userId", fields: [userId], references: [id])
   other_User User?    @relation("UserToUser_userId")

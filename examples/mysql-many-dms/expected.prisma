@@ -1,7 +1,7 @@
 model Post {
   id   String  @default(cuid()) @id
-  meta Json
   user String?
+  meta Json
   User User?   @relation(fields: [user], references: [id])
   @@index([user], name: "user")
 }

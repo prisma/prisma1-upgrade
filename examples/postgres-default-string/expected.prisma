@@ -1,6 +1,6 @@
 model User {
-  email    String? @unique
   id       String  @default(cuid()) @id
+  email    String? @unique
   name     String  @default("gnarley")
   nickName String? @default("mcblabber")
 }

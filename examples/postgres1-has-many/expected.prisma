@@ -1,14 +1,14 @@
 model Post {
-  authorId  String
-  createdAt DateTime
   id        String   @default(cuid()) @id
   updatedAt DateTime
+  createdAt DateTime
+  authorId  String
   User      User     @relation(fields: [authorId], references: [id])
 }
 
 model User {
-  createdAt DateTime
   id        String   @default(cuid()) @id
   updatedAt DateTime
+  createdAt DateTime
   Post      Post[]
 }

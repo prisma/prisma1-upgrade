@@ -1,12 +1,12 @@
 model Profile {
-  bio  String
   id   String @default(cuid()) @id
+  bio  String
   User User
 }
 
 model User {
-  email   String  @unique
   id      String  @default(cuid()) @id
+  email   String  @unique
   profile String? @unique
   Profile Profile @relation(fields: [profile], references: [id])
 }

@@ -5,32 +5,32 @@ model Category {
 }
 
 model Post {
-  authorId  String?
-  content   String?
-  createdAt DateTime   @default(now())
   id        String     @default(cuid()) @id
-  published Boolean    @default(false)
-  title     String
+  createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
+  title     String
+  content   String?
+  published Boolean    @default(false)
+  authorId  String?
   User      User?      @relation(fields: [authorId], references: [id])
   Category  Category[] @relation(references: [id])
   @@index([authorId], name: "authorId")
 }
 
 model Profile {
-  bio  String?
   id   String  @default(cuid()) @id
+  bio  String?
   user String? @unique
   User User    @relation(fields: [user], references: [id])
   @@index([user], name: "user")
 }
 
 model User {
-  email    String?   @unique
   id       String    @default(cuid()) @id
-  jsonData Json?
+  email    String?   @unique
   name     String
   role     User_role @default(CUSTOMER)
+  jsonData Json?
   Post     Post[]
   Profile  Profile?
 }

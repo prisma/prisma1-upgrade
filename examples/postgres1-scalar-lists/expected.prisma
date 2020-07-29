@@ -1,9 +1,9 @@
 model User {
-  coinflips Boolean[]
-  createdAt DateTime
   id        String    @default(cuid()) @id
-  roles     Role[]
   updatedAt DateTime
+  createdAt DateTime
+  coinflips Boolean[]
+  roles     Role[]
 }
 
 enum Role {

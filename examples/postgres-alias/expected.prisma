@@ -5,31 +5,31 @@ model Category {
 }
 
 model Message {
-  authorId   String?
-  content    String?
-  created_at DateTime   @default(now()) @map("createdAt")
   id         String     @default(cuid()) @id
-  published  Boolean    @default(false)
-  slug       String     @map("title")
+  created_at DateTime   @default(now()) @map("createdAt")
   updatedAt  DateTime   @updatedAt
+  slug       String     @map("title")
+  content    String?
+  published  Boolean    @default(false)
+  authorId   String?
   User       User?      @relation(fields: [authorId], references: [id])
   Category   Category[] @relation("CategoryToMessage", references: [id])
   @@map("Post")
 }
 
 model Profile {
-  bio  String?
   id   String  @default(cuid()) @id
+  bio  String?
   user String? @unique
   User User    @relation(fields: [user], references: [id])
 }
 
 model User {
-  email    String?   @unique
   id       String    @default(cuid()) @id
-  settings Json?     @map("jsonData")
+  email    String?   @unique
   name     String
   role     Role      @default(CUSTOMER)
+  settings Json?     @map("jsonData")
   Message  Message[]
   Profile  Profile?
 }

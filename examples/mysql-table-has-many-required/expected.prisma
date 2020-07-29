@@ -1,6 +1,6 @@
 model Post {
-  authorId String
   id       String @default(cuid()) @id
+  authorId String
   User     User   @relation(fields: [authorId], references: [id])
   @@index([authorId], name: "authorId")
 }

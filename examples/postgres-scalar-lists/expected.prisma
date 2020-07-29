@@ -1,8 +1,8 @@
 model User {
-  coinflips Boolean[]
   id        String    @default(cuid()) @id
-  names     String[]
+  coinflips Boolean[]
   roles     Role[]
+  names     String[]
 }
 
 enum Role {

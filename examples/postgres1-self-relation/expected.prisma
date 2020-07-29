@@ -1,8 +1,8 @@
 model User {
-  createdAt   DateTime
   id          String   @default(cuid()) @id
-  invitedById String?
   updatedAt   DateTime
+  createdAt   DateTime
+  invitedById String?
   User        User?    @relation("UserToUser_invitedById", fields: [invitedById], references: [id])
   other_User  User[]   @relation("UserToUser_invitedById")
 }

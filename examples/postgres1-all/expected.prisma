@@ -1,40 +1,40 @@
 model Category {
-  createdAt DateTime
   id        String   @default(cuid()) @id
   name      String
   updatedAt DateTime
+  createdAt DateTime
   Post      Post[]   @relation(references: [id])
 }
 
 model Post {
-  authorId  String?
-  content   String?
-  createdAt DateTime   @default(now())
   id        String     @default(cuid()) @id
-  published Boolean    @default(false)
-  title     String
+  createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
+  title     String
+  content   String?
+  published Boolean    @default(false)
+  authorId  String?
   User      User?      @relation(fields: [authorId], references: [id])
   Category  Category[] @relation(references: [id])
 }
 
 model Profile {
-  bio       String?
-  createdAt DateTime
   id        String   @default(cuid()) @id
+  bio       String?
   updatedAt DateTime
+  createdAt DateTime
   userId    String   @unique
   User      User     @relation(fields: [userId], references: [id])
 }
 
 model User {
-  createdAt DateTime
-  email     String?  @unique
   id        String   @default(cuid()) @id
-  jsonData  Json?
+  email     String?  @unique
   name      String
   role      Role     @default(CUSTOMER)
+  jsonData  Json?
   updatedAt DateTime
+  createdAt DateTime
   Post      Post[]
   Profile   Profile?
 }

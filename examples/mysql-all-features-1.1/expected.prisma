@@ -1,24 +1,24 @@
 model Home {
-  createdAt DateTime @default(now())
   id        Int      @default(autoincrement()) @id
+  createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   User      User[]
 }
 
 model IdentificationDocument {
-  documentNumber String
-  expiresOn      DateTime
   id             String   @default(cuid()) @id
+  documentNumber String
   issuedOn       DateTime
+  expiresOn      DateTime
   User           User
 }
 
 model Tagline {
+  id                 String               @default(cuid()) @id
   createdAt          DateTime             @default(now())
+  updatedAt          DateTime             @updatedAt
   description        String?
   excerpt            String
-  id                 String               @default(cuid()) @id
-  updatedAt          DateTime             @updatedAt
   Tagline_visibility Tagline_visibility[]
   User               User[]
 }
@@ -33,19 +33,19 @@ model Tagline_visibility {
 }
 
 model TaxDocument {
-  documentNumber String
-  expiresOn      DateTime
   id             String    @default(cuid()) @id
+  documentNumber String
   issuedOn       DateTime
+  expiresOn      DateTime
   lastChangedOn  DateTime? @updatedAt
   User           User
 }
 
 model Thought {
-  baseIdea        String?
-  createdAt       DateTime          @default(now())
   id              String            @default(cuid()) @id
+  createdAt       DateTime          @default(now())
   updatedAt       DateTime          @updatedAt
+  baseIdea        String?
   Thought_content Thought_content[]
   User            User[]            @relation(references: [id])
 }
@@ -60,22 +60,22 @@ model Thought_content {
 }
 
 model User {
-  age                              Int
-  bestFriend                       String?
+  id                               String                 @default(cuid()) @id
   createdAt                        DateTime               @default(now())
+  updatedAt                        DateTime               @updatedAt
   email                            String                 @unique
+  age                              Int
+  type                             User_type
+  isActive                         Boolean                @default(false)
+  temperature                      Float?
+  meta                             Json?
   nickName                         String?                @map("friendlyName")
   godFather                        String?
   home                             Int?
-  id                               String                 @default(cuid()) @id
-  identificationDocument           String?                @unique
-  isActive                         Boolean                @default(false)
-  meta                             Json?
-  tagline                          String?
   taxDocument                      String?                @unique
-  temperature                      Float?
-  type                             User_type
-  updatedAt                        DateTime               @updatedAt
+  identificationDocument           String?                @unique
+  bestFriend                       String?
+  tagline                          String?
   User_UserToUser_bestFriend       User?                  @relation("UserToUser_bestFriend", fields: [bestFriend], references: [id])
   User_UserToUser_godFather        User?                  @relation("UserToUser_godFather", fields: [godFather], references: [id])
   Home                             Home?                  @relation(fields: [home], references: [id])
@@ -97,11 +97,11 @@ model User {
 }
 
 model Work {
-  createdAt   DateTime @default(now())
-  description String?
   id          String   @default(cuid()) @id
-  title       String?
+  createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+  title       String?
+  description String?
   User        User[]   @relation(references: [id])
 }
 
