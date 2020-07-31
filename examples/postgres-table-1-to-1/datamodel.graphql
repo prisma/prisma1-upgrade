@@ -5,5 +5,5 @@ type User {
 
 type Settings {
   id: ID! @id
-  user: User @relation(name: "SettingsOnUser")
+  user: User @relation(name: "Settings")
 }

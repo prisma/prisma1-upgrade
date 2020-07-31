@@ -1,12 +1,11 @@
 model Settings {
-  id     String  @default(cuid()) @id
-  userId String? @map("user")
-  userId User?   @map("user") @relation(fields: [user], references: [id])
-  user   User[]  @relation("Settings", references: [id])
+  id     String @default(cuid()) @id
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
 }
 
 model User {
-  id         String     @default(cuid()) @id
-  settingsId Settings[] @map("settings")
-  settings   Settings[] @relation("Settings", references: [id])
+  id         String   @default(cuid()) @id
+  settingsId String
+  settings   Settings
 }

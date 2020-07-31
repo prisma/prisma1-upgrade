@@ -116,8 +116,7 @@ ALTER TABLE management."TelemetryInfo" OWNER TO root;
 --
 
 CREATE TABLE "postgres-table-1-to-1$dev"."Settings" (
-    id character varying(25) NOT NULL,
-    "user" character varying(25)
+    id character varying(25) NOT NULL
 );
 
 
@@ -222,14 +221,6 @@ CREATE INDEX "_Settings_B" ON "postgres-table-1-to-1$dev"."_Settings" USING btre
 
 ALTER TABLE ONLY management."Migration"
     ADD CONSTRAINT migrations_projectid_foreign FOREIGN KEY ("projectId") REFERENCES management."Project"(id) ON UPDATE CASCADE ON DELETE CASCADE;
-
-
---
--- Name: Settings Settings_user_fkey; Type: FK CONSTRAINT; Schema: postgres-table-1-to-1$dev; Owner: root
---
-
-ALTER TABLE ONLY "postgres-table-1-to-1$dev"."Settings"
-    ADD CONSTRAINT "Settings_user_fkey" FOREIGN KEY ("user") REFERENCES "postgres-table-1-to-1$dev"."User"(id) ON DELETE SET NULL;
 
 
 --
