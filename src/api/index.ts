@@ -1,9 +1,9 @@
-import * as p2ast from 'prismafile/dist/ast'
-import * as graph from '../prisma1/graph'
-import * as p2 from '../prisma2'
-import * as p1 from '../prisma1'
-import * as uri from 'url'
-import * as sql from '../sql'
+import * as p2ast from "prismafile/dist/ast"
+import * as graph from "../prisma1/graph"
+import * as p2 from "../prisma2"
+import * as p1 from "../prisma1"
+import * as uri from "url"
+import * as sql from "../sql"
 
 type Input = {
   prisma1: p1.Schema
@@ -66,27 +66,27 @@ export async function upgrade(input: Input): Promise<Output> {
           }
           // D: String IDs are missing information what kind they are
           switch (p1Field.type.named()) {
-            case 'ID': // Rule 1: add @default(cuid()) for P1 ID types
+            case "ID": // Rule 1: add @default(cuid()) for P1 ID types
               p2Field.upsertAttribute(defaultAttr(cuid()))
               break
-            case 'UUID': // Rule 2: @default(uuid()) for P1 UUID types
+            case "UUID": // Rule 2: @default(uuid()) for P1 UUID types
               p2Field.upsertAttribute(defaultAttr(uuid()))
               break
           }
           // next, we'll loop over the P1 attributes
           for (let p1Attr of p1Field.directives) {
             // G: @updatedAt is lost
-            if (p1Attr.name === 'updatedAt') {
+            if (p1Attr.name === "updatedAt") {
               p2Field.upsertAttribute(updatedAt())
             }
             // MySQL only: defaults don't work for TEXT (and it's variants)
             // but they do work at the Prisma-level, so we'll provide them.
             if (isMySQLDefaultText(provider, p1Field, p1Attr)) {
               const value = getDefaultValueString(p1Attr)
-              if (typeof value === 'string') {
+              if (typeof value === "string") {
                 p2Field.upsertAttribute(
                   defaultAttr({
-                    type: 'string_value',
+                    type: "string_value",
                     start: pos,
                     end: pos,
                     value: value,
@@ -124,9 +124,9 @@ export async function upgrade(input: Input): Promise<Output> {
       }
 
       // H: JSON is represented as String
-      if (p1Field.type.named() === 'Json' && !isJsonType(p2Field)) {
+      if (p1Field.type.named() === "Json" && !isJsonType(p2Field)) {
         ops.push({
-          type: 'SetJsonTypeOp',
+          type: "SetJsonTypeOp",
           schema: pgSchema,
           p1Model,
           p1Field,
@@ -138,7 +138,7 @@ export async function upgrade(input: Input): Promise<Output> {
       const p2Enum = p2Enums[p2Field.type.innermost().toString()]
       if (p1Enum && !p2Enum) {
         ops.push({
-          type: 'SetEnumTypeOp',
+          type: "SetEnumTypeOp",
           schema: pgSchema,
           p1Model,
           p1Field,
@@ -149,12 +149,12 @@ export async function upgrade(input: Input): Promise<Output> {
       // loop over attributes
       for (let p1Attr of p1Field.directives) {
         // A: @default value is missing
-        if (p1Attr.name === 'default') {
-          const p1Arg = p1Attr.findArgument((a) => a.name === 'value')
+        if (p1Attr.name === "default") {
+          const p1Arg = p1Attr.findArgument((a) => a.name === "value")
           if (!p1Arg) {
             continue
           }
-          const p2Attr = p2Field.findAttribute((a) => a.name === 'default')
+          const p2Attr = p2Field.findAttribute((a) => a.name === "default")
           // @default is already in P2
           if (p2Attr && hasExpectedDefault(p1Arg, p2Attr.arguments[0])) {
             continue
@@ -169,7 +169,7 @@ export async function upgrade(input: Input): Promise<Output> {
             continue
           }
           ops.push({
-            type: 'SetDefaultOp',
+            type: "SetDefaultOp",
             schema: pgSchema,
             p1Model,
             p1Field,
@@ -178,11 +178,11 @@ export async function upgrade(input: Input): Promise<Output> {
           })
         }
         // we found a @createdAt in P1 and it's not in P2
-        if (p1Attr.name === 'createdAt') {
+        if (p1Attr.name === "createdAt") {
           // maybe add the SQL command if we don't already have @default(now)
           if (!hasDefaultNow(p2Field)) {
             ops.push({
-              type: 'SetCreatedAtOp',
+              type: "SetCreatedAtOp",
               schema: pgSchema,
               p1Model,
               p1Field,
@@ -198,7 +198,7 @@ export async function upgrade(input: Input): Promise<Output> {
   }
 
   // Handle scalar lists
-  if (provider === 'postgres' || provider === 'postgresql') {
+  if (provider === "postgres" || provider === "postgresql") {
     for (let p1Model of prisma1.objects) {
       const p2Model = prisma2.findModel((m) => m.name === p1Model.name)
       if (!p2Model) {
@@ -220,7 +220,7 @@ export async function upgrade(input: Input): Promise<Output> {
             continue
           }
           breakingOps.push({
-            type: 'MigrateEnumListOp',
+            type: "MigrateEnumListOp",
             schema: pgSchema,
             p1Model: p1Model,
             p1Field: p1Field,
@@ -228,7 +228,7 @@ export async function upgrade(input: Input): Promise<Output> {
           })
         } else {
           breakingOps.push({
-            type: 'MigrateScalarListOp',
+            type: "MigrateScalarListOp",
             schema: pgSchema,
             p1Model: p1Model,
             p1Field: p1Field,
@@ -279,7 +279,7 @@ export async function upgrade(input: Input): Promise<Output> {
     if (edge.name) {
       continue
     }
-    const id = [edge.from.name, edge.to.name].sort().join(' ')
+    const id = [edge.from.name, edge.to.name].sort().join(" ")
     if (!backrelations[id]) {
       backrelations[id] = []
     }
@@ -304,7 +304,7 @@ export async function upgrade(input: Input): Promise<Output> {
     // add constraint if it's not a 1-to-1 already
     if (!isOneToOne(prisma2, uniqueEdge)) {
       ops.push({
-        type: 'AddUniqueConstraintOp',
+        type: "AddUniqueConstraintOp",
         schema: pgSchema,
         table: uniqueEdge.from.name,
         column: uniqueEdge.fromField.name,
@@ -312,15 +312,11 @@ export async function upgrade(input: Input): Promise<Output> {
     }
 
     // L: 1-1 relation with both sides required details
-    const p2Field1 = prisma2.findField(
-      (m, f) => edge1.from.name === m.name && edge1.to.name === f.name
-    )
+    const p2Field1 = prisma2.findField((m, f) => edge1.from.name === m.name && edge1.to.name === f.name)
     if (p2Field1) {
       p2Field1.setType(toP2Type(edge1.fromField.type))
     }
-    const p2Field2 = prisma2.findField(
-      (m, f) => edge2.from.name === m.name && edge2.to.name === f.name
-    )
+    const p2Field2 = prisma2.findField((m, f) => edge2.from.name === m.name && edge2.to.name === f.name)
     if (p2Field2) {
       p2Field2.setType(toP2Type(edge2.fromField.type))
     }
@@ -340,42 +336,33 @@ export async function upgrade(input: Input): Promise<Output> {
       continue
     }
     // 1:N relationship
-    const hasOne = edge1.type === 'hasOne' ? edge1 : edge2
-    const hasMany = edge1.type === 'hasMany' ? edge1 : edge2
+    const hasOne = edge1.type === "hasOne" ? edge1 : edge2
+    const hasMany = edge1.type === "hasMany" ? edge1 : edge2
 
     // skip if is one to many already
     if (isOneToMany(prisma2, hasOne)) {
       continue
     }
     // get the ID field
-    const hasManyFieldID = hasMany.from.fields.find(
-      (f) => f.type.named() === 'ID'
-    )
+    const hasManyFieldID = hasMany.from.fields.find((f) => f.type.named() === "ID")
     if (!hasManyFieldID) {
       continue
     }
     // get the ID field
-    const hasOneFieldID = hasOne.from.fields.find(
-      (f) => f.type.named() === 'ID'
-    )
+    const hasOneFieldID = hasOne.from.fields.find((f) => f.type.named() === "ID")
     if (!hasOneFieldID) {
       continue
     }
 
     breakingOps.push({
-      type: 'MigrateHasManyOp',
+      type: "MigrateHasManyOp",
       schema: pgSchema,
       p1ModelOne: hasOne.from,
       p1FieldOne: hasOne.fromField,
       p1FieldOneID: hasOneFieldID,
       p1ModelMany: hasMany.from,
       p1FieldManyID: hasManyFieldID,
-      joinTableName: joinTableName(
-        edge1.from,
-        edge1.fromField,
-        edge2.from,
-        edge2.fromField
-      ),
+      joinTableName: joinTableName(edge1.from, edge1.fromField, edge2.from, edge2.fromField),
     })
   }
 
@@ -388,38 +375,29 @@ export async function upgrade(input: Input): Promise<Output> {
     }
     const p1From = edge1.from.name < edge2.from.name ? edge1 : edge2
     const p1To = edge1.from.name < edge2.from.name ? edge2 : edge1
-    const p1FieldToID = p1To.from.fields.find((f) => f.type.named() === 'ID')
+    const p1FieldToID = p1To.from.fields.find((f) => f.type.named() === "ID")
     if (!p1FieldToID) {
       continue
     }
 
     if (!isTableOneToOne(prisma2, p1From, p1To)) {
       breakingOps.push({
-        type: 'MigrateOneToOneOp',
+        type: "MigrateOneToOneOp",
         schema: pgSchema,
         p1ModelFrom: p1From.from,
         p1FieldFrom: p1From.fromField,
         p1ModelTo: p1To.from,
         p1FieldToID: p1FieldToID,
-        joinTableName: joinTableName(
-          edge1.from,
-          edge1.fromField,
-          edge2.from,
-          edge2.fromField
-        ),
+        joinTableName: joinTableName(edge1.from, edge1.fromField, edge2.from, edge2.fromField),
       })
     }
 
     // L: 1-1 relation with both sides required details
-    const p2Field1 = prisma2.findField(
-      (m, f) => edge1.from.name === m.name && edge1.to.name === f.name
-    )
+    const p2Field1 = prisma2.findField((m, f) => edge1.from.name === m.name && edge1.to.name === f.name)
     if (p2Field1) {
       p2Field1.setType(toP2Type(edge1.fromField.type))
     }
-    const p2Field2 = prisma2.findField(
-      (m, f) => edge2.from.name === m.name && edge2.to.name === f.name
-    )
+    const p2Field2 = prisma2.findField((m, f) => edge2.from.name === m.name && edge2.to.name === f.name)
     if (p2Field2) {
       p2Field2.setType(toP2Type(edge2.fromField.type))
     }
@@ -432,17 +410,15 @@ export async function upgrade(input: Input): Promise<Output> {
     if (!isInlineRequiredHasMany(edge1, edge2)) {
       continue
     }
-    const hasOne = edge1.type === 'hasOne' ? edge1 : edge2
+    const hasOne = edge1.type === "hasOne" ? edge1 : edge2
     // skip over ops that have already been applied
-    const p2Field = prisma2.findField(
-      (m, f) => hasOne.from.name === m.name && hasOne.to.name === f.name
-    )
+    const p2Field = prisma2.findField((m, f) => hasOne.from.name === m.name && hasOne.to.name === f.name)
     if (!p2Field || !p2Field.type.optional()) {
       continue
     }
     // const hasMany = edge1.type === 'hasMany' ? edge1 : edge2
     breakingOps.push({
-      type: 'MigrateRequiredHasManyOp',
+      type: "MigrateRequiredHasManyOp",
       schema: pgSchema,
       p1HasOneModel: hasOne.from,
       p1HasOneField: hasOne.fromField,
@@ -454,27 +430,25 @@ export async function upgrade(input: Input): Promise<Output> {
   // Migrate varchar(25) => varchar(30)
   const idOps: sql.Op[] = []
   let idOp: sql.AlterIDsOp = {
-    type: 'AlterIDsOp',
+    type: "AlterIDsOp",
     schema: pgSchema,
     pairs: [],
   }
   for (let model of prisma2.models) {
     for (let field of model.fields) {
-      const attributeWithID = field.findAttribute((a) => a.name === 'id')
+      const attributeWithID = field.findAttribute((a) => a.name === "id")
       if (attributeWithID) {
         const type = field.type.innermost().toString()
-        if (type !== 'String') {
+        if (type !== "String") {
           continue
         }
-        if (field.name === 'nodeId') {
+        if (field.name === "nodeId") {
           continue
         }
         idOp.pairs.push({ model, field })
         continue
       }
-      const attributeWithRelation = field.findAttribute(
-        (a) => a.name === 'relation'
-      )
+      const attributeWithRelation = field.findAttribute((a) => a.name === "relation")
       if (attributeWithRelation) {
         const fieldName = getFieldName(attributeWithRelation)
         if (!fieldName) {
@@ -485,7 +459,7 @@ export async function upgrade(input: Input): Promise<Output> {
           continue
         }
         const type = scalar.type.innermost().toString()
-        if (type !== 'String') {
+        if (type !== "String") {
           continue
         }
         idOp.pairs.push({ model, field: scalar })
@@ -510,7 +484,7 @@ const pos = { column: 0, line: 0, offset: 0 }
 
 function ident(name: string): p2ast.Identifier {
   return {
-    type: 'identifier',
+    type: "identifier",
     name: name,
     end: pos,
     start: pos,
@@ -519,13 +493,13 @@ function ident(name: string): p2ast.Identifier {
 
 function defaultAttr(value: p2ast.Value): p2ast.Attribute {
   return {
-    type: 'attribute',
-    name: ident('default'),
+    type: "attribute",
+    name: ident("default"),
     end: pos,
     start: pos,
     arguments: [
       {
-        type: 'unkeyed_argument',
+        type: "unkeyed_argument",
         end: pos,
         start: pos,
         value,
@@ -536,8 +510,8 @@ function defaultAttr(value: p2ast.Value): p2ast.Attribute {
 
 function updatedAt(): p2ast.Attribute {
   return {
-    type: 'attribute',
-    name: ident('updatedAt'),
+    type: "attribute",
+    name: ident("updatedAt"),
     end: pos,
     start: pos,
     arguments: [],
@@ -546,10 +520,10 @@ function updatedAt(): p2ast.Attribute {
 
 function defaultNow(): p2ast.Attribute {
   return defaultAttr({
-    type: 'function_value',
+    type: "function_value",
     name: {
-      type: 'identifier',
-      name: 'now',
+      type: "identifier",
+      name: "now",
       start: pos,
       end: pos,
     },
@@ -562,8 +536,8 @@ function defaultNow(): p2ast.Attribute {
 // cuid()
 function cuid(): p2ast.FunctionValue {
   return {
-    type: 'function_value',
-    name: ident('cuid'),
+    type: "function_value",
+    name: ident("cuid"),
     arguments: [],
     end: pos,
     start: pos,
@@ -573,8 +547,8 @@ function cuid(): p2ast.FunctionValue {
 // uuid()
 function uuid(): p2ast.FunctionValue {
   return {
-    type: 'function_value',
-    name: ident('uuid'),
+    type: "function_value",
+    name: ident("uuid"),
     arguments: [],
     end: pos,
     start: pos,
@@ -584,32 +558,32 @@ function uuid(): p2ast.FunctionValue {
 function hasExpectedDefault(p1Arg: p1.Argument, p2Arg?: p2.Argument): boolean {
   if (!p2Arg) return false
   switch (p1Arg.value.kind) {
-    case 'BooleanValue':
-      return p2Arg.value.type === 'boolean_value'
-    case 'EnumValue':
-      return p2Arg.value.type === 'reference_value'
-    case 'FloatValue':
-      return p2Arg.value.type === 'float_value'
-    case 'IntValue':
-      return p2Arg.value.type === 'int_value'
-    case 'ListValue':
-      return p2Arg.value.type === 'list_value'
-    case 'ObjectValue':
-      return p2Arg.value.type === 'map_value'
-    case 'StringValue':
-      return p2Arg.value.type === 'string_value'
-    case 'Variable':
-      return p2Arg.value.type === 'function_value'
+    case "BooleanValue":
+      return p2Arg.value.type === "boolean_value"
+    case "EnumValue":
+      return p2Arg.value.type === "reference_value"
+    case "FloatValue":
+      return p2Arg.value.type === "float_value"
+    case "IntValue":
+      return p2Arg.value.type === "int_value"
+    case "ListValue":
+      return p2Arg.value.type === "list_value"
+    case "ObjectValue":
+      return p2Arg.value.type === "map_value"
+    case "StringValue":
+      return p2Arg.value.type === "string_value"
+    case "Variable":
+      return p2Arg.value.type === "function_value"
     // TODO: these are unhandled values
-    case 'NullValue':
+    case "NullValue":
       return false
   }
 }
 
 function hasDefaultNow(field: p2.Field): boolean {
-  const attr = field.findAttribute((a) => a.name === 'default')
+  const attr = field.findAttribute((a) => a.name === "default")
   if (!attr) return false
-  return attr.toString() === '@default(now())'
+  return attr.toString() === "@default(now())"
 }
 
 function isOneToOne(schema: p2.Schema, edge: graph.Edge): boolean {
@@ -617,7 +591,7 @@ function isOneToOne(schema: p2.Schema, edge: graph.Edge): boolean {
   if (!fromModel) return false
   const fromField = fromModel.findField((f) => f.name === edge.fromField.name)
   if (!fromField) return false
-  const uniqueAttr = fromField.findAttribute((a) => a.name === 'unique')
+  const uniqueAttr = fromField.findAttribute((a) => a.name === "unique")
   if (!uniqueAttr) return false
   const toModel = schema.findModel((m) => m.name === edge.to.name)
   if (!toModel) return false
@@ -627,11 +601,7 @@ function isOneToOne(schema: p2.Schema, edge: graph.Edge): boolean {
   return true
 }
 
-function isTableOneToOne(
-  schema: p2.Schema,
-  from: graph.Edge,
-  to: graph.Edge
-): boolean {
+function isTableOneToOne(schema: p2.Schema, from: graph.Edge, to: graph.Edge): boolean {
   const fromModel = schema.findModel((m) => m.name === from.from.name)
   if (!fromModel) {
     return false
@@ -662,9 +632,7 @@ function isOneToMany(schema: p2.Schema, hasOneEdge: graph.Edge): boolean {
   if (!model) {
     return false
   }
-  const field = model.findField(
-    (f) => f.name === hasOneEdge.fromField.name + 'Id'
-  )
+  const field = model.findField((f) => f.name === hasOneEdge.fromField.name + "Id")
   if (!field) {
     return false
   }
@@ -672,20 +640,15 @@ function isOneToMany(schema: p2.Schema, hasOneEdge: graph.Edge): boolean {
 }
 
 function isInlineOneToOne(edge1: graph.Edge, edge2: graph.Edge): boolean {
-  return (
-    edge1.type === 'hasOne' &&
-    edge1.link !== 'TABLE' &&
-    edge2.type === 'hasOne' &&
-    edge2.link !== 'TABLE'
-  )
+  return edge1.type === "hasOne" && edge1.link !== "TABLE" && edge2.type === "hasOne" && edge2.link !== "TABLE"
 }
 
 // find the edge to stick UNIQUE on
 function findUniqueEdge(edge1: graph.Edge, edge2: graph.Edge): graph.Edge {
-  if (edge1.link === 'INLINE' && edge2.link !== 'INLINE') {
+  if (edge1.link === "INLINE" && edge2.link !== "INLINE") {
     return edge1
   }
-  if (edge1.link !== 'INLINE' && edge2.link === 'INLINE') {
+  if (edge1.link !== "INLINE" && edge2.link === "INLINE") {
     return edge2
   }
   return edge1.from.name > edge2.from.name ? edge1 : edge2
@@ -693,18 +656,13 @@ function findUniqueEdge(edge1: graph.Edge, edge2: graph.Edge): graph.Edge {
 
 function isTableHasMany(edge1: graph.Edge, edge2: graph.Edge): boolean {
   const isHasMany =
-    (edge1.type === 'hasOne' && edge2.type === 'hasMany') ||
-    (edge1.type === 'hasMany' && edge2.type === 'hasOne')
-  const isTable = edge1.link === 'TABLE' || edge2.link === 'TABLE'
+    (edge1.type === "hasOne" && edge2.type === "hasMany") || (edge1.type === "hasMany" && edge2.type === "hasOne")
+  const isTable = edge1.link === "TABLE" || edge2.link === "TABLE"
   return isHasMany && isTable
 }
 
-function isInlineRequiredHasMany(
-  edge1: graph.Edge,
-  edge2: graph.Edge
-): boolean {
-  const hasOne =
-    edge1.type === 'hasOne' ? edge1 : edge2.type === 'hasOne' ? edge2 : null
+function isInlineRequiredHasMany(edge1: graph.Edge, edge2: graph.Edge): boolean {
+  const hasOne = edge1.type === "hasOne" ? edge1 : edge2.type === "hasOne" ? edge2 : null
   if (!hasOne) {
     return false
   }
@@ -712,12 +670,11 @@ function isInlineRequiredHasMany(
     return false
   }
   const isHasMany =
-    (edge1.type === 'hasOne' && edge2.type === 'hasMany') ||
-    (edge1.type === 'hasMany' && edge2.type === 'hasOne')
+    (edge1.type === "hasOne" && edge2.type === "hasMany") || (edge1.type === "hasMany" && edge2.type === "hasOne")
   if (!isHasMany) {
     return false
   }
-  const isInline = edge1.link !== 'TABLE' && edge2.link !== 'TABLE'
+  const isInline = edge1.link !== "TABLE" && edge2.link !== "TABLE"
   if (!isInline) {
     return false
   }
@@ -730,60 +687,45 @@ function isInlineRequiredHasMany(
 }
 
 function isTableHasOne(edge1: graph.Edge, edge2: graph.Edge): boolean {
-  return (
-    edge1.type === 'hasOne' &&
-    edge1.link === 'TABLE' &&
-    edge2.type === 'hasOne' &&
-    edge2.link === 'TABLE'
-  )
+  return edge1.type === "hasOne" && edge1.link === "TABLE" && edge2.type === "hasOne" && edge2.link === "TABLE"
 }
 
 function isJsonType(field: p2.Field): boolean {
-  return field.type.innermost().toString() === 'Json'
+  return field.type.innermost().toString() === "Json"
 }
 
-function isMySQLDefaultText(
-  provider: string,
-  field: p1.FieldDefinition,
-  directive: p1.Directive
-): boolean {
+function isMySQLDefaultText(provider: string, field: p1.FieldDefinition, directive: p1.Directive): boolean {
   return (
-    provider === 'mysql' &&
-    field.type.named() === 'String' &&
-    directive.name === 'default' &&
-    !!directive.findArgument((arg) => arg.name === 'value')
+    provider === "mysql" &&
+    field.type.named() === "String" &&
+    directive.name === "default" &&
+    !!directive.findArgument((arg) => arg.name === "value")
   )
 }
 
-function isMySQLDefaultJson(
-  provider: string,
-  field: p1.FieldDefinition,
-  directive: p1.Directive
-): boolean {
+function isMySQLDefaultJson(provider: string, field: p1.FieldDefinition, directive: p1.Directive): boolean {
   return (
-    provider === 'mysql' &&
-    field.type.named() === 'Json' &&
-    directive.name === 'default' &&
-    !!directive.findArgument((arg) => arg.name === 'value')
+    provider === "mysql" &&
+    field.type.named() === "Json" &&
+    directive.name === "default" &&
+    !!directive.findArgument((arg) => arg.name === "value")
   )
 }
 
 function getDefaultValueString(attr: p1.Directive): string | void {
-  const arg = attr.findArgument((a) => a.name === 'value')
-  if (!arg || !arg.value || arg.value.kind !== 'StringValue') return
+  const arg = attr.findArgument((a) => a.name === "value")
+  if (!arg || !arg.value || arg.value.kind !== "StringValue") return
   return arg.value.value
 }
 
 function getPGSchema(url: string): string {
   const obj = uri.parse(url, true)
-  if (obj.query['schema']) {
-    return Array.isArray(obj.query['schema'])
-      ? obj.query['schema'].join('')
-      : obj.query['schema']
+  if (obj.query["schema"]) {
+    return Array.isArray(obj.query["schema"]) ? obj.query["schema"].join("") : obj.query["schema"]
   }
-  let pathname = obj.pathname || ''
-  pathname = pathname.replace(/^\//, '')
-  return pathname ? pathname.replace(/\//g, '$') : 'default$default'
+  let pathname = obj.pathname || ""
+  pathname = pathname.replace(/^\//, "")
+  return pathname ? pathname.replace(/\//g, "$") : "default$default"
 }
 
 // Turn a P1 datatype into a P2 datatype
@@ -791,9 +733,9 @@ function getPGSchema(url: string): string {
 // See TODO below.
 function toP2Type(dt: p1.Type, optional: boolean = true): p2ast.DataType {
   switch (dt.kind) {
-    case 'ListType':
+    case "ListType":
       const listType: p2ast.ListType = {
-        type: 'list_type',
+        type: "list_type",
         end: pos,
         start: pos,
         inner: toP2Type(dt.inner(), true),
@@ -802,19 +744,19 @@ function toP2Type(dt: p1.Type, optional: boolean = true): p2ast.DataType {
         return listType
       }
       return {
-        type: 'optional_type',
+        type: "optional_type",
         end: pos,
         start: pos,
         inner: listType,
       }
-    case 'NonNullType':
+    case "NonNullType":
       return toP2Type(dt.inner(), false)
-    case 'NamedType':
+    case "NamedType":
       // TODO: this should include other types like String
       const namedType: p2ast.NamedType = {
-        type: 'named_type',
+        type: "named_type",
         name: {
-          type: 'identifier',
+          type: "identifier",
           name: dt.name,
           start: pos,
           end: pos,
@@ -826,7 +768,7 @@ function toP2Type(dt: p1.Type, optional: boolean = true): p2ast.DataType {
         return namedType
       }
       return {
-        type: 'optional_type',
+        type: "optional_type",
         end: pos,
         start: pos,
         inner: namedType,
@@ -841,35 +783,35 @@ function joinTableName(
   bf: p1.FieldDefinition
 ): string {
   const ta = a.name < b.name ? `_${a.name}To${b.name}` : `_${b.name}To${a.name}`
-  const ar = af.findDirective((d) => d.name === 'relation')
-  const br = bf.findDirective((d) => d.name === 'relation')
+  const ar = af.findDirective((d) => d.name === "relation")
+  const br = bf.findDirective((d) => d.name === "relation")
   if (!ar || !br) {
     return ta
   }
-  const an = ar.findArgument((a) => a.name === 'name')
-  const bn = br.findArgument((a) => a.name === 'name')
+  const an = ar.findArgument((a) => a.name === "name")
+  const bn = br.findArgument((a) => a.name === "name")
   if (!an || !bn) {
     return ta
   }
-  const av = an.value.kind === 'StringValue' ? an.value.value : ''
-  const bv = bn.value.kind === 'StringValue' ? bn.value.value : ''
+  const av = an.value.kind === "StringValue" ? an.value.value : ""
+  const bv = bn.value.kind === "StringValue" ? bn.value.value : ""
   if (!av || !bv || av !== bv) {
     return ta
   }
-  return '_' + av
+  return "_" + av
 }
 
 function getFieldName(a: p2.Attribute): string | undefined {
-  const arg = a.arguments.find((a) => a.key === 'fields')
+  const arg = a.arguments.find((a) => a.key === "fields")
   if (!arg) {
     return
   }
   const value = arg.value
-  if (value.type !== 'list_value') {
+  if (value.type !== "list_value") {
     return
   }
   const inner = value.values[0]
-  if (!inner || inner.type !== 'reference_value') {
+  if (!inner || inner.type !== "reference_value") {
     return
   }
   return inner.name.name

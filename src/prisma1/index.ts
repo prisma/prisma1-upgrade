@@ -34,9 +34,9 @@ import {
   EnumValueNode,
   ListValueNode,
   ObjectValueNode,
-} from 'graphql/language/ast'
+} from "graphql/language/ast"
 
-import * as gql from 'graphql/language/parser'
+import * as gql from "graphql/language/parser"
 
 export function parse(p1: string): Schema {
   const doc = gql.parse(p1)
@@ -49,39 +49,39 @@ export class Schema {
   get definitions(): Definition[] {
     return this.doc.definitions.map((def) => {
       switch (def.kind) {
-        case 'SchemaDefinition':
+        case "SchemaDefinition":
           return new SchemaDefinition(def)
-        case 'ScalarTypeDefinition':
+        case "ScalarTypeDefinition":
           return new ScalarTypeDefinition(def)
-        case 'ObjectTypeDefinition':
+        case "ObjectTypeDefinition":
           return new ObjectTypeDefinition(def)
-        case 'InterfaceTypeDefinition':
+        case "InterfaceTypeDefinition":
           return new InterfaceTypeDefinition(def)
-        case 'UnionTypeDefinition':
+        case "UnionTypeDefinition":
           return new UnionTypeDefinition(def)
-        case 'EnumTypeDefinition':
+        case "EnumTypeDefinition":
           return new EnumTypeDefinition(def)
-        case 'InputObjectTypeDefinition':
+        case "InputObjectTypeDefinition":
           return new InputObjectTypeDefinition(def)
-        case 'DirectiveDefinition':
+        case "DirectiveDefinition":
           return new DirectiveDefinition(def)
-        case 'SchemaExtension':
+        case "SchemaExtension":
           return new SchemaExtension(def)
-        case 'ScalarTypeExtension':
+        case "ScalarTypeExtension":
           return new ScalarTypeExtension(def)
-        case 'ObjectTypeExtension':
+        case "ObjectTypeExtension":
           return new ObjectTypeExtension(def)
-        case 'InterfaceTypeExtension':
+        case "InterfaceTypeExtension":
           return new InterfaceTypeExtension(def)
-        case 'UnionTypeExtension':
+        case "UnionTypeExtension":
           return new UnionTypeExtension(def)
-        case 'EnumTypeExtension':
+        case "EnumTypeExtension":
           return new EnumTypeExtension(def)
-        case 'InputObjectTypeExtension':
+        case "InputObjectTypeExtension":
           return new InputObjectTypeExtension(def)
-        case 'OperationDefinition':
+        case "OperationDefinition":
           return new OperationDefinition(def)
-        case 'FragmentDefinition':
+        case "FragmentDefinition":
           return new FragmentDefinition(def)
       }
     })
@@ -97,9 +97,7 @@ export class Schema {
     return arr
   }
 
-  findObject(
-    fn: (obj: ObjectTypeDefinition) => boolean
-  ): ObjectTypeDefinition | void {
+  findObject(fn: (obj: ObjectTypeDefinition) => boolean): ObjectTypeDefinition | void {
     for (let object of this.objects) {
       if (fn(object)) {
         return object
@@ -117,27 +115,27 @@ export class Schema {
     return arr
   }
 
-  version(): '1.1' | '1.0' {
+  version(): "1.1" | "1.0" {
     for (let obj of this.objects) {
       for (let field of obj.fields) {
-        if (field.type.named() !== 'ID') {
+        if (field.type.named() !== "ID") {
           continue
         }
         for (let directive of field.directives) {
-          if (directive.name === 'id') {
-            return '1.1'
+          if (directive.name === "id") {
+            return "1.1"
           }
         }
-        return '1.0'
+        return "1.0"
       }
     }
     // arbitrary: default to 1.1
-    return '1.1'
+    return "1.1"
   }
 }
 
 interface Definition {
-  kind: DefinitionNode['kind']
+  kind: DefinitionNode["kind"]
 }
 
 export class SchemaDefinition {
@@ -166,12 +164,12 @@ export class ObjectTypeDefinition {
     if (!this.def.directives) {
       return this.name
     }
-    const db = this.def.directives.find((d) => d.name.value === 'db')
+    const db = this.def.directives.find((d) => d.name.value === "db")
     if (!db || !db.arguments) {
       return this.name
     }
-    const arg = db.arguments.find((arg) => arg.name.value === 'name')
-    if (!arg || !arg.value || arg.value.kind !== 'StringValue') {
+    const arg = db.arguments.find((arg) => arg.name.value === "name")
+    if (!arg || !arg.value || arg.value.kind !== "StringValue") {
       return this.name
     }
     return arg.value.value
@@ -205,12 +203,12 @@ export class EnumTypeDefinition {
     if (!this.def.directives) {
       return this.name
     }
-    const db = this.def.directives.find((d) => d.name.value === 'db')
+    const db = this.def.directives.find((d) => d.name.value === "db")
     if (!db || !db.arguments) {
       return this.name
     }
-    const arg = db.arguments.find((arg) => arg.name.value === 'name')
-    if (!arg || !arg.value || arg.value.kind !== 'StringValue') {
+    const arg = db.arguments.find((arg) => arg.name.value === "name")
+    if (!arg || !arg.value || arg.value.kind !== "StringValue") {
       return this.name
     }
     return arg.value.value
@@ -313,10 +311,7 @@ export class FragmentDefinition {
 }
 
 export class FieldDefinition {
-  constructor(
-    private readonly modelDef: ObjectTypeDefinition,
-    private readonly def: FieldDefinitionNode
-  ) {}
+  constructor(private readonly modelDef: ObjectTypeDefinition, private readonly def: FieldDefinitionNode) {}
 
   get parent() {
     return this.modelDef
@@ -330,12 +325,12 @@ export class FieldDefinition {
     if (!this.def.directives) {
       return this.name
     }
-    const db = this.def.directives.find((d) => d.name.value === 'db')
+    const db = this.def.directives.find((d) => d.name.value === "db")
     if (!db || !db.arguments) {
       return this.name
     }
-    const arg = db.arguments.find((arg) => arg.name.value === 'name')
-    if (!arg || !arg.value || arg.value.kind !== 'StringValue') {
+    const arg = db.arguments.find((arg) => arg.name.value === "name")
+    if (!arg || !arg.value || arg.value.kind !== "StringValue") {
       return this.name
     }
     return arg.value.value
@@ -343,11 +338,11 @@ export class FieldDefinition {
 
   get type(): Type {
     switch (this.def.type.kind) {
-      case 'ListType':
+      case "ListType":
         return new ListType(this.def.type)
-      case 'NamedType':
+      case "NamedType":
         return new NamedType(this.def.type)
-      case 'NonNullType':
+      case "NonNullType":
         return new NonNullType(this.def.type)
     }
   }
@@ -381,14 +376,14 @@ export type Type = NamedType | ListType | NonNullType
 
 function isReference(name: string): boolean {
   switch (name) {
-    case 'ID':
-    case 'UUID':
-    case 'String':
-    case 'Int':
-    case 'Float':
-    case 'Boolean':
-    case 'DateTime':
-    case 'Json':
+    case "ID":
+    case "UUID":
+    case "String":
+    case "Int":
+    case "Float":
+    case "Boolean":
+    case "DateTime":
+    case "Json":
       return false
     default:
       return true
@@ -402,7 +397,7 @@ export class NamedType {
     return this.def.name.value
   }
 
-  get kind(): 'NamedType' {
+  get kind(): "NamedType" {
     return this.def.kind
   }
 
@@ -430,17 +425,17 @@ export class NamedType {
 export class ListType {
   constructor(private readonly def: ListTypeNode) {}
 
-  get kind(): 'ListType' {
+  get kind(): "ListType" {
     return this.def.kind
   }
 
   inner() {
     switch (this.def.type.kind) {
-      case 'ListType':
+      case "ListType":
         return new ListType(this.def.type)
-      case 'NamedType':
+      case "NamedType":
         return new NamedType(this.def.type)
-      case 'NonNullType':
+      case "NonNullType":
         return new NonNullType(this.def.type)
     }
   }
@@ -458,7 +453,7 @@ export class ListType {
   }
 
   toString(): string {
-    return '[' + this.inner().toString() + ']'
+    return "[" + this.inner().toString() + "]"
   }
 
   isReference(): boolean {
@@ -469,15 +464,15 @@ export class ListType {
 export class NonNullType {
   constructor(private readonly def: NonNullTypeNode) {}
 
-  get kind(): 'NonNullType' {
+  get kind(): "NonNullType" {
     return this.def.kind
   }
 
   inner() {
     switch (this.def.type.kind) {
-      case 'ListType':
+      case "ListType":
         return new ListType(this.def.type)
-      case 'NamedType':
+      case "NamedType":
         return new NamedType(this.def.type)
     }
   }
@@ -495,7 +490,7 @@ export class NonNullType {
   }
 
   toString(): string {
-    return this.inner().toString() + '!'
+    return this.inner().toString() + "!"
   }
 
   isReference(): boolean {
@@ -529,23 +524,23 @@ export class Argument {
   }
   get value(): Value {
     switch (this.def.value.kind) {
-      case 'Variable':
+      case "Variable":
         return new Variable(this.def.value)
-      case 'IntValue':
+      case "IntValue":
         return new IntValue(this.def.value)
-      case 'FloatValue':
+      case "FloatValue":
         return new FloatValue(this.def.value)
-      case 'StringValue':
+      case "StringValue":
         return new StringValue(this.def.value)
-      case 'BooleanValue':
+      case "BooleanValue":
         return new BooleanValue(this.def.value)
-      case 'NullValue':
+      case "NullValue":
         return new NullValue(this.def.value)
-      case 'EnumValue':
+      case "EnumValue":
         return new EnumValue(this.def.value)
-      case 'ListValue':
+      case "ListValue":
         return new ListValue(this.def.value)
-      case 'ObjectValue':
+      case "ObjectValue":
         return new ObjectValue(this.def.value)
     }
   }
@@ -565,7 +560,7 @@ export type Value =
 export class Variable {
   constructor(private readonly def: VariableNode) {}
 
-  get kind(): 'Variable' {
+  get kind(): "Variable" {
     return this.def.kind
   }
 
@@ -577,7 +572,7 @@ export class Variable {
 export class IntValue {
   constructor(private readonly def: IntValueNode) {}
 
-  get kind(): 'IntValue' {
+  get kind(): "IntValue" {
     return this.def.kind
   }
 
@@ -589,7 +584,7 @@ export class IntValue {
 export class FloatValue {
   constructor(private readonly def: FloatValueNode) {}
 
-  get kind(): 'FloatValue' {
+  get kind(): "FloatValue" {
     return this.def.kind
   }
 
@@ -601,7 +596,7 @@ export class FloatValue {
 export class StringValue {
   constructor(private readonly def: StringValueNode) {}
 
-  get kind(): 'StringValue' {
+  get kind(): "StringValue" {
     return this.def.kind
   }
 
@@ -613,7 +608,7 @@ export class StringValue {
 export class BooleanValue {
   constructor(private readonly def: BooleanValueNode) {}
 
-  get kind(): 'BooleanValue' {
+  get kind(): "BooleanValue" {
     return this.def.kind
   }
 
@@ -625,7 +620,7 @@ export class BooleanValue {
 export class NullValue {
   constructor(private readonly def: NullValueNode) {}
 
-  get kind(): 'NullValue' {
+  get kind(): "NullValue" {
     return this.def.kind
   }
 
@@ -637,7 +632,7 @@ export class NullValue {
 export class EnumValue {
   constructor(private readonly def: EnumValueNode) {}
 
-  get kind(): 'EnumValue' {
+  get kind(): "EnumValue" {
     return this.def.kind
   }
 
@@ -648,7 +643,7 @@ export class EnumValue {
 
 export class ListValue {
   constructor(private readonly def: ListValueNode) {}
-  get kind(): 'ListValue' {
+  get kind(): "ListValue" {
     return this.def.kind
   }
 
@@ -663,7 +658,7 @@ type ObjectMap = { [name: string]: Value }
 
 export class ObjectValue {
   constructor(private readonly def: ObjectValueNode) {}
-  get kind(): 'ObjectValue' {
+  get kind(): "ObjectValue" {
     return this.def.kind
   }
 

@@ -16,6 +16,7 @@
     "generate": "pegjs src/prisma2/parser/index.pegjs && ./scripts/cjs2es.js",
     "build": "rollup -c",
     "watch": "rollup -c -w",
+    "format": "prettier --write src/**/*",
     "check": "tsc"
   },
   "repository": {
@@ -64,5 +65,9 @@
     "testaway": "2.0.1",
     "ts-node": "8.10.2",
     "typescript": "3.9.5"
+  },
+  "prettier": {
+    "printWidth": 120,
+    "semi": false
   }
 }

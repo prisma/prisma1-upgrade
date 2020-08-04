@@ -1,4 +1,4 @@
-import readline from 'readline'
+import readline from "readline"
 
 export async function prompt(question: string): Promise<string> {
   return new Promise<string>((resolve) => {

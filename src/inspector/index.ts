@@ -1,4 +1,4 @@
-import { IntrospectionEngine } from '@prisma/sdk'
+import { IntrospectionEngine } from "@prisma/sdk"
 
 export default class Default {
   private readonly inspector = new IntrospectionEngine()

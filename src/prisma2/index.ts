@@ -1,5 +1,5 @@
-import * as ast from 'prismafile/dist/ast'
-import { parse, print } from 'prismafile'
+import * as ast from "prismafile/dist/ast"
+import { parse, print } from "prismafile"
 
 const pos = {
   offset: 0,
@@ -17,7 +17,7 @@ export class Schema {
   get datasources(): Datasource[] {
     let dss: ast.DataSource[] = []
     for (let block of this.n.blocks) {
-      if (block.type === 'datasource') {
+      if (block.type === "datasource") {
         dss.push(block)
       }
     }
@@ -27,7 +27,7 @@ export class Schema {
   get models(): Model[] {
     let dss: ast.Model[] = []
     for (let block of this.n.blocks) {
-      if (block.type === 'model') {
+      if (block.type === "model") {
         dss.push(block)
       }
     }
@@ -37,7 +37,7 @@ export class Schema {
   get enums(): Enum[] {
     let dss: ast.Enum[] = []
     for (let block of this.n.blocks) {
-      if (block.type === 'enum') {
+      if (block.type === "enum") {
         dss.push(block)
       }
     }
@@ -48,14 +48,12 @@ export class Schema {
   provider(): string {
     const datasource = this.datasources[0]
     if (!datasource) {
-      throw new Error(
-        'The Prisma 2 schema must contain a datasource configuration'
-      )
+      throw new Error("The Prisma 2 schema must contain a datasource configuration")
     }
     // find the prisma2 datasource provider
     const provider = datasource.provider
     if (!provider) {
-      throw new Error('The Prisma 2 datasource must contain a provider')
+      throw new Error("The Prisma 2 datasource must contain a provider")
     }
     return provider
   }
@@ -64,9 +62,7 @@ export class Schema {
   setURL(url: string) {
     const datasource = this.datasources[0]
     if (!datasource) {
-      throw new Error(
-        'The Prisma 2 schema must contain a datasource configuration'
-      )
+      throw new Error("The Prisma 2 schema must contain a datasource configuration")
     }
     datasource.url = url
   }
@@ -121,9 +117,7 @@ export class Schema {
     return fields
   }
 
-  findAttribute(
-    fn: (m: Model, f: Field, a: Attribute) => boolean
-  ): Attribute | void {
+  findAttribute(fn: (m: Model, f: Field, a: Attribute) => boolean): Attribute | void {
     for (let model of this.models) {
       for (let field of model.fields) {
         for (let attr of field.attributes) {
@@ -141,7 +135,7 @@ export class Schema {
 
   toTestString(): string {
     const clone: ast.Schema = JSON.parse(JSON.stringify(this.n))
-    clone.blocks = clone.blocks.filter((block) => block.type !== 'datasource')
+    clone.blocks = clone.blocks.filter((block) => block.type !== "datasource")
     return print(clone)
   }
 
@@ -155,12 +149,10 @@ export class Datasource {
   constructor(private readonly node: ast.DataSource) {}
 
   get provider(): string | undefined {
-    const provider = this.node.assignments.find(
-      (assignment) => assignment.key.name === 'provider'
-    )
+    const provider = this.node.assignments.find((assignment) => assignment.key.name === "provider")
     if (!provider) return
     switch (provider.value.type) {
-      case 'string_value':
+      case "string_value":
         return provider.value.value
       default:
         throw new Error(
@@ -170,11 +162,11 @@ export class Datasource {
   }
 
   get url(): string | undefined {
-    const url = this.node.assignments.find((a) => a.key.name === 'url')
+    const url = this.node.assignments.find((a) => a.key.name === "url")
     if (!url) return
     const value = url.value
     switch (value.type) {
-      case 'string_value':
+      case "string_value":
         return value.value
       default:
         return
@@ -183,20 +175,20 @@ export class Datasource {
 
   set url(url: string | undefined) {
     if (!url) return
-    const a = this.node.assignments.find((a) => a.key.name === 'url')
+    const a = this.node.assignments.find((a) => a.key.name === "url")
     if (!a) {
       this.node.assignments.push({
-        type: 'assignment',
+        type: "assignment",
         start: pos,
         end: pos,
         key: {
-          type: 'identifier',
-          name: 'url',
+          type: "identifier",
+          name: "url",
           start: pos,
           end: pos,
         },
         value: {
-          type: 'string_value',
+          type: "string_value",
           value: url,
           start: pos,
           end: pos,
@@ -205,7 +197,7 @@ export class Datasource {
       return
     }
     a.value = {
-      type: 'string_value',
+      type: "string_value",
       value: url,
       start: a.value.start,
       end: a.value.end,
@@ -295,12 +287,12 @@ export class Model {
   }
 
   get dbname(): string {
-    const map = this.attributes.find((a) => a.name === 'map')
+    const map = this.attributes.find((a) => a.name === "map")
     if (!map) {
       return this.n.name.name
     }
     const arg = map.arguments[0]
-    if (!arg || arg.value.type !== 'string_value') {
+    if (!arg || arg.value.type !== "string_value") {
       return this.n.name.name
     }
     return arg.value.value
@@ -309,7 +301,7 @@ export class Model {
   get fields(): Field[] {
     let fields: ast.Field[] = []
     for (let prop of this.n.properties) {
-      if (prop.type === 'field') {
+      if (prop.type === "field") {
         fields.push(prop)
       }
     }
@@ -319,7 +311,7 @@ export class Model {
   get attributes(): Attribute[] {
     let attrs: ast.Attribute[] = []
     for (let prop of this.n.properties) {
-      if (prop.type === 'attribute') {
+      if (prop.type === "attribute") {
         attrs.push(prop)
       }
     }
@@ -342,10 +334,10 @@ export class Model {
     const dbName = this.name
     this.n.name.name = name
     this.upsertAttribute({
-      type: 'attribute',
+      type: "attribute",
       name: {
-        type: 'identifier',
-        name: 'map',
+        type: "identifier",
+        name: "map",
         start: pos,
         end: pos,
       },
@@ -353,9 +345,9 @@ export class Model {
       end: pos,
       arguments: [
         {
-          type: 'unkeyed_argument',
+          type: "unkeyed_argument",
           value: {
-            type: 'string_value',
+            type: "string_value",
             value: dbName,
             start: pos,
             end: pos,
@@ -366,15 +358,13 @@ export class Model {
       ],
     })
     // adjust all references
-    const fields = this.s.findFields(
-      (_, f) => f.type.innermost().toString() === dbName
-    )
+    const fields = this.s.findFields((_, f) => f.type.innermost().toString() === dbName)
     for (let field of fields) {
       field.setName(name)
       field.setInnermostType({
-        type: 'named_type',
+        type: "named_type",
         name: {
-          type: 'identifier',
+          type: "identifier",
           name: name,
           start: pos,
           end: pos,
@@ -388,7 +378,7 @@ export class Model {
   upsertAttribute(a: ast.Attribute) {
     for (let i = 0; i < this.n.properties.length; i++) {
       const prop = this.n.properties[i]
-      if (prop.type === 'field') {
+      if (prop.type === "field") {
         continue
       }
       if (prop.name.name !== a.name.name) {
@@ -427,10 +417,10 @@ export class Field {
     const dbName = this.name
     this.setName(name)
     this.upsertAttribute({
-      type: 'attribute',
+      type: "attribute",
       name: {
-        type: 'identifier',
-        name: 'map',
+        type: "identifier",
+        name: "map",
         start: pos,
         end: pos,
       },
@@ -438,9 +428,9 @@ export class Field {
       end: pos,
       arguments: [
         {
-          type: 'unkeyed_argument',
+          type: "unkeyed_argument",
           value: {
-            type: 'string_value',
+            type: "string_value",
             value: dbName,
             start: pos,
             end: pos,
@@ -520,17 +510,17 @@ export class DataType {
   constructor(private n: ast.DataType) {}
 
   optional(): boolean {
-    return this.n.type === 'optional_type'
+    return this.n.type === "optional_type"
   }
 
   list(): boolean {
-    return this.n.type === 'list_type'
+    return this.n.type === "list_type"
   }
 
   innermost(): DataType {
     switch (this.n.type) {
-      case 'optional_type':
-      case 'list_type':
+      case "optional_type":
+      case "list_type":
         return new DataType(this.n.inner)
       default:
         return this
@@ -541,14 +531,10 @@ export class DataType {
     this.setInnermost(this.n, to)
   }
 
-  private setInnermost(
-    from: ast.DataType,
-    to: ast.DataType,
-    parent?: ast.OptionalType | ast.ListType
-  ): void {
+  private setInnermost(from: ast.DataType, to: ast.DataType, parent?: ast.OptionalType | ast.ListType): void {
     switch (from.type) {
-      case 'optional_type':
-      case 'list_type':
+      case "optional_type":
+      case "list_type":
         return this.setInnermost(from.inner, to, from)
       default:
         if (parent) {
@@ -566,11 +552,11 @@ export class DataType {
   // datatype printer
   private DataType(n: ast.DataType): string {
     switch (n.type) {
-      case 'list_type':
+      case "list_type":
         return `${this.DataType(n.inner)}[]`
-      case 'optional_type':
+      case "optional_type":
         return `${this.DataType(n.inner)}?`
-      case 'named_type':
+      case "named_type":
         return `${this.Identifier(n.name)}`
       default:
         throw new Error(`Unhandled Datatype: ${n!.type}`)
@@ -597,21 +583,17 @@ export class Attribute {
 
   // TODO: move all this into the printer
   private FieldAttribute(n: ast.Attribute): string {
-    const name = n.group
-      ? `${n.group}.${this.Identifier(n.name)}`
-      : this.Identifier(n.name)
+    const name = n.group ? `${n.group}.${this.Identifier(n.name)}` : this.Identifier(n.name)
     if (!n.arguments.length) {
       return `@${name}`
     }
-    return `@${name}(${n.arguments
-      .map((a) => this.AttributeArgument(a))
-      .join(', ')})`
+    return `@${name}(${n.arguments.map((a) => this.AttributeArgument(a)).join(", ")})`
   }
   private AttributeArgument(n: ast.AttributeArgument): string {
     switch (n.type) {
-      case 'keyed_argument':
+      case "keyed_argument":
         return this.KeyedArgument(n)
-      case 'unkeyed_argument':
+      case "unkeyed_argument":
         return this.UnkeyedArgument(n)
       default:
         throw new Error(`unhandled attribute argument ${n!.type}`)
@@ -625,23 +607,23 @@ export class Attribute {
   }
   private Value(n: ast.Value): string {
     switch (n.type) {
-      case 'boolean_value':
+      case "boolean_value":
         return this.BooleanValue(n)
-      case 'datetime_value':
+      case "datetime_value":
         return this.DateTimeValue(n)
-      case 'float_value':
+      case "float_value":
         return this.FloatValue(n)
-      case 'function_value':
+      case "function_value":
         return this.FunctionValue(n)
-      case 'int_value':
+      case "int_value":
         return this.IntValue(n)
-      case 'list_value':
+      case "list_value":
         return this.ListValue(n)
-      case 'map_value':
+      case "map_value":
         return this.MapValue(n)
-      case 'string_value':
+      case "string_value":
         return this.StringValue(n)
-      case 'reference_value':
+      case "reference_value":
         return this.ReferenceValue(n)
       default:
         throw new Error(`unhandled value ${n!.type}`)
@@ -657,25 +639,23 @@ export class Attribute {
     return String(n.value)
   }
   private FunctionValue(n: ast.FunctionValue): string {
-    return `${this.Identifier(n.name)}(${(n.arguments || [])
-      .map((v) => this.Value(v))
-      .join(', ')})`
+    return `${this.Identifier(n.name)}(${(n.arguments || []).map((v) => this.Value(v)).join(", ")})`
   }
   private IntValue(n: ast.IntValue): string {
     return String(n.value)
   }
   private ListValue(n: ast.ListValue): string {
-    let arr: string = '['
-    arr += n.values.map((v) => this.Value(v)).join(', ')
-    arr += ']'
+    let arr: string = "["
+    arr += n.values.map((v) => this.Value(v)).join(", ")
+    arr += "]"
     return arr
   }
   private MapValue(n: ast.MapValue): string {
-    let obj: string = '{'
+    let obj: string = "{"
     for (let field of n.fields) {
       obj += `${field.key}: ${this.Value(field.value)},`
     }
-    obj += '}'
+    obj += "}"
     return obj
   }
   private StringValue(n: ast.StringValue): string {
@@ -694,7 +674,7 @@ export class Argument {
 
   get key(): string | undefined {
     switch (this.n.type) {
-      case 'keyed_argument':
+      case "keyed_argument":
         return this.n.name.name
       default:
         return undefined
@@ -708,7 +688,7 @@ export class Argument {
 
 export class Value {
   constructor(private readonly n: ast.Value) {}
-  get type(): ast.Value['type'] {
+  get type(): ast.Value["type"] {
     return this.n.type
   }
 }
