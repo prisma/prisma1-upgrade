@@ -1,3 +1,7 @@
+# 0.0.36 / 2020-08-13
+
+- maintain relationship names from Prisma 1. Closes #25
+
 # 0.0.35 / 2020-07-28
 
 - support nullable lists in Postgres, even though Prisma 2 doesn't yet support this from a client perspective
