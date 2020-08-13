@@ -1,7 +1,7 @@
 model User {
   id        String    @default(cuid()) @id
   coinflips Boolean[]
-  roles     Role[]
+  roles     Role[]    @map("roles")
   names     String[]
 }
 

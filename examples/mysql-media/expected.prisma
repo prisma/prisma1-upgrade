@@ -2,7 +2,7 @@ model Media {
   id          String  @default(cuid()) @id
   title       String?
   publisherId String
-  User        User    @relation(fields: [publisherId], references: [id])
+  publisher   User    @relation(fields: [publisherId], references: [id])
   @@index([publisherId], name: "publisherId")
 }
 
@@ -10,5 +10,5 @@ model User {
   id        String  @default(cuid()) @id
   firstName String
   lastName  String
-  Media     Media[]
+  medias    Media[]
 }

@@ -3,6 +3,6 @@ model User {
   updatedAt   DateTime
   createdAt   DateTime
   invitedById String?
-  User        User?    @relation("UserToUser_invitedById", fields: [invitedById], references: [id])
-  other_User  User[]   @relation("UserToUser_invitedById")
+  invitedById User?    @map("invitedBy") @relation("UserToUser_invitedById", fields: [invitedById], references: [id])
+  invitedBy   User[]   @relation("UserToUser_invitedById")
 }

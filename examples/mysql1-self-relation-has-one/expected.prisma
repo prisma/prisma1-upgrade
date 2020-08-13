@@ -1,8 +1,8 @@
 model User {
-  id         String   @default(cuid()) @id
-  updatedAt  DateTime
-  createdAt  DateTime
-  userId     String?  @unique
-  User       User?    @relation("UserToUser_userId", fields: [userId], references: [id])
-  other_User User?    @relation("UserToUser_userId")
+  id        String   @default(cuid()) @id
+  updatedAt DateTime
+  createdAt DateTime
+  userId    String?  @unique
+  inviterId User?    @map("inviter") @relation("UserToUser_userId", fields: [userId], references: [id])
+  inviter   User?    @relation("UserToUser_userId")
 }

@@ -1,7 +1,7 @@
 model User {
-  id        String   @default(cuid()) @id
-  updatedAt DateTime
-  createdAt DateTime
-  User_A    User[]   @relation("UserInvitation", references: [id])
-  User_B    User[]   @relation("UserInvitation", references: [id])
+  id             String   @default(cuid()) @id
+  updatedAt      DateTime
+  createdAt      DateTime
+  invitedUsersId User[]   @map("invitedUsers") @relation("UserInvitation", references: [id])
+  invitedUsers   User[]   @relation("UserInvitation", references: [id])
 }

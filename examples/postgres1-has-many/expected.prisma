@@ -3,12 +3,12 @@ model Post {
   updatedAt DateTime
   createdAt DateTime
   authorId  String
-  User      User     @relation(fields: [authorId], references: [id])
+  author    User     @relation(fields: [authorId], references: [id])
 }
 
 model User {
   id        String   @default(cuid()) @id
   updatedAt DateTime
   createdAt DateTime
-  Post      Post[]
+  posts     Post[]
 }

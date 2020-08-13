@@ -1,9 +1,9 @@
 model Companie {
-  id               String             @default(cuid()) @id
-  companieRole     String
-  updatedAt        DateTime
-  createdAt        DateTime
-  UserRoleCompanie UserRoleCompanie[]
+  id                String             @default(cuid()) @id
+  companieRole      String
+  updatedAt         DateTime
+  createdAt         DateTime
+  userRoleCompanies UserRoleCompanie[]
 }
 
 model IssuedCard {
@@ -12,16 +12,16 @@ model IssuedCard {
   updatedAt DateTime
   createdAt DateTime
   userId    String
-  User      User     @relation(fields: [userId], references: [id])
+  user      User     @relation(fields: [userId], references: [id])
   @@index([userId], name: "userId")
 }
 
 model User {
-  id         String       @default(cuid()) @id
-  firstName  String
-  updatedAt  DateTime
-  createdAt  DateTime
-  IssuedCard IssuedCard[]
+  id          String       @default(cuid()) @id
+  firstName   String
+  updatedAt   DateTime
+  createdAt   DateTime
+  issuedCards IssuedCard[]
 }
 
 model UserRoleCompanie {
@@ -29,6 +29,6 @@ model UserRoleCompanie {
   updatedAt  DateTime
   createdAt  DateTime
   companieId String
-  Companie   Companie @relation(fields: [companieId], references: [id])
+  companie   Companie @relation(fields: [companieId], references: [id])
   @@index([companieId], name: "companieId")
 }

@@ -471,6 +471,36 @@ export async function upgrade(input: Input): Promise<Output> {
     idOps.push(idOp)
   }
 
+  // Lastly, we'll try to rename relationships
+  for (let p1Model of models) {
+    // find the corresponding p2 model
+    for (let p2Model of prisma2.models) {
+      if (p2Model.name !== p1Model.dbname) {
+        continue
+      }
+      for (let p2Field of p2Model.fields) {
+        if (!p2Field.type.isReference()) {
+          continue
+        }
+        for (let p1Field of p1Model.fields) {
+          if (!p1Field.type.isReference()) {
+            continue
+          }
+          if (p2Field.type.innermost().toString() === p1Field.type.named()) {
+            // look for any conflicts
+            for (let p2Field of p2Model.fields) {
+              if (p1Field.name === p2Field.name) {
+                p2Field.rename(p2Field.name + "Id")
+                break
+              }
+            }
+            p2Field.setName(p1Field.name)
+          }
+        }
+      }
+    }
+  }
+
   return {
     schema: prisma2,
     warnings,

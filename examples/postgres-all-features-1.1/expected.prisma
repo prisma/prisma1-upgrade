@@ -2,7 +2,7 @@ model Home {
   id        Int      @default(autoincrement()) @id
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  User      User[]
+  users     User[]
 }
 
 model IdentificationDocument {
@@ -10,7 +10,7 @@ model IdentificationDocument {
   documentNumber String
   issuedOn       DateTime
   expiresOn      DateTime
-  User           User
+  user           User
 }
 
 model Tagline {
@@ -19,7 +19,7 @@ model Tagline {
   updatedAt   DateTime            @updatedAt
   description String?
   excerpt     String
-  visibility  TaglineVisibility[]
+  visibility  TaglineVisibility[] @map("visibility")
   User        User[]
 }
 
@@ -29,7 +29,7 @@ model TaxDocument {
   issuedOn       DateTime
   expiresOn      DateTime
   lastChangedOn  DateTime? @updatedAt
-  User           User
+  user           User
 }
 
 model Thought {
@@ -42,34 +42,34 @@ model Thought {
 }
 
 model User {
-  id                               String                 @default(cuid()) @id
-  createdAt                        DateTime               @default(now())
-  updatedAt                        DateTime               @updatedAt
-  email                            String                 @unique
-  age                              Int
-  type                             UserType
-  isActive                         Boolean                @default(false)
-  temperature                      Float?
-  meta                             Json?
-  nickName                         String?                @map("friendlyName")
-  godFather                        String?
-  home                             Int?
-  taxDocument                      String?                @unique
-  identificationDocument           String?                @unique
-  bestFriend                       String?
-  tagline                          String?
-  User_UserToUser_bestFriend       User?                  @relation("UserToUser_bestFriend", fields: [bestFriend], references: [id])
-  User_UserToUser_godFather        User?                  @relation("UserToUser_godFather", fields: [godFather], references: [id])
-  Home                             Home?                  @relation(fields: [home], references: [id])
-  IdentificationDocument           IdentificationDocument @relation(fields: [identificationDocument], references: [id])
-  Tagline                          Tagline?               @relation(fields: [tagline], references: [id])
-  TaxDocument                      TaxDocument?           @relation(fields: [taxDocument], references: [id])
-  other_User_UserToUser_bestFriend User[]                 @relation("UserToUser_bestFriend")
-  other_User_UserToUser_godFather  User[]                 @relation("UserToUser_godFather")
-  Thought                          Thought[]              @relation(references: [id])
-  User_A                           User[]                 @relation("UserFriends", references: [id])
-  User_B                           User[]                 @relation("UserFriends", references: [id])
-  Work                             Work[]                 @relation(references: [id])
+  id                       String                 @default(cuid()) @id
+  createdAt                DateTime               @default(now())
+  updatedAt                DateTime               @updatedAt
+  email                    String                 @unique
+  age                      Int
+  type                     UserType               @map("type")
+  isActive                 Boolean                @default(false)
+  temperature              Float?
+  meta                     Json?
+  nickName                 String?                @map("friendlyName")
+  godFatherId              String?                @map("godFather")
+  homeId                   Int?                   @map("home")
+  taxDocumentId            String?                @map("taxDocument") @unique
+  identificationDocumentId String?                @map("identificationDocument") @unique
+  bestFriendId             String?                @map("bestFriend")
+  taglineId                String?                @map("tagline")
+  friendsId                User?                  @map("friends") @relation("UserToUser_bestFriend", fields: [bestFriend], references: [id])
+  friendsId                User?                  @map("friends") @relation("UserToUser_godFather", fields: [godFather], references: [id])
+  home                     Home?                  @relation(fields: [home], references: [id])
+  identificationDocument   IdentificationDocument @relation(fields: [identificationDocument], references: [id])
+  tagline                  Tagline?               @relation(fields: [tagline], references: [id])
+  taxDocument              TaxDocument?           @relation(fields: [taxDocument], references: [id])
+  friendsId                User[]                 @map("friends") @relation("UserToUser_bestFriend")
+  friendsId                User[]                 @map("friends") @relation("UserToUser_godFather")
+  thoughts                 Thought[]              @relation(references: [id])
+  friendsId                User[]                 @map("friends") @relation("UserFriends", references: [id])
+  friends                  User[]                 @relation("UserFriends", references: [id])
+  work                     Work[]                 @relation(references: [id])
 }
 
 model Work {

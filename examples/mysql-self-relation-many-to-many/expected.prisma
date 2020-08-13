@@ -1,5 +1,5 @@
 model User {
-  id     String @default(cuid()) @id
-  User_A User[] @relation("UserInvitation", references: [id])
-  User_B User[] @relation("UserInvitation", references: [id])
+  id             String @default(cuid()) @id
+  invitedUsersId User[] @map("invitedUsers") @relation("UserInvitation", references: [id])
+  invitedUsers   User[] @relation("UserInvitation", references: [id])
 }

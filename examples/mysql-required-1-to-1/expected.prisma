@@ -1,13 +1,13 @@
 model Profile {
   id   String @default(cuid()) @id
   bio  String
-  User User
+  user User
 }
 
 model User {
-  id      String  @default(cuid()) @id
-  email   String  @unique
-  profile String? @unique
-  Profile Profile @relation(fields: [profile], references: [id])
+  id        String  @default(cuid()) @id
+  email     String  @unique
+  profileId String? @map("profile") @unique
+  profile   Profile @relation(fields: [profile], references: [id])
   @@index([profile], name: "profile")
 }

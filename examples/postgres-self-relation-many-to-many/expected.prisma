@@ -1,6 +1,6 @@
 model User {
-  id          String  @default(cuid()) @id
-  invitedUser String?
-  User        User?   @relation("UserToUser_invitedUser", fields: [invitedUser], references: [id])
-  other_User  User[]  @relation("UserToUser_invitedUser")
+  id             String  @default(cuid()) @id
+  invitedUser    String?
+  invitedUsersId User?   @map("invitedUsers") @relation("UserToUser_invitedUser", fields: [invitedUser], references: [id])
+  invitedUsers   User[]  @relation("UserToUser_invitedUser")
 }

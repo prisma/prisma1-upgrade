@@ -1,10 +1,10 @@
 model Post {
   id       String  @default(cuid()) @id
   authorId String?
-  User     User?   @relation(fields: [authorId], references: [id])
+  author   User?   @relation(fields: [authorId], references: [id])
 }
 
 model User {
-  id   String @default(cuid()) @id
-  Post Post[]
+  id    String @default(cuid()) @id
+  posts Post[]
 }
