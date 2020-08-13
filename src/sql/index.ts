@@ -305,7 +305,7 @@ export class Postgres implements Translator {
     const stmts: string[] = []
     for (let pair of op.pairs) {
       const modelName = this.schema(op.schema, pair.model.dbname)
-      const fieldName = pair.field.name
+      const fieldName = pair.field.dbname
       stmts.push(`ALTER TABLE ${modelName} ALTER COLUMN "${fieldName}" SET DATA TYPE character varying(30);`)
     }
     return stmts.join("\n")
@@ -566,7 +566,7 @@ export class MySQL5 implements Translator {
     stmts.push(`SET FOREIGN_KEY_CHECKS=0;`)
     for (let pair of op.pairs) {
       const modelName = this.backtick(pair.model.dbname)
-      const fieldName = this.backtick(pair.field.name)
+      const fieldName = this.backtick(pair.field.dbname)
       const notNull = pair.field.type.optional() ? "" : "NOT NULL"
       stmts.push(`ALTER TABLE ${modelName} CHANGE ${fieldName} ${fieldName} char(30) CHARACTER SET utf8 ${notNull};`)
     }

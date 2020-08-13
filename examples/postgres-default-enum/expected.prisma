@@ -1,6 +1,6 @@
 model User {
   id   String @default(cuid()) @id
-  role Role   @default(CUSTOMER)
+  role Role   @default(CUSTOMER) @map("role")
 }
 
 enum Role {

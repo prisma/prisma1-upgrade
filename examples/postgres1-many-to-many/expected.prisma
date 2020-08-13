@@ -2,12 +2,12 @@ model Post {
   id        String   @default(cuid()) @id
   updatedAt DateTime
   createdAt DateTime
-  Tag       Tag[]    @relation(references: [id])
+  tags      Tag[]    @relation(references: [id])
 }
 
 model Tag {
   id        String   @default(cuid()) @id
   updatedAt DateTime
   createdAt DateTime
-  Post      Post[]   @relation(references: [id])
+  posts     Post[]   @relation(references: [id])
 }

@@ -1,9 +1,9 @@
 model User {
-  id            String   @default(cuid()) @id
-  updatedAt     DateTime
-  createdAt     DateTime
-  invitedUserId String
-  User          User     @relation("UserToUser_invitedUserId", fields: [invitedUserId], references: [id])
-  other_User    User[]   @relation("UserToUser_invitedUserId")
+  id             String   @default(cuid()) @id
+  updatedAt      DateTime
+  createdAt      DateTime
+  invitedUserId  String
+  invitedUsersId User     @map("invitedUsers") @relation("UserToUser_invitedUserId", fields: [invitedUserId], references: [id])
+  invitedUsers   User[]   @relation("UserToUser_invitedUserId")
   @@index([invitedUserId], name: "invitedUserId")
 }

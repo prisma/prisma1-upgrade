@@ -1,27 +1,27 @@
 model Category {
-  id   String @default(cuid()) @id
-  name String
-  Post Post[] @relation(references: [id])
+  id    String @default(cuid()) @id
+  name  String
+  posts Post[] @relation(references: [id])
 }
 
 model Post {
-  id        String     @default(cuid()) @id
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
-  title     String
-  content   String?
-  published Boolean    @default(false)
-  authorId  String?
-  User      User?      @relation(fields: [authorId], references: [id])
-  Category  Category[] @relation(references: [id])
+  id         String     @default(cuid()) @id
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+  title      String
+  content    String?
+  published  Boolean    @default(false)
+  authorId   String?
+  author     User?      @relation(fields: [authorId], references: [id])
+  categories Category[] @relation(references: [id])
   @@index([authorId], name: "authorId")
 }
 
 model Profile {
-  id   String  @default(cuid()) @id
-  bio  String?
-  user String? @unique
-  User User    @relation(fields: [user], references: [id])
+  id     String  @default(cuid()) @id
+  bio    String?
+  userId String? @map("user") @unique
+  user   User    @relation(fields: [user], references: [id])
   @@index([user], name: "user")
 }
 
@@ -31,8 +31,8 @@ model User {
   name     String
   role     User_role @default(CUSTOMER)
   jsonData Json?
-  Post     Post[]
-  Profile  Profile?
+  posts    Post[]
+  profile  Profile?
 }
 
 enum User_role {

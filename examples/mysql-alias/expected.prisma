@@ -1,7 +1,7 @@
 model Category {
-  id      String    @default(cuid()) @id
-  name    String
-  Message Message[] @relation("CategoryToMessage", references: [id])
+  id       String    @default(cuid()) @id
+  name     String
+  messages Message[] @relation("CategoryToMessage", references: [id])
 }
 
 model Message {
@@ -19,10 +19,10 @@ model Message {
 }
 
 model Profile {
-  id   String  @default(cuid()) @id
-  bio  String?
-  user String? @unique
-  User User    @relation(fields: [user], references: [id])
+  id     String  @default(cuid()) @id
+  bio    String?
+  userId String? @map("user") @unique
+  user   User    @relation(fields: [user], references: [id])
   @@index([user], name: "user")
 }
 
@@ -32,8 +32,8 @@ model User {
   name     String
   role     User_role @default(CUSTOMER)
   settings Json?     @map("jsonData")
-  Message  Message[]
-  Profile  Profile?
+  messages Message[]
+  profile  Profile?
 }
 
 enum User_role {

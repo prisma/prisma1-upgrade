@@ -2,7 +2,7 @@ model AUser {
   id        String   @default(cuid()) @id
   updatedAt DateTime
   createdAt DateTime
-  Post      Post[]
+  posts     Post[]
 }
 
 model Post {
@@ -10,6 +10,6 @@ model Post {
   updatedAt DateTime
   createdAt DateTime
   authorId  String
-  AUser     AUser    @relation(fields: [authorId], references: [id])
+  author    AUser    @relation(fields: [authorId], references: [id])
   @@index([authorId], name: "authorId")
 }

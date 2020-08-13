@@ -413,6 +413,18 @@ export class Field {
     this.n.datatype = datatype
   }
 
+  get dbname(): string {
+    const map = this.attributes.find((a) => a.name === "map")
+    if (!map) {
+      return this.n.name.name
+    }
+    const arg = map.arguments[0]
+    if (!arg || arg.value.type !== "string_value") {
+      return this.n.name.name
+    }
+    return arg.value.value
+  }
+
   rename(name: string): void {
     const dbName = this.name
     this.setName(name)
@@ -524,6 +536,24 @@ export class DataType {
         return new DataType(this.n.inner)
       default:
         return this
+    }
+  }
+
+  isReference(): boolean {
+    const innermost = this.innermost()
+    const n = innermost.n
+    if (n.type !== "named_type") {
+      return false
+    }
+    switch (n.name.name) {
+      case "String":
+      case "Float":
+      case "Int":
+      case "DateTime":
+      case "Json":
+        return false
+      default:
+        return true
     }
   }
 

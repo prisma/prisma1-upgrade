@@ -3,7 +3,7 @@ model Profile {
   updatedAt DateTime
   createdAt DateTime
   userId    String   @unique
-  User      User     @relation(fields: [userId], references: [id])
+  author    User     @relation(fields: [userId], references: [id])
 }
 
 model User {
@@ -11,5 +11,5 @@ model User {
   meta      Json
   updatedAt DateTime
   createdAt DateTime
-  Profile   Profile
+  profile   Profile
 }

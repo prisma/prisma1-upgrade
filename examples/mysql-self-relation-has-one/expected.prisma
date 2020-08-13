@@ -1,7 +1,7 @@
 model User {
-  id         String  @default(cuid()) @id
-  invitee    String? @unique
-  User       User    @relation("UserToUser_invitee", fields: [invitee], references: [id])
-  other_User User?   @relation("UserToUser_invitee")
+  id        String  @default(cuid()) @id
+  inviteeId String? @map("invitee") @unique
+  inviteeId User    @map("invitee") @relation("UserToUser_invitee", fields: [invitee], references: [id])
+  invitee   User?   @relation("UserToUser_invitee")
   @@index([invitee], name: "invitee")
 }

@@ -1,12 +1,12 @@
 model Post {
-  id   String  @default(cuid()) @id
-  user String?
-  meta Json
-  User User?   @relation(fields: [user], references: [id])
+  id     String  @default(cuid()) @id
+  userId String? @map("user")
+  meta   Json
+  user   User?   @relation(fields: [user], references: [id])
   @@index([user], name: "user")
 }
 
 model User {
-  id   String @default(cuid()) @id
-  Post Post[]
+  id    String @default(cuid()) @id
+  posts Post[]
 }

@@ -1,10 +1,10 @@
 model PostModel {
-  id        String    @default(cuid()) @id
-  user      String
-  UserModel UserModel @relation(fields: [user], references: [id])
+  id     String    @default(cuid()) @id
+  userId String    @map("user")
+  user   UserModel @relation(fields: [user], references: [id])
 }
 
 model UserModel {
-  id        String      @default(cuid()) @id
-  PostModel PostModel[]
+  id    String      @default(cuid()) @id
+  posts PostModel[]
 }

@@ -3,7 +3,7 @@ model User {
   updatedAt DateTime
   createdAt DateTime
   coinflips Boolean[]
-  roles     Role[]
+  roles     Role[]    @map("roles")
 }
 
 enum Role {
