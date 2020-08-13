@@ -293,7 +293,6 @@ async function test(
     console.log(ops)
     assert.equal(0, ops.length, "expected 0 ops the 2nd time around")
   }
-
   // filter out MySQL required has many since there's nothing we can do
   // about them
   const remainingOps: sql.Op[] = []

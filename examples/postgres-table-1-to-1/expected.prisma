@@ -1,11 +1,10 @@
 model Settings {
-  id     String @default(cuid()) @id
-  userId String
-  user   User   @relation(fields: [userId], references: [id])
+  id   String @default(cuid()) @id
+  user User?
 }
 
 model User {
-  id         String   @default(cuid()) @id
-  settingsId String
-  settings   Settings
+  id         String    @default(cuid()) @id
+  settingsId String?   @unique
+  settings   Settings? @relation(fields: [settingsId], references: [id])
 }

@@ -31,6 +31,7 @@ export type Op =
   | SetJsonTypeOp
   | SetEnumTypeOp
   | MigrateHasManyOp
+  | MigrateOneToOneTableOp
   | MigrateOneToOneOp
   | AlterIDsOp
   | MigrateRequiredHasManyOp
@@ -90,6 +91,17 @@ export type MigrateHasManyOp = {
   p1ModelMany: p1.ObjectTypeDefinition
   p1FieldOne: p1.FieldDefinition
   p1FieldManyID: p1.FieldDefinition
+  p1FieldOneID: p1.FieldDefinition
+  joinTableName: string
+}
+
+export type MigrateOneToOneTableOp = {
+  type: "MigrateOneToOneTableOp"
+  schema?: string
+  p1ModelOne: p1.ObjectTypeDefinition
+  p1ModelOther: p1.ObjectTypeDefinition
+  p1FieldOne: p1.FieldDefinition
+  p1FieldOtherID: p1.FieldDefinition
   p1FieldOneID: p1.FieldDefinition
   joinTableName: string
 }
@@ -156,6 +168,8 @@ export class Postgres implements Translator {
         return this.SetEnumTypeOp(op)
       case "MigrateHasManyOp":
         return this.MigrateHasManyOp(op)
+      case "MigrateOneToOneTableOp":
+        return this.MigrateOneToOneTableOp(op)
       case "MigrateOneToOneOp":
         return this.MigrateOneToOneOp(op)
       case "MigrateRequiredHasManyOp":
@@ -167,7 +181,7 @@ export class Postgres implements Translator {
       case "MigrateEnumListOp":
         return this.MigrateEnumListOp(op)
       default:
-        throw new Error("Postgres: unhandled op: " + op!.type)
+        throw new Error("Postgres unsupported operation: " + op!.type)
     }
   }
 
@@ -234,6 +248,33 @@ export class Postgres implements Translator {
     stmts.push(
       `ALTER TABLE ${tableName} ALTER COLUMN "${fieldName}" SET DATA TYPE ${enumName} using "${fieldName}"::${enumName};`
     )
+    return stmts.join("\n")
+  }
+
+  private MigrateOneToOneTableOp(op: MigrateOneToOneTableOp): string {
+    const stmts: string[] = []
+    const modelNameOther = op.p1ModelOther.dbname
+    const modelNameOne = op.p1ModelOne.dbname
+    const tableNameOne = this.schema(op.schema, modelNameOne)
+    const tableNameOther = this.schema(op.schema, modelNameOther)
+    const columnNameOneID = op.p1FieldOneID.name
+    const columnNameOther = op.p1FieldOtherID.name
+    const foreignName = `${op.p1FieldOne.name}Id`
+    const joinTableName = this.schema(op.schema, op.joinTableName)
+    const notNull = op.p1FieldOne.optional() ? "" : "NOT NULL"
+    const columnNameOneIDLetter = modelNameOther > modelNameOne ? "A" : "B"
+    const foreignNameLetter = modelNameOther < modelNameOne ? "A" : "B"
+    stmts.push(`ALTER TABLE ${tableNameOne} ADD COLUMN "${foreignName}" CHARACTER VARYING(25) unique;`)
+    stmts.push(
+      `UPDATE ${tableNameOne} SET "${foreignName}" = ${joinTableName}."${foreignNameLetter}" FROM ${joinTableName} WHERE ${joinTableName}."${columnNameOneIDLetter}" = ${tableNameOne}."${columnNameOneID}";`
+    )
+    if (notNull) {
+      stmts.push(`ALTER TABLE ${tableNameOne} ALTER COLUMN "${foreignName}" set ${notNull};`)
+    }
+    stmts.push(
+      `ALTER TABLE ${tableNameOne} ADD FOREIGN KEY ("${foreignName}") REFERENCES ${tableNameOther}("${columnNameOther}");`
+    )
+    stmts.push(`DROP TABLE ${joinTableName};`)
     return stmts.join("\n")
   }
 
@@ -415,7 +456,7 @@ export class MySQL5 implements Translator {
       case "AlterIDsOp":
         return this.AlterIDsOp(op)
       default:
-        throw new Error("MySQL5: unhandled op: " + op!.type)
+        throw new Error("MySQL5 unsupported operation: " + op!.type)
     }
   }
 

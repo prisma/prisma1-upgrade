@@ -380,7 +380,7 @@ export async function upgrade(input: Input): Promise<Output> {
       continue
     }
 
-    if (!isTableOneToOne(prisma2, p1From, p1To)) {
+    if (!isTableOneToOne(prisma2, p1From, p1To) && !isTableHasOne(p1From, p1To)) {
       breakingOps.push({
         type: "MigrateOneToOneOp",
         schema: pgSchema,
@@ -424,6 +424,39 @@ export async function upgrade(input: Input): Promise<Output> {
       p1HasOneField: hasOne.fromField,
       p1HasManyModel: hasOne.to,
       p1HasManyField: hasOne.toField,
+    })
+  }
+
+  // Migrate 1:1 Table relations
+  for (let [edge1, edge2] of relations) {
+    if (!isTableHasOne(edge1, edge2)) {
+      continue
+    }
+    const hasOne = edge1
+    const hasOneOther = edge2
+    // skip if is one to many already
+    if (isTableOneToOne(prisma2, edge1, edge2)) {
+      continue
+    }
+    // get the ID field
+    const hasOneFieldID = hasOne.from.fields.find((f) => f.type.named() === "ID")
+    if (!hasOneFieldID) {
+      continue
+    }
+    // get the ID field
+    const hasOneOtherFieldID = hasOneOther.from.fields.find((f) => f.type.named() === "ID")
+    if (!hasOneOtherFieldID) {
+      continue
+    }
+    breakingOps.push({
+      type: "MigrateOneToOneTableOp",
+      schema: pgSchema,
+      p1ModelOne: hasOne.from,
+      p1ModelOther: hasOneOther.from,
+      p1FieldOne: hasOne.fromField,
+      p1FieldOneID: hasOneFieldID,
+      p1FieldOtherID: hasOneOtherFieldID,
+      joinTableName: joinTableName(edge1.from, edge1.fromField, edge2.from, edge2.fromField),
     })
   }
 
@@ -654,6 +687,7 @@ function isTableOneToOne(schema: p2.Schema, from: graph.Edge, to: graph.Edge): b
   if (toField.type.list()) {
     return false
   }
+  console.log("TruE...")
   return true
 }
 
@@ -717,7 +751,11 @@ function isInlineRequiredHasMany(edge1: graph.Edge, edge2: graph.Edge): boolean 
 }
 
 function isTableHasOne(edge1: graph.Edge, edge2: graph.Edge): boolean {
-  return edge1.type === "hasOne" && edge1.link === "TABLE" && edge2.type === "hasOne" && edge2.link === "TABLE"
+  const hasOne = edge1.type === "hasOne" && edge2.type === "hasOne"
+  if (!hasOne) return false
+  const isTable = edge1.link === "TABLE" || edge2.link === "TABLE"
+  if (!isTable) return false
+  return true
 }
 
 function isJsonType(field: p2.Field): boolean {
