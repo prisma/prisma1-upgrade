@@ -1,6 +1,6 @@
 type User {
   id: ID! @id
-  settings: Settings @relation(name: "Settings", link: TABLE)
+  settings: Settings @relation(name: "SettingsOnUser", link: TABLE)
 }
 
 type Settings {

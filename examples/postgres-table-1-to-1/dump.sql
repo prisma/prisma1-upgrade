@@ -3,7 +3,7 @@
 --
 
 -- Dumped from database version 10.3 (Debian 10.3-1.pgdg90+1)
--- Dumped by pg_dump version 11.5
+-- Dumped by pg_dump version 11.8
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -116,8 +116,7 @@ ALTER TABLE management."TelemetryInfo" OWNER TO root;
 --
 
 CREATE TABLE "postgres-table-1-to-1$dev"."Settings" (
-    id character varying(25) NOT NULL,
-    "user" character varying(25)
+    id character varying(25) NOT NULL
 );
 
 
@@ -135,16 +134,16 @@ CREATE TABLE "postgres-table-1-to-1$dev"."User" (
 ALTER TABLE "postgres-table-1-to-1$dev"."User" OWNER TO root;
 
 --
--- Name: _Settings; Type: TABLE; Schema: postgres-table-1-to-1$dev; Owner: root
+-- Name: _SettingsOnUser; Type: TABLE; Schema: postgres-table-1-to-1$dev; Owner: root
 --
 
-CREATE TABLE "postgres-table-1-to-1$dev"."_Settings" (
+CREATE TABLE "postgres-table-1-to-1$dev"."_SettingsOnUser" (
     "A" character varying(25) NOT NULL,
     "B" character varying(25) NOT NULL
 );
 
 
-ALTER TABLE "postgres-table-1-to-1$dev"."_Settings" OWNER TO root;
+ALTER TABLE "postgres-table-1-to-1$dev"."_SettingsOnUser" OWNER TO root;
 
 --
 -- Name: CloudSecret CloudSecret_pkey; Type: CONSTRAINT; Schema: management; Owner: root
@@ -203,17 +202,17 @@ ALTER TABLE ONLY "postgres-table-1-to-1$dev"."User"
 
 
 --
--- Name: _Settings_AB_unique; Type: INDEX; Schema: postgres-table-1-to-1$dev; Owner: root
+-- Name: _SettingsOnUser_AB_unique; Type: INDEX; Schema: postgres-table-1-to-1$dev; Owner: root
 --
 
-CREATE UNIQUE INDEX "_Settings_AB_unique" ON "postgres-table-1-to-1$dev"."_Settings" USING btree ("A", "B");
+CREATE UNIQUE INDEX "_SettingsOnUser_AB_unique" ON "postgres-table-1-to-1$dev"."_SettingsOnUser" USING btree ("A", "B");
 
 
 --
--- Name: _Settings_B; Type: INDEX; Schema: postgres-table-1-to-1$dev; Owner: root
+-- Name: _SettingsOnUser_B; Type: INDEX; Schema: postgres-table-1-to-1$dev; Owner: root
 --
 
-CREATE INDEX "_Settings_B" ON "postgres-table-1-to-1$dev"."_Settings" USING btree ("B");
+CREATE INDEX "_SettingsOnUser_B" ON "postgres-table-1-to-1$dev"."_SettingsOnUser" USING btree ("B");
 
 
 --
@@ -225,27 +224,19 @@ ALTER TABLE ONLY management."Migration"
 
 
 --
--- Name: Settings Settings_user_fkey; Type: FK CONSTRAINT; Schema: postgres-table-1-to-1$dev; Owner: root
+-- Name: _SettingsOnUser _SettingsOnUser_A_fkey; Type: FK CONSTRAINT; Schema: postgres-table-1-to-1$dev; Owner: root
 --
 
-ALTER TABLE ONLY "postgres-table-1-to-1$dev"."Settings"
-    ADD CONSTRAINT "Settings_user_fkey" FOREIGN KEY ("user") REFERENCES "postgres-table-1-to-1$dev"."User"(id) ON DELETE SET NULL;
-
-
---
--- Name: _Settings _Settings_A_fkey; Type: FK CONSTRAINT; Schema: postgres-table-1-to-1$dev; Owner: root
---
-
-ALTER TABLE ONLY "postgres-table-1-to-1$dev"."_Settings"
-    ADD CONSTRAINT "_Settings_A_fkey" FOREIGN KEY ("A") REFERENCES "postgres-table-1-to-1$dev"."Settings"(id) ON DELETE CASCADE;
+ALTER TABLE ONLY "postgres-table-1-to-1$dev"."_SettingsOnUser"
+    ADD CONSTRAINT "_SettingsOnUser_A_fkey" FOREIGN KEY ("A") REFERENCES "postgres-table-1-to-1$dev"."Settings"(id) ON DELETE CASCADE;
 
 
 --
--- Name: _Settings _Settings_B_fkey; Type: FK CONSTRAINT; Schema: postgres-table-1-to-1$dev; Owner: root
+-- Name: _SettingsOnUser _SettingsOnUser_B_fkey; Type: FK CONSTRAINT; Schema: postgres-table-1-to-1$dev; Owner: root
 --
 
-ALTER TABLE ONLY "postgres-table-1-to-1$dev"."_Settings"
-    ADD CONSTRAINT "_Settings_B_fkey" FOREIGN KEY ("B") REFERENCES "postgres-table-1-to-1$dev"."User"(id) ON DELETE CASCADE;
+ALTER TABLE ONLY "postgres-table-1-to-1$dev"."_SettingsOnUser"
+    ADD CONSTRAINT "_SettingsOnUser_B_fkey" FOREIGN KEY ("B") REFERENCES "postgres-table-1-to-1$dev"."User"(id) ON DELETE CASCADE;
 
 
 --

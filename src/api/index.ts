@@ -379,7 +379,6 @@ export async function upgrade(input: Input): Promise<Output> {
     if (!p1FieldToID) {
       continue
     }
-
     if (!isTableOneToOne(prisma2, p1From, p1To)) {
       breakingOps.push({
         type: "MigrateOneToOneOp",
@@ -391,7 +390,6 @@ export async function upgrade(input: Input): Promise<Output> {
         joinTableName: joinTableName(edge1.from, edge1.fromField, edge2.from, edge2.fromField),
       })
     }
-
     // L: 1-1 relation with both sides required details
     const p2Field1 = prisma2.findField((m, f) => edge1.from.name === m.name && edge1.to.name === f.name)
     if (p2Field1) {
@@ -717,7 +715,9 @@ function isInlineRequiredHasMany(edge1: graph.Edge, edge2: graph.Edge): boolean 
 }
 
 function isTableHasOne(edge1: graph.Edge, edge2: graph.Edge): boolean {
-  return edge1.type === "hasOne" && edge1.link === "TABLE" && edge2.type === "hasOne" && edge2.link === "TABLE"
+  const isHasOne = edge1.type === "hasOne" && edge2.type === "hasOne"
+  const isTable = edge1.link === "TABLE" || edge2.link === "TABLE"
+  return isHasOne && isTable
 }
 
 function isJsonType(field: p2.Field): boolean {
