@@ -1,3 +1,7 @@
+# 0.0.37 / 2020-08-14
+
+- fix 1-to-1 table relations for postgres and mysql
+
 # 0.0.36 / 2020-08-13
 
 - maintain relationship names from Prisma 1. Closes #25
