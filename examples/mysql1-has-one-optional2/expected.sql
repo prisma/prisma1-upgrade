@@ -1,3 +1,4 @@
-ALTER TABLE `Profile` ADD COLUMN `userId` char(25) CHARACTER SET UTF8 NOT NULL UNIQUE;
-ALTER TABLE `Profile` ADD FOREIGN KEY (`userId`) REFERENCES `User` (`id`);
+ALTER TABLE `User` ADD COLUMN `profileId` char(25) CHARACTER SET utf8 unique;
+UPDATE `User`, `_ProfileToUser` SET `User`.`profileId` = `_ProfileToUser`.A where `_ProfileToUser`.B = `User`.`id`;
+ALTER TABLE `User` ADD FOREIGN KEY (`profileId`) REFERENCES `Profile`(`id`);
 DROP TABLE `_ProfileToUser`;

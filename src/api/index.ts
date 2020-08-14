@@ -373,20 +373,31 @@ export async function upgrade(input: Input): Promise<Output> {
     if (!isTableHasOne(edge1, edge2)) {
       continue
     }
-    const p1From = edge1.from.name < edge2.from.name ? edge1 : edge2
-    const p1To = edge1.from.name < edge2.from.name ? edge2 : edge1
-    const p1FieldToID = p1To.from.fields.find((f) => f.type.named() === "ID")
-    if (!p1FieldToID) {
+    const hasOne = edge1
+    const hasOneOther = edge2
+    // skip if is one to many already
+    if (isTableOneToOne(prisma2, edge1, edge2)) {
       continue
     }
-    if (!isTableOneToOne(prisma2, p1From, p1To)) {
+    // get the ID field
+    const hasOneFieldID = hasOne.from.fields.find((f) => f.type.named() === "ID")
+    if (!hasOneFieldID) {
+      continue
+    }
+    // get the ID field
+    const hasOneOtherFieldID = hasOneOther.from.fields.find((f) => f.type.named() === "ID")
+    if (!hasOneOtherFieldID) {
+      continue
+    }
+    if (!isTableOneToOne(prisma2, hasOne, hasOneOther)) {
       breakingOps.push({
         type: "MigrateOneToOneTableOp",
         schema: pgSchema,
-        p1ModelFrom: p1From.from,
-        p1FieldFrom: p1From.fromField,
-        p1ModelTo: p1To.from,
-        p1FieldToID: p1FieldToID,
+        p1ModelOne: hasOne.from,
+        p1ModelOther: hasOneOther.from,
+        p1FieldOne: hasOne.fromField,
+        p1FieldOneID: hasOneFieldID,
+        p1FieldOtherID: hasOneOtherFieldID,
         joinTableName: joinTableName(edge1.from, edge1.fromField, edge2.from, edge2.fromField),
       })
     }

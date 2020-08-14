@@ -1,3 +1,4 @@
-ALTER TABLE "postgres1-self-relation-has-one$dev"."User" ADD COLUMN "userId" character varying(25) NOT NULL UNIQUE;
-ALTER TABLE "postgres1-self-relation-has-one$dev"."User" ADD FOREIGN KEY ("userId") REFERENCES "postgres1-self-relation-has-one$dev"."User" ("id");
+ALTER TABLE "postgres1-self-relation-has-one$dev"."User" ADD COLUMN "inviterId" CHARACTER VARYING(25) unique;
+UPDATE "postgres1-self-relation-has-one$dev"."User" SET "inviterId" = "postgres1-self-relation-has-one$dev"."_Invitation"."B" FROM "postgres1-self-relation-has-one$dev"."_Invitation" WHERE "postgres1-self-relation-has-one$dev"."_Invitation"."B" = "postgres1-self-relation-has-one$dev"."User"."id";
+ALTER TABLE "postgres1-self-relation-has-one$dev"."User" ADD FOREIGN KEY ("inviterId") REFERENCES "postgres1-self-relation-has-one$dev"."User"("id");
 DROP TABLE "postgres1-self-relation-has-one$dev"."_Invitation";

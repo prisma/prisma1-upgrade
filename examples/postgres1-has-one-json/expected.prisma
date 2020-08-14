@@ -2,8 +2,7 @@ model Profile {
   id        String   @default(cuid()) @id
   updatedAt DateTime
   createdAt DateTime
-  userId    String   @unique
-  author    User     @relation(fields: [userId], references: [id])
+  author    User?
 }
 
 model User {
@@ -11,5 +10,6 @@ model User {
   meta      Json
   updatedAt DateTime
   createdAt DateTime
-  profile   Profile
+  profileId String   @unique
+  profile   Profile  @relation(fields: [profileId], references: [id])
 }

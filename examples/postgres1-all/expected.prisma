@@ -23,8 +23,7 @@ model Profile {
   bio       String?
   updatedAt DateTime
   createdAt DateTime
-  userId    String   @unique
-  user      User     @relation(fields: [userId], references: [id])
+  user      User?
 }
 
 model User {
@@ -35,8 +34,9 @@ model User {
   jsonData  Json?
   updatedAt DateTime
   createdAt DateTime
+  profileId String?  @unique
+  profile   Profile? @relation(fields: [profileId], references: [id])
   posts     Post[]
-  profile   Profile?
 }
 
 enum Role {
