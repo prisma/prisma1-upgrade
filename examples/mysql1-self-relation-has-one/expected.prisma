@@ -2,7 +2,7 @@ model User {
   id        String   @default(cuid()) @id
   updatedAt DateTime
   createdAt DateTime
-  userId    String?  @unique
-  inviterId User?    @map("inviter") @relation("UserToUser_userId", fields: [userId], references: [id])
-  inviter   User?    @relation("UserToUser_userId")
+  inviteeId String?  @unique
+  inviterId User?    @map("inviter") @relation("UserToUser_inviteeId", fields: [inviteeId], references: [id])
+  inviter   User?    @relation("UserToUser_inviteeId")
 }

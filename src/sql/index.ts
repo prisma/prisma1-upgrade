@@ -31,7 +31,7 @@ export type Op =
   | SetJsonTypeOp
   | SetEnumTypeOp
   | MigrateHasManyOp
-  | MigrateOneToOneOp
+  | MigrateOneToOneTableOp
   | AlterIDsOp
   | MigrateRequiredHasManyOp
   | MigrateScalarListOp
@@ -94,13 +94,14 @@ export type MigrateHasManyOp = {
   joinTableName: string
 }
 
-export type MigrateOneToOneOp = {
-  type: "MigrateOneToOneOp"
+export type MigrateOneToOneTableOp = {
+  type: "MigrateOneToOneTableOp"
   schema?: string
-  p1ModelFrom: p1.ObjectTypeDefinition
-  p1ModelTo: p1.ObjectTypeDefinition
-  p1FieldFrom: p1.FieldDefinition
-  p1FieldToID: p1.FieldDefinition
+  p1ModelOne: p1.ObjectTypeDefinition
+  p1ModelOther: p1.ObjectTypeDefinition
+  p1FieldOne: p1.FieldDefinition
+  p1FieldOtherID: p1.FieldDefinition
+  p1FieldOneID: p1.FieldDefinition
   joinTableName: string
 }
 
@@ -156,8 +157,8 @@ export class Postgres implements Translator {
         return this.SetEnumTypeOp(op)
       case "MigrateHasManyOp":
         return this.MigrateHasManyOp(op)
-      case "MigrateOneToOneOp":
-        return this.MigrateOneToOneOp(op)
+      case "MigrateOneToOneTableOp":
+        return this.MigrateOneToOneTableOp(op)
       case "MigrateRequiredHasManyOp":
         return this.MigrateRequiredHasManyOp(op)
       case "AlterIDsOp":
@@ -264,21 +265,28 @@ export class Postgres implements Translator {
     return stmts.join("\n")
   }
 
-  private MigrateOneToOneOp(op: MigrateOneToOneOp): string {
+  private MigrateOneToOneTableOp(op: MigrateOneToOneTableOp): string {
     const stmts: string[] = []
-    const p1ModelFrom = op.p1ModelFrom
-    const p1ModelTo = op.p1ModelTo
-    const p1FieldToID = op.p1FieldToID
-
-    const notNull = op.p1FieldFrom.type.optional() ? "" : "NOT NULL"
-    const modelFromName = this.schema(op.schema, p1ModelFrom.dbname)
-    const modelFromColumn = cases.camelCase(p1ModelTo.name + " " + p1FieldToID.name)
-    const fieldIDName = p1FieldToID.name
-    const modelToName = this.schema(op.schema, p1ModelTo.dbname)
+    const modelNameOther = op.p1ModelOther.dbname
+    const modelNameOne = op.p1ModelOne.dbname
+    const tableNameOne = this.schema(op.schema, modelNameOne)
+    const tableNameOther = this.schema(op.schema, modelNameOther)
+    const columnNameOneID = op.p1FieldOneID.name
+    const columnNameOther = op.p1FieldOtherID.name
+    const foreignName = `${op.p1FieldOne.name}Id`
     const joinTableName = this.schema(op.schema, op.joinTableName)
-    stmts.push(`ALTER TABLE ${modelFromName} ADD COLUMN "${modelFromColumn}" character varying(25) ${notNull} UNIQUE;`)
+    const notNull = op.p1FieldOne.optional() ? "" : "NOT NULL"
+    const columnNameOneIDLetter = modelNameOther > modelNameOne ? "A" : "B"
+    const foreignNameLetter = modelNameOther < modelNameOne ? "A" : "B"
+    stmts.push(`ALTER TABLE ${tableNameOne} ADD COLUMN "${foreignName}" CHARACTER VARYING(25) unique;`)
     stmts.push(
-      `ALTER TABLE ${modelFromName} ADD FOREIGN KEY ("${modelFromColumn}") REFERENCES ${modelToName} ("${fieldIDName}");`
+      `UPDATE ${tableNameOne} SET "${foreignName}" = ${joinTableName}."${foreignNameLetter}" FROM ${joinTableName} WHERE ${joinTableName}."${columnNameOneIDLetter}" = ${tableNameOne}."${columnNameOneID}";`
+    )
+    if (notNull) {
+      stmts.push(`ALTER TABLE ${tableNameOne} ALTER COLUMN "${foreignName}" set ${notNull};`)
+    }
+    stmts.push(
+      `ALTER TABLE ${tableNameOne} ADD FOREIGN KEY ("${foreignName}") REFERENCES ${tableNameOther}("${columnNameOther}");`
     )
     stmts.push(`DROP TABLE ${joinTableName};`)
     return stmts.join("\n")
@@ -408,8 +416,8 @@ export class MySQL5 implements Translator {
         return this.SetEnumTypeOp(op)
       case "MigrateHasManyOp":
         return this.MigrateHasManyOp(op)
-      case "MigrateOneToOneOp":
-        return this.MigrateOneToOneOp(op)
+      case "MigrateOneToOneTableOp":
+        return this.MigrateOneToOneTableOp(op)
       case "MigrateRequiredHasManyOp":
         return this.MigrateRequiredHasManyOp(op)
       case "AlterIDsOp":
@@ -531,23 +539,28 @@ export class MySQL5 implements Translator {
     return stmts.join("\n")
   }
 
-  private MigrateOneToOneOp(op: MigrateOneToOneOp): string {
+  private MigrateOneToOneTableOp(op: MigrateOneToOneTableOp): string {
     const stmts: string[] = []
-    const p1ModelFrom = op.p1ModelFrom
-    const p1ModelTo = op.p1ModelTo
-    const p1FieldToID = op.p1FieldToID
-
-    const notNull = op.p1FieldFrom.type.optional() ? "" : "NOT NULL"
-    const modelFromName = this.backtick(p1ModelFrom.dbname)
-    const modelFromColumn = this.backtick(cases.camelCase(p1ModelTo.name + " " + p1FieldToID.name))
-    const fieldIDName = this.backtick(p1FieldToID.name)
-    const modelToName = this.backtick(p1ModelTo.dbname)
+    const modelNameOther = this.backtick(op.p1ModelOther.dbname)
+    const modelNameOne = this.backtick(op.p1ModelOne.dbname)
+    const tableNameOne = modelNameOne
+    const tableNameOther = modelNameOther
+    const columnNameOneID = this.backtick(op.p1FieldOneID.name)
+    const columnNameOther = this.backtick(op.p1FieldOtherID.name)
+    const foreignName = this.backtick(`${op.p1FieldOne.name}Id`)
     const joinTableName = this.backtick(op.joinTableName)
+    const notNull = op.p1FieldOne.optional() ? "" : "NOT NULL"
+    const columnNameOneIDLetter = modelNameOther > modelNameOne ? "A" : "B"
+    const foreignNameLetter = modelNameOther < modelNameOne ? "A" : "B"
+    stmts.push(`ALTER TABLE ${tableNameOne} ADD COLUMN ${foreignName} char(25) CHARACTER SET utf8 unique;`)
     stmts.push(
-      `ALTER TABLE ${modelFromName} ADD COLUMN ${modelFromColumn} char(25) CHARACTER SET UTF8 ${notNull} UNIQUE;`
+      `UPDATE ${tableNameOne}, ${joinTableName} SET ${tableNameOne}.${foreignName} = ${joinTableName}.${foreignNameLetter} where ${joinTableName}.${columnNameOneIDLetter} = ${tableNameOne}.${columnNameOneID};`
     )
+    if (notNull) {
+      ;`ALTER TABLE ${tableNameOne} CHANGE ${foreignName} ${foreignName} char(25) CHARACTER SET utf8 ${notNull};`
+    }
     stmts.push(
-      `ALTER TABLE ${modelFromName} ADD FOREIGN KEY (${modelFromColumn}) REFERENCES ${modelToName} (${fieldIDName});`
+      `ALTER TABLE ${tableNameOne} ADD FOREIGN KEY (${foreignName}) REFERENCES ${tableNameOther}(${columnNameOther});`
     )
     stmts.push(`DROP TABLE ${joinTableName};`)
     return stmts.join("\n")
