@@ -1,0 +1,9 @@
+model User {
+  id     String        @default(cuid()) @id
+  status AccountStatus @default(NORMAL) @map("status")
+}
+
+enum AccountStatus {
+  BLOCKED
+  NORMAL
+}

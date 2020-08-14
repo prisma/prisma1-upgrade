@@ -3,7 +3,7 @@
 --
 
 -- Dumped from database version 10.3 (Debian 10.3-1.pgdg90+1)
--- Dumped by pg_dump version 11.5
+-- Dumped by pg_dump version 11.8
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -26,13 +26,13 @@ CREATE SCHEMA management;
 ALTER SCHEMA management OWNER TO root;
 
 --
--- Name: postgres-default-enum$dev; Type: SCHEMA; Schema: -; Owner: root
+-- Name: postgres-default-enum-1$dev; Type: SCHEMA; Schema: -; Owner: root
 --
 
-CREATE SCHEMA "postgres-default-enum$dev";
+CREATE SCHEMA "postgres-default-enum-1$dev";
 
 
-ALTER SCHEMA "postgres-default-enum$dev" OWNER TO root;
+ALTER SCHEMA "postgres-default-enum-1$dev" OWNER TO root;
 
 SET default_tablespace = '';
 
@@ -112,16 +112,16 @@ CREATE TABLE management."TelemetryInfo" (
 ALTER TABLE management."TelemetryInfo" OWNER TO root;
 
 --
--- Name: User; Type: TABLE; Schema: postgres-default-enum$dev; Owner: root
+-- Name: User; Type: TABLE; Schema: postgres-default-enum-1$dev; Owner: root
 --
 
-CREATE TABLE "postgres-default-enum$dev"."User" (
+CREATE TABLE "postgres-default-enum-1$dev"."User" (
     id character varying(25) NOT NULL,
-    role text NOT NULL
+    status text NOT NULL
 );
 
 
-ALTER TABLE "postgres-default-enum$dev"."User" OWNER TO root;
+ALTER TABLE "postgres-default-enum-1$dev"."User" OWNER TO root;
 
 --
 -- Name: CloudSecret CloudSecret_pkey; Type: CONSTRAINT; Schema: management; Owner: root
@@ -164,10 +164,10 @@ ALTER TABLE ONLY management."TelemetryInfo"
 
 
 --
--- Name: User User_pkey; Type: CONSTRAINT; Schema: postgres-default-enum$dev; Owner: root
+-- Name: User User_pkey; Type: CONSTRAINT; Schema: postgres-default-enum-1$dev; Owner: root
 --
 
-ALTER TABLE ONLY "postgres-default-enum$dev"."User"
+ALTER TABLE ONLY "postgres-default-enum-1$dev"."User"
     ADD CONSTRAINT "User_pkey" PRIMARY KEY (id);
 
 
@@ -183,6 +183,6 @@ ALTER TABLE ONLY management."Migration"
 -- PostgreSQL database dump complete
 --
 
-insert into "postgres-default-enum$dev"."User" (id, role) values ('a', 'ADMIN');
-insert into "postgres-default-enum$dev"."User" (id, role) values ('b', 'CUSTOMER');
-insert into "postgres-default-enum$dev"."User" (id, role) values ('c', 'ADMIN');
+insert into "postgres-default-enum-1$dev"."User" (id, status) values ('a', 'BLOCKED');
+insert into "postgres-default-enum-1$dev"."User" (id, status) values ('b', 'NORMAL');
+insert into "postgres-default-enum-1$dev"."User" (id, status) values ('c', 'BLOCKED');

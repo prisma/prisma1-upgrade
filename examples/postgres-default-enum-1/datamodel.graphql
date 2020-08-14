@@ -1,0 +1,9 @@
+enum AccountStatus {
+  NORMAL
+  BLOCKED
+}
+
+type User {
+  id: ID! @id
+  status: AccountStatus! @default(value: NORMAL)
+}

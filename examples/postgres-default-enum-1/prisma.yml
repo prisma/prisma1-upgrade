@@ -1,0 +1,2 @@
+endpoint: http://localhost:4467/postgres-default-enum-1/dev
+datamodel: datamodel.graphql
