@@ -360,7 +360,7 @@ async function main(argv: string[]): Promise<void> {
             console.log()
             console.log()
             break
-          case "MigrateOneToOneOp":
+          case "MigrateOneToOneTableOp":
             console.log(`  ${bold(`Fix one-to-one table relations`)}`)
             console.log(
               `  ${gray(`https://pris.ly/d/schema-incompatibilities#all-non-inline-relations-are-recognized-as-m-n`)}`

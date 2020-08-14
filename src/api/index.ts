@@ -381,7 +381,7 @@ export async function upgrade(input: Input): Promise<Output> {
     }
     if (!isTableOneToOne(prisma2, p1From, p1To)) {
       breakingOps.push({
-        type: "MigrateOneToOneOp",
+        type: "MigrateOneToOneTableOp",
         schema: pgSchema,
         p1ModelFrom: p1From.from,
         p1FieldFrom: p1From.fromField,

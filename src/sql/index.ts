@@ -31,7 +31,7 @@ export type Op =
   | SetJsonTypeOp
   | SetEnumTypeOp
   | MigrateHasManyOp
-  | MigrateOneToOneOp
+  | MigrateOneToOneTableOp
   | AlterIDsOp
   | MigrateRequiredHasManyOp
   | MigrateScalarListOp
@@ -94,8 +94,8 @@ export type MigrateHasManyOp = {
   joinTableName: string
 }
 
-export type MigrateOneToOneOp = {
-  type: "MigrateOneToOneOp"
+export type MigrateOneToOneTableOp = {
+  type: "MigrateOneToOneTableOp"
   schema?: string
   p1ModelFrom: p1.ObjectTypeDefinition
   p1ModelTo: p1.ObjectTypeDefinition
@@ -156,8 +156,8 @@ export class Postgres implements Translator {
         return this.SetEnumTypeOp(op)
       case "MigrateHasManyOp":
         return this.MigrateHasManyOp(op)
-      case "MigrateOneToOneOp":
-        return this.MigrateOneToOneOp(op)
+      case "MigrateOneToOneTableOp":
+        return this.MigrateOneToOneTableOp(op)
       case "MigrateRequiredHasManyOp":
         return this.MigrateRequiredHasManyOp(op)
       case "AlterIDsOp":
@@ -264,7 +264,7 @@ export class Postgres implements Translator {
     return stmts.join("\n")
   }
 
-  private MigrateOneToOneOp(op: MigrateOneToOneOp): string {
+  private MigrateOneToOneTableOp(op: MigrateOneToOneTableOp): string {
     const stmts: string[] = []
     const p1ModelFrom = op.p1ModelFrom
     const p1ModelTo = op.p1ModelTo
@@ -408,8 +408,8 @@ export class MySQL5 implements Translator {
         return this.SetEnumTypeOp(op)
       case "MigrateHasManyOp":
         return this.MigrateHasManyOp(op)
-      case "MigrateOneToOneOp":
-        return this.MigrateOneToOneOp(op)
+      case "MigrateOneToOneTableOp":
+        return this.MigrateOneToOneTableOp(op)
       case "MigrateRequiredHasManyOp":
         return this.MigrateRequiredHasManyOp(op)
       case "AlterIDsOp":
@@ -531,7 +531,7 @@ export class MySQL5 implements Translator {
     return stmts.join("\n")
   }
 
-  private MigrateOneToOneOp(op: MigrateOneToOneOp): string {
+  private MigrateOneToOneTableOp(op: MigrateOneToOneTableOp): string {
     const stmts: string[] = []
     const p1ModelFrom = op.p1ModelFrom
     const p1ModelTo = op.p1ModelTo
