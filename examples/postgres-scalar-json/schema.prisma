@@ -1,0 +1,18 @@
+datasource db {
+  provider = "postgresql"
+  url      = "postgres://root:prisma@0.0.0.0:5433/prisma?schema=postgres-scalar-json%24dev"
+}
+
+model User {
+  id        String      @default(cuid()) @id
+  User_json User_json[]
+}
+
+model User_json {
+  nodeId   String
+  position Int
+  value    String
+  User     User   @relation(fields: [nodeId], references: [id])
+
+  @@id([nodeId, position])
+}

@@ -361,12 +361,16 @@ export class Postgres implements Translator {
     const typeString = op.p1Field.type.toString().replace(/^\[+|\]+!*$/g, "")
     const notNull = typeString[typeString.length - 1] === "!"
     stmts.push(`ALTER TABLE ${modelName} ADD COLUMN "${fieldName}" ${type}[];`)
+    let fn = "array_agg"
+    if (type === "json") {
+      fn = "json_agg"
+    }
     stmts.push(
       undent(`
         UPDATE ${modelName} u
           SET "${fieldName}" = t."value"::${type}[]
         FROM (
-          SELECT "nodeId", array_agg(value ORDER BY position) as value
+          SELECT "nodeId", ${fn}(value ORDER BY position) as value
           FROM ${typeName}
           GROUP BY "nodeId"
         ) t

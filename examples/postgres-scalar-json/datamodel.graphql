@@ -1,0 +1,4 @@
+type User {
+  id: ID! @id
+  json: [Json!]! @scalarList(strategy: RELATION)
+}
