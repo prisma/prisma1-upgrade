@@ -1,3 +1,8 @@
+# 0.0.38 / 2020-08-21
+
+- migrate postgres json and enum to breaking changes. closes #73 #74
+- char(25) => char(30)
+
 # 0.0.37 / 2020-08-14
 
 - fix 1-to-1 table relations for postgres and mysql
