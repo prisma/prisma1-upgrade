@@ -25,6 +25,7 @@ export async function upgrade(input: Input): Promise<Output> {
   const { prisma1, prisma2, url } = input
   const pgSchema = getPGSchema(url)
   const provider = prisma2.provider()
+  const postgreSQL = provider === "postgres" || provider === "postgresql"
   const warnings: string[] = []
 
   // gather the enums
@@ -125,25 +126,44 @@ export async function upgrade(input: Input): Promise<Output> {
 
       // H: JSON is represented as String
       if (p1Field.type.named() === "Json" && !isJsonType(p2Field)) {
-        ops.push({
-          type: "SetJsonTypeOp",
-          schema: pgSchema,
-          p1Model,
-          p1Field,
-        })
+        if (postgreSQL) {
+          breakingOps.push({
+            type: "SetJsonTypeOp",
+            schema: pgSchema,
+            p1Model,
+            p1Field,
+          })
+        } else {
+          ops.push({
+            type: "SetJsonTypeOp",
+            schema: pgSchema,
+            p1Model,
+            p1Field,
+          })
+        }
       }
 
       // J: Singular Enum is a simple String
       const p1Enum = p1Enums[p1Field.type.named()]
       const p2Enum = p2Enums[p2Field.type.innermost().toString()]
       if (p1Enum && !p2Enum) {
-        ops.push({
-          type: "SetEnumTypeOp",
-          schema: pgSchema,
-          p1Model,
-          p1Field,
-          p1Enum,
-        })
+        if (postgreSQL) {
+          breakingOps.push({
+            type: "SetEnumTypeOp",
+            schema: pgSchema,
+            p1Model,
+            p1Field,
+            p1Enum,
+          })
+        } else {
+          ops.push({
+            type: "SetEnumTypeOp",
+            schema: pgSchema,
+            p1Model,
+            p1Field,
+            p1Enum,
+          })
+        }
       }
 
       // loop over attributes
@@ -198,7 +218,7 @@ export async function upgrade(input: Input): Promise<Output> {
   }
 
   // Handle scalar lists
-  if (provider === "postgres" || provider === "postgresql") {
+  if (postgreSQL) {
     for (let p1Model of prisma1.objects) {
       const p2Model = prisma2.findModel((m) => m.name === p1Model.name)
       if (!p2Model) {

@@ -1,4 +1,3 @@
-import * as cases from "change-case"
 import * as p1 from "../prisma1"
 import * as p2 from "../prisma2"
 import redent from "redent"

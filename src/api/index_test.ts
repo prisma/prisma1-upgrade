@@ -243,9 +243,11 @@ async function test(
     prisma2: p2schema,
   })
 
-  // run the queries
-  const queries = sql.translate(schema.provider(), ops)
-  for (let query of queries) {
+  const provider = schema.provider()
+
+  // run the breaking queries
+  const breakingQueries = sql.translate(provider, breakingOps)
+  for (let query of breakingQueries) {
     try {
       await db.query(query)
     } catch (e) {
@@ -254,11 +256,9 @@ async function test(
     }
   }
 
-  const provider = schema.provider()
-
-  // run the breaking queries
-  const breakingQueries = sql.translate(provider, breakingOps)
-  for (let query of breakingQueries) {
+  // run the queries
+  const queries = sql.translate(schema.provider(), ops)
+  for (let query of queries) {
     try {
       await db.query(query)
     } catch (e) {
@@ -311,7 +311,7 @@ async function test(
 
   // assert the operations
   const blockSQL = queries.concat(breakingQueries).join("\n")
-  // fs.writeFileSync(path.join(_abspath, 'expected.sql'), blockSQL)
+  // fs.writeFileSync(path.join(_abspath, "expected.sql"), blockSQL)
   if (blockSQL !== expectedSQL) {
     console.log("")
     console.log("Actual:")
