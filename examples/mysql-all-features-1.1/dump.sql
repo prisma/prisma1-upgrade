@@ -38,7 +38,7 @@ DROP TABLE IF EXISTS `IdentificationDocument`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `IdentificationDocument` (
-  `id` char(25) CHARACTER SET utf8 NOT NULL,
+  `id` char(30) CHARACTER SET utf8 NOT NULL,
   `documentNumber` mediumtext COLLATE utf8mb4_unicode_ci NOT NULL,
   `issuedOn` datetime(3) NOT NULL,
   `expiresOn` datetime(3) NOT NULL,
@@ -54,7 +54,7 @@ DROP TABLE IF EXISTS `Tagline`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `Tagline` (
-  `id` char(25) CHARACTER SET utf8 NOT NULL,
+  `id` char(30) CHARACTER SET utf8 NOT NULL,
   `createdAt` datetime(3) NOT NULL,
   `updatedAt` datetime(3) NOT NULL,
   `description` mediumtext COLLATE utf8mb4_unicode_ci,
@@ -71,7 +71,7 @@ DROP TABLE IF EXISTS `Tagline_visibility`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `Tagline_visibility` (
-  `nodeId` char(25) CHARACTER SET utf8 NOT NULL,
+  `nodeId` char(30) CHARACTER SET utf8 NOT NULL,
   `position` int(4) NOT NULL,
   `value` varchar(191) COLLATE utf8mb4_unicode_ci NOT NULL,
   PRIMARY KEY (`nodeId`,`position`),
@@ -88,7 +88,7 @@ DROP TABLE IF EXISTS `TaxDocument`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `TaxDocument` (
-  `id` char(25) CHARACTER SET utf8 NOT NULL,
+  `id` char(30) CHARACTER SET utf8 NOT NULL,
   `documentNumber` mediumtext COLLATE utf8mb4_unicode_ci NOT NULL,
   `issuedOn` datetime(3) NOT NULL,
   `expiresOn` datetime(3) NOT NULL,
@@ -105,7 +105,7 @@ DROP TABLE IF EXISTS `Thought`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `Thought` (
-  `id` char(25) CHARACTER SET utf8 NOT NULL,
+  `id` char(30) CHARACTER SET utf8 NOT NULL,
   `createdAt` datetime(3) NOT NULL,
   `updatedAt` datetime(3) NOT NULL,
   `baseIdea` mediumtext COLLATE utf8mb4_unicode_ci,
@@ -121,7 +121,7 @@ DROP TABLE IF EXISTS `Thought_content`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `Thought_content` (
-  `nodeId` char(25) CHARACTER SET utf8 NOT NULL,
+  `nodeId` char(30) CHARACTER SET utf8 NOT NULL,
   `position` int(4) NOT NULL,
   `value` mediumtext COLLATE utf8mb4_unicode_ci NOT NULL,
   PRIMARY KEY (`nodeId`,`position`),
@@ -138,7 +138,7 @@ DROP TABLE IF EXISTS `User`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `User` (
-  `id` char(25) CHARACTER SET utf8 NOT NULL,
+  `id` char(30) CHARACTER SET utf8 NOT NULL,
   `createdAt` datetime(3) NOT NULL,
   `updatedAt` datetime(3) NOT NULL,
   `email` mediumtext COLLATE utf8mb4_unicode_ci NOT NULL,
@@ -148,12 +148,12 @@ CREATE TABLE `User` (
   `temperature` decimal(65,30) DEFAULT NULL,
   `meta` mediumtext COLLATE utf8mb4_unicode_ci,
   `friendlyName` mediumtext COLLATE utf8mb4_unicode_ci,
-  `godFather` char(25) CHARACTER SET utf8 DEFAULT NULL,
+  `godFather` char(30) CHARACTER SET utf8 DEFAULT NULL,
   `home` int(11) DEFAULT NULL,
-  `taxDocument` char(25) CHARACTER SET utf8 DEFAULT NULL,
-  `identificationDocument` char(25) CHARACTER SET utf8 DEFAULT NULL,
-  `bestFriend` char(25) CHARACTER SET utf8 DEFAULT NULL,
-  `tagline` char(25) CHARACTER SET utf8 DEFAULT NULL,
+  `taxDocument` char(30) CHARACTER SET utf8 DEFAULT NULL,
+  `identificationDocument` char(30) CHARACTER SET utf8 DEFAULT NULL,
+  `bestFriend` char(30) CHARACTER SET utf8 DEFAULT NULL,
+  `tagline` char(30) CHARACTER SET utf8 DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `email_UNIQUE` (`email`(191)),
   KEY `godFather` (`godFather`),
@@ -179,7 +179,7 @@ DROP TABLE IF EXISTS `Work`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `Work` (
-  `id` char(25) CHARACTER SET utf8 NOT NULL,
+  `id` char(30) CHARACTER SET utf8 NOT NULL,
   `createdAt` datetime(3) NOT NULL,
   `updatedAt` datetime(3) NOT NULL,
   `title` mediumtext COLLATE utf8mb4_unicode_ci,
@@ -196,8 +196,8 @@ DROP TABLE IF EXISTS `_ThoughtToUser`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `_ThoughtToUser` (
-  `A` char(25) CHARACTER SET utf8 NOT NULL,
-  `B` char(25) CHARACTER SET utf8 NOT NULL,
+  `A` char(30) CHARACTER SET utf8 NOT NULL,
+  `B` char(30) CHARACTER SET utf8 NOT NULL,
   UNIQUE KEY `ThoughtToUser_AB_unique` (`A`,`B`),
   KEY `B` (`B`),
   CONSTRAINT `_ThoughtToUser_ibfk_1` FOREIGN KEY (`A`) REFERENCES `Thought` (`id`) ON DELETE CASCADE,
@@ -213,8 +213,8 @@ DROP TABLE IF EXISTS `_UserFriends`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `_UserFriends` (
-  `A` char(25) CHARACTER SET utf8 NOT NULL,
-  `B` char(25) CHARACTER SET utf8 NOT NULL,
+  `A` char(30) CHARACTER SET utf8 NOT NULL,
+  `B` char(30) CHARACTER SET utf8 NOT NULL,
   UNIQUE KEY `UserFriends_AB_unique` (`A`,`B`),
   KEY `B` (`B`),
   CONSTRAINT `_UserFriends_ibfk_1` FOREIGN KEY (`A`) REFERENCES `User` (`id`) ON DELETE CASCADE,
@@ -230,8 +230,8 @@ DROP TABLE IF EXISTS `_UserToWork`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `_UserToWork` (
-  `A` char(25) CHARACTER SET utf8 NOT NULL,
-  `B` char(25) CHARACTER SET utf8 NOT NULL,
+  `A` char(30) CHARACTER SET utf8 NOT NULL,
+  `B` char(30) CHARACTER SET utf8 NOT NULL,
   UNIQUE KEY `UserToWork_AB_unique` (`A`,`B`),
   KEY `B` (`B`),
   CONSTRAINT `_UserToWork_ibfk_1` FOREIGN KEY (`A`) REFERENCES `User` (`id`) ON DELETE CASCADE,
