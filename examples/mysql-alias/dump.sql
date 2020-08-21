@@ -23,7 +23,7 @@ DROP TABLE IF EXISTS `Category`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `Category` (
-  `id` char(25) CHARACTER SET utf8 NOT NULL,
+  `id` char(30) CHARACTER SET utf8 NOT NULL,
   `name` mediumtext COLLATE utf8mb4_unicode_ci NOT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -37,7 +37,7 @@ DROP TABLE IF EXISTS `Post`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `Post` (
-  `id` char(25) CHARACTER SET utf8 NOT NULL,
+  `id` char(30) CHARACTER SET utf8 NOT NULL,
   `createdAt` datetime(3) NOT NULL,
   `updatedAt` datetime(3) NOT NULL,
   `title` mediumtext COLLATE utf8mb4_unicode_ci NOT NULL,
@@ -55,9 +55,9 @@ DROP TABLE IF EXISTS `Profile`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `Profile` (
-  `id` char(25) CHARACTER SET utf8 NOT NULL,
+  `id` char(30) CHARACTER SET utf8 NOT NULL,
   `bio` mediumtext COLLATE utf8mb4_unicode_ci,
-  `user` char(25) CHARACTER SET utf8 DEFAULT NULL,
+  `user` char(30) CHARACTER SET utf8 DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `user` (`user`),
   CONSTRAINT `Profile_ibfk_1` FOREIGN KEY (`user`) REFERENCES `User` (`id`) ON DELETE SET NULL
@@ -72,7 +72,7 @@ DROP TABLE IF EXISTS `User`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `User` (
-  `id` char(25) CHARACTER SET utf8 NOT NULL,
+  `id` char(30) CHARACTER SET utf8 NOT NULL,
   `email` mediumtext COLLATE utf8mb4_unicode_ci,
   `name` mediumtext COLLATE utf8mb4_unicode_ci NOT NULL,
   `role` varchar(191) COLLATE utf8mb4_unicode_ci NOT NULL,
@@ -90,8 +90,8 @@ DROP TABLE IF EXISTS `_CategoryToMessage`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `_CategoryToMessage` (
-  `A` char(25) CHARACTER SET utf8 NOT NULL,
-  `B` char(25) CHARACTER SET utf8 NOT NULL,
+  `A` char(30) CHARACTER SET utf8 NOT NULL,
+  `B` char(30) CHARACTER SET utf8 NOT NULL,
   UNIQUE KEY `CategoryToMessage_AB_unique` (`A`,`B`),
   KEY `B` (`B`),
   CONSTRAINT `_CategoryToMessage_ibfk_1` FOREIGN KEY (`A`) REFERENCES `Category` (`id`) ON DELETE CASCADE,
@@ -107,8 +107,8 @@ DROP TABLE IF EXISTS `_MessageToUser`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `_MessageToUser` (
-  `A` char(25) CHARACTER SET utf8 NOT NULL,
-  `B` char(25) CHARACTER SET utf8 NOT NULL,
+  `A` char(30) CHARACTER SET utf8 NOT NULL,
+  `B` char(30) CHARACTER SET utf8 NOT NULL,
   UNIQUE KEY `MessageToUser_AB_unique` (`A`,`B`),
   KEY `B` (`B`),
   CONSTRAINT `_MessageToUser_ibfk_1` FOREIGN KEY (`A`) REFERENCES `Post` (`id`) ON DELETE CASCADE,

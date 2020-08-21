@@ -3,11 +3,11 @@ ALTER TABLE `User` CHANGE `role` `role` ENUM('ADMIN', 'CUSTOMER') NOT NULL DEFAU
 ALTER TABLE `User` CHANGE `jsonData` `jsonData` JSON ;
 ALTER TABLE `Post` CHANGE `createdAt` `createdAt` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP;
 ALTER TABLE `Post` CHANGE `published` `published` TINYINT(1) NOT NULL DEFAULT 0;
-ALTER TABLE `Post` ADD COLUMN `authorId` char(25) CHARACTER SET utf8;
+ALTER TABLE `Post` ADD COLUMN `authorId` char(30) CHARACTER SET utf8;
 UPDATE `Post`, `_UserPost` SET `Post`.`authorId` = `_UserPost`.B where `_UserPost`.A = `Post`.`id`;
 ALTER TABLE `Post` ADD FOREIGN KEY (`authorId`) REFERENCES `User`(`id`);
 DROP TABLE `_UserPost`;
-ALTER TABLE `User` ADD COLUMN `profileId` char(25) CHARACTER SET utf8 unique;
+ALTER TABLE `User` ADD COLUMN `profileId` char(30) CHARACTER SET utf8 unique;
 UPDATE `User`, `_UserProfile` SET `User`.`profileId` = `_UserProfile`.A where `_UserProfile`.B = `User`.`id`;
 ALTER TABLE `User` ADD FOREIGN KEY (`profileId`) REFERENCES `Profile`(`id`);
 DROP TABLE `_UserProfile`;

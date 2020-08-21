@@ -23,7 +23,7 @@ DROP TABLE IF EXISTS `Companie`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `Companie` (
-  `id` char(25) CHARACTER SET utf8 NOT NULL,
+  `id` char(30) CHARACTER SET utf8 NOT NULL,
   `companieRole` mediumtext COLLATE utf8mb4_unicode_ci NOT NULL,
   `updatedAt` datetime(3) NOT NULL,
   `createdAt` datetime(3) NOT NULL,
@@ -39,7 +39,7 @@ DROP TABLE IF EXISTS `IssuedCard`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `IssuedCard` (
-  `id` char(25) CHARACTER SET utf8 NOT NULL,
+  `id` char(30) CHARACTER SET utf8 NOT NULL,
   `name` mediumtext COLLATE utf8mb4_unicode_ci NOT NULL,
   `updatedAt` datetime(3) NOT NULL,
   `createdAt` datetime(3) NOT NULL,
@@ -55,7 +55,7 @@ DROP TABLE IF EXISTS `User`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `User` (
-  `id` char(25) CHARACTER SET utf8 NOT NULL,
+  `id` char(30) CHARACTER SET utf8 NOT NULL,
   `firstName` mediumtext COLLATE utf8mb4_unicode_ci NOT NULL,
   `updatedAt` datetime(3) NOT NULL,
   `createdAt` datetime(3) NOT NULL,
@@ -71,7 +71,7 @@ DROP TABLE IF EXISTS `UserRoleCompanie`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `UserRoleCompanie` (
-  `id` char(25) CHARACTER SET utf8 NOT NULL,
+  `id` char(30) CHARACTER SET utf8 NOT NULL,
   `updatedAt` datetime(3) NOT NULL,
   `createdAt` datetime(3) NOT NULL,
   PRIMARY KEY (`id`)
@@ -87,7 +87,7 @@ DROP TABLE IF EXISTS `_RelayId`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `_RelayId` (
   `id` varchar(36) NOT NULL,
-  `stableModelIdentifier` varchar(25) NOT NULL,
+  `stableModelIdentifier` varchar(30) NOT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -100,9 +100,9 @@ DROP TABLE IF EXISTS `_UserIssuedCardRelation`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `_UserIssuedCardRelation` (
-  `id` char(25) CHARACTER SET utf8 NOT NULL,
-  `A` char(25) CHARACTER SET utf8 NOT NULL,
-  `B` char(25) CHARACTER SET utf8 NOT NULL,
+  `id` char(30) CHARACTER SET utf8 NOT NULL,
+  `A` char(30) CHARACTER SET utf8 NOT NULL,
+  `B` char(30) CHARACTER SET utf8 NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `UserIssuedCardRelation_AB_unique` (`A`,`B`),
   KEY `B` (`B`),
@@ -119,9 +119,9 @@ DROP TABLE IF EXISTS `_UserRoleCompaniesRelation`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `_UserRoleCompaniesRelation` (
-  `id` char(25) CHARACTER SET utf8 NOT NULL,
-  `A` char(25) CHARACTER SET utf8 NOT NULL,
-  `B` char(25) CHARACTER SET utf8 NOT NULL,
+  `id` char(30) CHARACTER SET utf8 NOT NULL,
+  `A` char(30) CHARACTER SET utf8 NOT NULL,
+  `B` char(30) CHARACTER SET utf8 NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `UserRoleCompaniesRelation_AB_unique` (`A`,`B`),
   KEY `B` (`B`),

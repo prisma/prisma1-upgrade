@@ -523,13 +523,13 @@ export class MySQL5 implements Translator {
     const foreignNameLetter = modelNameMany < modelNameOne ? "A" : "B"
     const columnNameOneIDLetter = modelNameMany > modelNameOne ? "A" : "B"
 
-    stmts.push(`ALTER TABLE ${tableNameOne} ADD COLUMN ${foreignName} char(25) CHARACTER SET utf8;`)
+    stmts.push(`ALTER TABLE ${tableNameOne} ADD COLUMN ${foreignName} char(30) CHARACTER SET utf8;`)
     stmts.push(
       `UPDATE ${tableNameOne}, ${joinTableName} SET ${tableNameOne}.${foreignName} = ${joinTableName}.${foreignNameLetter} where ${joinTableName}.${columnNameOneIDLetter} = ${tableNameOne}.${columnNameOneID};`
     )
     if (notNull) {
       stmts.push(
-        `ALTER TABLE ${tableNameOne} CHANGE ${foreignName} ${foreignName} char(25) CHARACTER SET utf8 ${notNull};`
+        `ALTER TABLE ${tableNameOne} CHANGE ${foreignName} ${foreignName} char(30) CHARACTER SET utf8 ${notNull};`
       )
     }
     stmts.push(
@@ -552,12 +552,12 @@ export class MySQL5 implements Translator {
     const notNull = op.p1FieldOne.optional() ? "" : "NOT NULL"
     const columnNameOneIDLetter = modelNameOther > modelNameOne ? "A" : "B"
     const foreignNameLetter = modelNameOther < modelNameOne ? "A" : "B"
-    stmts.push(`ALTER TABLE ${tableNameOne} ADD COLUMN ${foreignName} char(25) CHARACTER SET utf8 unique;`)
+    stmts.push(`ALTER TABLE ${tableNameOne} ADD COLUMN ${foreignName} char(30) CHARACTER SET utf8 unique;`)
     stmts.push(
       `UPDATE ${tableNameOne}, ${joinTableName} SET ${tableNameOne}.${foreignName} = ${joinTableName}.${foreignNameLetter} where ${joinTableName}.${columnNameOneIDLetter} = ${tableNameOne}.${columnNameOneID};`
     )
     if (notNull) {
-      ;`ALTER TABLE ${tableNameOne} CHANGE ${foreignName} ${foreignName} char(25) CHARACTER SET utf8 ${notNull};`
+      ;`ALTER TABLE ${tableNameOne} CHANGE ${foreignName} ${foreignName} char(30) CHARACTER SET utf8 ${notNull};`
     }
     stmts.push(
       `ALTER TABLE ${tableNameOne} ADD FOREIGN KEY (${foreignName}) REFERENCES ${tableNameOther}(${columnNameOther});`

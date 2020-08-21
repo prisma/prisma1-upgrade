@@ -23,8 +23,8 @@ DROP TABLE IF EXISTS `User`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `User` (
-  `id` char(25) CHARACTER SET utf8 NOT NULL,
-  `invitee` char(25) CHARACTER SET utf8 DEFAULT NULL,
+  `id` char(30) CHARACTER SET utf8 NOT NULL,
+  `invitee` char(30) CHARACTER SET utf8 DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `invitee` (`invitee`),
   CONSTRAINT `User_ibfk_1` FOREIGN KEY (`invitee`) REFERENCES `User` (`id`) ON DELETE SET NULL

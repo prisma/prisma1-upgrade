@@ -23,8 +23,8 @@ DROP TABLE IF EXISTS `Post`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `Post` (
-  `id` char(25) CHARACTER SET utf8 NOT NULL,
-  `user` char(25) CHARACTER SET utf8 DEFAULT NULL,
+  `id` char(30) CHARACTER SET utf8 NOT NULL,
+  `user` char(30) CHARACTER SET utf8 DEFAULT NULL,
   `meta` mediumtext COLLATE utf8mb4_unicode_ci NOT NULL,
   PRIMARY KEY (`id`),
   KEY `user` (`user`),
@@ -40,7 +40,7 @@ DROP TABLE IF EXISTS `User`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `User` (
-  `id` char(25) CHARACTER SET utf8 NOT NULL,
+  `id` char(30) CHARACTER SET utf8 NOT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;

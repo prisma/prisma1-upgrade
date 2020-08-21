@@ -23,7 +23,7 @@ DROP TABLE IF EXISTS `Media`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `Media` (
-  `id` char(25) CHARACTER SET utf8 NOT NULL,
+  `id` char(30) CHARACTER SET utf8 NOT NULL,
   `title` mediumtext COLLATE utf8mb4_unicode_ci,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -37,7 +37,7 @@ DROP TABLE IF EXISTS `User`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `User` (
-  `id` char(25) CHARACTER SET utf8 NOT NULL,
+  `id` char(30) CHARACTER SET utf8 NOT NULL,
   `firstName` mediumtext COLLATE utf8mb4_unicode_ci NOT NULL,
   `lastName` mediumtext COLLATE utf8mb4_unicode_ci NOT NULL,
   PRIMARY KEY (`id`)
@@ -52,8 +52,8 @@ DROP TABLE IF EXISTS `_UserMedias`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `_UserMedias` (
-  `A` char(25) CHARACTER SET utf8 NOT NULL,
-  `B` char(25) CHARACTER SET utf8 NOT NULL,
+  `A` char(30) CHARACTER SET utf8 NOT NULL,
+  `B` char(30) CHARACTER SET utf8 NOT NULL,
   UNIQUE KEY `UserMedias_AB_unique` (`A`,`B`),
   KEY `B` (`B`),
   CONSTRAINT `_UserMedias_ibfk_1` FOREIGN KEY (`A`) REFERENCES `Media` (`id`) ON DELETE CASCADE,

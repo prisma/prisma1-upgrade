@@ -23,7 +23,7 @@ DROP TABLE IF EXISTS `AUser`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `AUser` (
-  `id` char(25) CHARACTER SET utf8 NOT NULL,
+  `id` char(30) CHARACTER SET utf8 NOT NULL,
   `updatedAt` datetime(3) NOT NULL,
   `createdAt` datetime(3) NOT NULL,
   PRIMARY KEY (`id`)
@@ -38,7 +38,7 @@ DROP TABLE IF EXISTS `Post`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `Post` (
-  `id` char(25) CHARACTER SET utf8 NOT NULL,
+  `id` char(30) CHARACTER SET utf8 NOT NULL,
   `updatedAt` datetime(3) NOT NULL,
   `createdAt` datetime(3) NOT NULL,
   PRIMARY KEY (`id`)
@@ -53,9 +53,9 @@ DROP TABLE IF EXISTS `_AUserToPost`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `_AUserToPost` (
-  `id` char(25) CHARACTER SET utf8 NOT NULL,
-  `A` char(25) CHARACTER SET utf8 NOT NULL,
-  `B` char(25) CHARACTER SET utf8 NOT NULL,
+  `id` char(30) CHARACTER SET utf8 NOT NULL,
+  `A` char(30) CHARACTER SET utf8 NOT NULL,
+  `B` char(30) CHARACTER SET utf8 NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `AUserToPost_AB_unique` (`A`,`B`),
   KEY `B` (`B`),
@@ -73,7 +73,7 @@ DROP TABLE IF EXISTS `_RelayId`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `_RelayId` (
   `id` varchar(36) NOT NULL,
-  `stableModelIdentifier` varchar(25) NOT NULL,
+  `stableModelIdentifier` varchar(30) NOT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;

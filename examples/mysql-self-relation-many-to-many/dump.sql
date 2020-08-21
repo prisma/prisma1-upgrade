@@ -23,7 +23,7 @@ DROP TABLE IF EXISTS `User`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `User` (
-  `id` char(25) CHARACTER SET utf8 NOT NULL,
+  `id` char(30) CHARACTER SET utf8 NOT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -36,8 +36,8 @@ DROP TABLE IF EXISTS `_UserInvitation`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `_UserInvitation` (
-  `A` char(25) CHARACTER SET utf8 NOT NULL,
-  `B` char(25) CHARACTER SET utf8 NOT NULL,
+  `A` char(30) CHARACTER SET utf8 NOT NULL,
+  `B` char(30) CHARACTER SET utf8 NOT NULL,
   UNIQUE KEY `UserInvitation_AB_unique` (`A`,`B`),
   KEY `B` (`B`),
   CONSTRAINT `_UserInvitation_ibfk_1` FOREIGN KEY (`A`) REFERENCES `User` (`id`) ON DELETE CASCADE,
