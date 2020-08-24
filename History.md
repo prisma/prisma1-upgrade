@@ -1,3 +1,7 @@
+# 0.0.40 / 2020-08-24
+
+- build project for previous fix
+
 # 0.0.39 / 2020-08-24
 
 - fix label in cli
