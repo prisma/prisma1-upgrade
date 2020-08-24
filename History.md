@@ -1,3 +1,7 @@
+# 0.0.39 / 2020-08-24
+
+- fix label in cli
+
 # 0.0.38 / 2020-08-21
 
 - migrate postgres json and enum to breaking changes. closes #73 #74
