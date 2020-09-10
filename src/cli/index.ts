@@ -279,26 +279,6 @@ async function main(argv: string[]): Promise<void> {
           console.log()
           console.log()
           break
-        case "SetJsonTypeOp":
-          console.log(`  ${bold(`Fix columns with JSON data types`)}`)
-          console.log(
-            `  ${gray(`https://pris.ly/d/schema-incompatibilities#json-type-is-represented-as-text-in-database`)}`
-          )
-          console.log()
-          console.log(redent(queries.join("\n"), 4))
-          console.log()
-          console.log()
-          break
-        case "SetEnumTypeOp":
-          console.log(`  ${bold(`Fix columns with ENUM data types`)}`)
-          console.log(
-            `  ${gray(`https://pris.ly/d/schema-incompatibilities#enums-are-represented-as-text-in-database`)}`
-          )
-          console.log()
-          console.log(redent(queries.join("\n"), 4))
-          console.log()
-          console.log()
-          break
         case "AlterIDsOp":
           console.log(`  ${bold(`Migrate IDs from varchar(25) to varchar(30)`)}`)
           console.log(`  ${gray(`https://pris.ly/d/schema-incompatibilities#mismatching-cuid-length`)}`)
@@ -379,6 +359,26 @@ async function main(argv: string[]): Promise<void> {
             break
           case "MigrateScalarListOp":
             console.log(`  ${bold(`Fix simple scalar lists`)}`)
+            console.log()
+            console.log(redent(queries.join("\n"), 4))
+            console.log()
+            console.log()
+            break
+          case "SetJsonTypeOp":
+            console.log(`  ${bold(`Fix columns with JSON data types`)}`)
+            console.log(
+              `  ${gray(`https://pris.ly/d/schema-incompatibilities#json-type-is-represented-as-text-in-database`)}`
+            )
+            console.log()
+            console.log(redent(queries.join("\n"), 4))
+            console.log()
+            console.log()
+            break
+          case "SetEnumTypeOp":
+            console.log(`  ${bold(`Fix columns with ENUM data types`)}`)
+            console.log(
+              `  ${gray(`https://pris.ly/d/schema-incompatibilities#enums-are-represented-as-text-in-database`)}`
+            )
             console.log()
             console.log(redent(queries.join("\n"), 4))
             console.log()
