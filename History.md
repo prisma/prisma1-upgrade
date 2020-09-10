@@ -1,3 +1,7 @@
+# 0.0.41 / 2020-09-10
+
+- move json and enum operations to the breaking changes list
+
 # 0.0.40 / 2020-08-24
 
 - build project for previous fix
