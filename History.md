@@ -1,3 +1,7 @@
+# 0.0.42 / 2020-09-10
+
+- keep json & enum operations in non-breaking changes as well for mysql
+
 # 0.0.41 / 2020-09-10
 
 - move json and enum operations to the breaking changes list
