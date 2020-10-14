@@ -250,7 +250,7 @@ export class Postgres implements Translator {
     const notNull = op.p1FieldOne.optional() ? "" : "NOT NULL"
     const columnNameOneIDLetter = modelNameMany > modelNameOne ? "A" : "B"
     const foreignNameLetter = modelNameMany < modelNameOne ? "A" : "B"
-    stmts.push(`ALTER TABLE ${tableNameOne} ADD COLUMN "${foreignName}" CHARACTER VARYING(25);`)
+    stmts.push(`ALTER TABLE ${tableNameOne} ADD COLUMN "${foreignName}" CHARACTER VARYING(30);`)
     stmts.push(
       `UPDATE ${tableNameOne} SET "${foreignName}" = ${joinTableName}."${foreignNameLetter}" FROM ${joinTableName} WHERE ${joinTableName}."${columnNameOneIDLetter}" = ${tableNameOne}."${columnNameOneID}";`
     )
@@ -277,7 +277,7 @@ export class Postgres implements Translator {
     const notNull = op.p1FieldOne.optional() ? "" : "NOT NULL"
     const columnNameOneIDLetter = modelNameOther > modelNameOne ? "A" : "B"
     const foreignNameLetter = modelNameOther < modelNameOne ? "A" : "B"
-    stmts.push(`ALTER TABLE ${tableNameOne} ADD COLUMN "${foreignName}" CHARACTER VARYING(25) unique;`)
+    stmts.push(`ALTER TABLE ${tableNameOne} ADD COLUMN "${foreignName}" CHARACTER VARYING(30) unique;`)
     stmts.push(
       `UPDATE ${tableNameOne} SET "${foreignName}" = ${joinTableName}."${foreignNameLetter}" FROM ${joinTableName} WHERE ${joinTableName}."${columnNameOneIDLetter}" = ${tableNameOne}."${columnNameOneID}";`
     )
