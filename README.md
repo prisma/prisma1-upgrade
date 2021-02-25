@@ -1,6 +1,6 @@
 # Prisma Upgrade
 
-Prisma Upgrade is a CLI tool to help Prisma 1 users upgrade to Prisma 2.0.
+Prisma Upgrade is a CLI tool to help Prisma 1 users using MySQL or Postgres to upgrade to Prisma 2.0.
 
 ## Scope
 
