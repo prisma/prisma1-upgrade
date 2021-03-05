@@ -43,7 +43,7 @@
     "js-yaml": "3.14.0",
     "kleur": "3.0.3",
     "prisma": "2.18.0",
-    "prismafile": "1.0.9",
+    "prismafile": "1.0.11",
     "redent": "3.0.0"
   },
   "devDependencies": {

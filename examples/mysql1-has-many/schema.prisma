@@ -4,15 +4,15 @@ datasource db {
 }
 
 model Post {
-  createdAt DateTime
-  id        String   @default(cuid()) @id
+  id        String   @id @default(cuid()) @db.Char(25)
   updatedAt DateTime
-  User      User[]   @relation(references: [id])
+  createdAt DateTime
+  User      User[]
 }
 
 model User {
-  createdAt DateTime
-  id        String   @default(cuid()) @id
+  id        String   @id @default(cuid()) @db.Char(25)
   updatedAt DateTime
-  Post      Post[]   @relation(references: [id])
+  createdAt DateTime
+  Post      Post[]
 }

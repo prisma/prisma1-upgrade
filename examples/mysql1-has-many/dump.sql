@@ -1,4 +1,4 @@
--- MySQL dump 10.13  Distrib 5.7.29, for osx10.15 (x86_64)
+-- MySQL dump 10.13  Distrib 8.0.22, for osx10.15 (x86_64)
 --
 -- Host: 0.0.0.0    Database: mysql1-has-many@dev
 -- ------------------------------------------------------
@@ -7,7 +7,7 @@
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
 /*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
-/*!40101 SET NAMES utf8 */;
+/*!50503 SET NAMES utf8mb4 */;
 /*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
 /*!40103 SET TIME_ZONE='+00:00' */;
 /*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
@@ -21,9 +21,9 @@
 
 DROP TABLE IF EXISTS `Post`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `Post` (
-  `id` char(30) CHARACTER SET utf8 NOT NULL,
+  `id` char(25) CHARACTER SET utf8 NOT NULL,
   `updatedAt` datetime(3) NOT NULL,
   `createdAt` datetime(3) NOT NULL,
   PRIMARY KEY (`id`)
@@ -36,9 +36,9 @@ CREATE TABLE `Post` (
 
 DROP TABLE IF EXISTS `User`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `User` (
-  `id` char(30) CHARACTER SET utf8 NOT NULL,
+  `id` char(25) CHARACTER SET utf8 NOT NULL,
   `updatedAt` datetime(3) NOT NULL,
   `createdAt` datetime(3) NOT NULL,
   PRIMARY KEY (`id`)
@@ -51,11 +51,11 @@ CREATE TABLE `User` (
 
 DROP TABLE IF EXISTS `_PostToUser`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `_PostToUser` (
-  `id` char(30) CHARACTER SET utf8 NOT NULL,
-  `A` char(30) CHARACTER SET utf8 NOT NULL,
-  `B` char(30) CHARACTER SET utf8 NOT NULL,
+  `id` char(25) CHARACTER SET utf8 NOT NULL,
+  `A` char(25) CHARACTER SET utf8 NOT NULL,
+  `B` char(25) CHARACTER SET utf8 NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `PostToUser_AB_unique` (`A`,`B`),
   KEY `B` (`B`),
@@ -70,10 +70,10 @@ CREATE TABLE `_PostToUser` (
 
 DROP TABLE IF EXISTS `_RelayId`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `_RelayId` (
   `id` varchar(36) NOT NULL,
-  `stableModelIdentifier` varchar(30) NOT NULL,
+  `stableModelIdentifier` varchar(25) NOT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -87,4 +87,4 @@ CREATE TABLE `_RelayId` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2020-06-18 13:04:02
+-- Dump completed on 2021-03-05 17:43:46

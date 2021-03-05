@@ -55,6 +55,7 @@ async function main() {
       if (~example.indexOf(`mysql-`)) {
         console.log(`${example}: dumping MySQL schema`)
         const { stdout } = await exec(`mysqldump`, [
+          `--column-statistics=0`,
           `-u`,
           `root`,
           `-pprisma`,
@@ -69,6 +70,7 @@ async function main() {
       } else if (~example.indexOf(`mysql1-`)) {
         console.log(`${example}: dumping MySQL1 schema`)
         const { stdout } = await exec(`mysqldump`, [
+          `--column-statistics=0`,
           `-u`,
           `root`,
           `-pprisma`,
