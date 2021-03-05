@@ -3,7 +3,7 @@ const exec = require('execa')
 const path = require('path')
 const fs = require('fs')
 
-const prismaPath = require.resolve('@prisma/cli')
+const prismaPath = require.resolve('prisma')
 const exampleDir = path.join(__dirname, '..', 'prisma-2-examples')
 
 async function main() {
