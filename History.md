@@ -1,3 +1,11 @@
+# 0.0.43 / 2021-03-05
+
+- Fix prisma/upgrade for native types.
+- Add development instructions.
+- Fix sqldump script for mysqldump@8
+- switch from @prisma/cli to prisma
+- Add note about MySQL and Postgres
+
 # 0.0.42 / 2020-09-10
 
 - keep json & enum operations in non-breaking changes as well for mysql
