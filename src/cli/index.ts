@@ -47,7 +47,7 @@ const flags = {
 
 function usage() {
   return redent(`
-    ${bold("prisma-upgrade")} helps you transition from Prisma 1 to Prisma 2.
+    ${bold("prisma-upgrade")} helps you transition from Prisma 1 to Prisma 2+.
 
     ${bold("Usage")}
 
@@ -121,7 +121,7 @@ async function main(argv: string[]): Promise<void> {
   }
   schemaPrisma = path.resolve(wd, schemaPrisma)
   if (!(await exists(schemaPrisma))) {
-    return fatal(`Prisma 2 schema doesn't exist in "${schemaPrisma}". Run \`prisma-upgrade -h\` for more details.`)
+    return fatal(`Prisma 2+ schema doesn't exist in "${schemaPrisma}". Run \`prisma-upgrade -h\` for more details.`)
   }
 
   const yml = yaml.safeLoad(await readFile(prismaYaml, "utf8"))
@@ -140,9 +140,9 @@ async function main(argv: string[]): Promise<void> {
   } catch (err) {
     return fatal(
       redent(`
-      Error parsing the Prisma 2 file.
+      Error parsing the Prisma 2+ file.
 
-      Are you sure "${schemaPrisma}" is a valid Prisma 2 schema file?
+      Are you sure "${schemaPrisma}" is a valid Prisma 2+ schema file?
 
       Run ${green(`\`prisma-upgrade -h\``)} for more details.
 
@@ -169,7 +169,7 @@ async function main(argv: string[]): Promise<void> {
   // no models
   if (prisma2.models.length === 0) {
     return fatal(
-      `Your Prisma 2 schema doesn't have any models. Run ${green(`\`prisma introspect\``)}, then run ${green(
+      `Your Prisma 2+ schema doesn't have any models. Run ${green(`\`prisma db pull\``)}, then run ${green(
         `\`prisma-upgrade\``
       )} again.`
     )
@@ -185,14 +185,14 @@ async function main(argv: string[]): Promise<void> {
     console.log(
       redent(`
       ◮ Welcome to the interactive ${bold("Prisma Upgrade CLI")} that helps with the
-      upgrade process from Prisma 1 to Prisma 2.
+      upgrade process from Prisma 1 to Prisma 2+.
 
       Please read the docs to learn more about the upgrade process:
       ${gray(underline("https://pris.ly/d/how-to-upgrade"))}
 
       ${bold("➤ Goal")}
       The Upgrade CLI helps you resolve the schema incompatibilities
-      betweeen Prisma 1 and Prisma 2. Learn more in the docs:
+      betweeen Prisma 1 and Prisma 2+. Learn more in the docs:
       ${gray(underline("https://pris.ly/d/schema-incompatibilities"))}
 
       ${bold("➤ How it works")}
@@ -208,9 +208,9 @@ async function main(argv: string[]): Promise<void> {
 
         1. The Upgrade CLI generates SQL commands for you to run on your database.
         2. You run the SQL commands against your database.
-        3. You run the ${green(`\`npx prisma introspect\``)} command again.
+        3. You run the ${green(`\`npx prisma db pull\``)} command again.
         4. You run the ${green(`\`npx prisma-upgrade\``)} command again.
-        5. The Upgrade CLI adjusts the Prisma 2 schema by adding missing attributes.
+        5. Finally the Upgrade CLI adjusts the Prisma 2+ schema by adding missing attributes.
 
       ${bold("➤ Note")}
       It is recommended that you make a full backup of your existing data before starting
@@ -260,7 +260,7 @@ async function main(argv: string[]): Promise<void> {
           console.log()
           break
         case "SetCreatedAtOp":
-          console.log(`  ${bold(`Replicate \`@createdAt\` behavior in Prisma 2`)}`)
+          console.log(`  ${bold(`Replicate \`@createdAt\` behavior in Prisma 2+`)}`)
           console.log(`  ${gray(`https://pris.ly/d/schema-incompatibilities#createdat-isnt-represented-in-database`)}`)
           console.log()
           console.log(redent(queries.join("\n"), 4))
@@ -329,7 +329,7 @@ async function main(argv: string[]): Promise<void> {
 
         In order to fully optimize your database schema, you'll need to run a few SQL
         statements that will break your Prisma 1 setup. Note that these changes are optional
-        and if you are upgrading gradually and running Prisma 1 and Prisma 2 side-by-side,
+        and if you are upgrading gradually and running Prisma 1 and Prisma 2+ side-by-side,
         you should not perform these changes yet. Instead, you can perform them whenever
         you are ready to completely remove Prisma 1 from your project.
         If you are upgrading all at once, you can safely perform these changes now.
@@ -414,14 +414,14 @@ async function main(argv: string[]): Promise<void> {
       ${bold("➤ Next Steps")}
 
       After you executed one or more of the previous SQL statements against your database,
-      please run the following two commands to refresh your Prisma 2 schema and check
+      please run the following two commands to refresh your Prisma 2+ schema and check
       the changes.
 
-        1. Run ${green(`\`npx prisma introspect\``)} again to refresh your Prisma 2 schema.
+        1. Run ${green(`\`npx prisma db pull\``)} again to refresh your Prisma 2+ schema.
         2. Run ${green(`\`npx prisma-upgrade\``)} again.
 
       If you can't or don't want to execute the remaining SQL statements right now, you can
-      skip to the last step where the Upgrade CLI adds missing attributes to your Prisma 2
+      skip to the last step where the Upgrade CLI adds missing attributes to your Prisma 2+
       schema that are not picked up by introspection.
     `)
   )
@@ -435,11 +435,11 @@ async function main(argv: string[]): Promise<void> {
   console.log(
     redent(`
       ${bold("➤ What happens next")}
-      As a last step, some final adjustments will be made to your Prisma 2 schema
+      As a last step, some final adjustments will be made to your Prisma 2+ schema
       to carry over some Prisma-level attributes that aren't picked up by introspection.
 
       ${bold("Warning")}
-      Your current Prisma 2 schema will be overwritten, so please
+      Your current Prisma 2+ schema will be overwritten, so please
       make sure you have a backup!
   `)
   )
@@ -459,7 +459,7 @@ async function main(argv: string[]): Promise<void> {
       you can re-run the Upgrade CLI at any time.
 
       Note that the Upgrade CLI doesn't resolve all of the schema incompatibilities
-      between Prisma 1 and Prisma 2. If you want to resolve the remaining ones,
+      between Prisma 1 and Prisma 2+. If you want to resolve the remaining ones,
       you can do so manually by following this guide:
       ${gray(underline(`https://pris.ly/d/upgrading-the-prisma-layer`))}
 

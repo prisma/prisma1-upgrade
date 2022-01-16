@@ -1,7 +1,7 @@
 {
   "name": "prisma-upgrade",
   "version": "0.0.43",
-  "description": "Upgrade is a CLI tool to help Prisma 1 users upgrade to Prisma 2.",
+  "description": "Upgrade is a CLI tool to help Prisma 1 users upgrade to Prisma 2+.",
   "main": "dist/api/index.js",
   "files": [
     "bin",

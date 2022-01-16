@@ -1,3 +1,8 @@
+## NEXT
+
+- Update mentions of "Prisma 2" to "Prisma 2+"
+- Document use of `db pull` instead of `introspect` 
+
 # 0.0.43 / 2021-03-05
 
 - Fix prisma/upgrade for native types.

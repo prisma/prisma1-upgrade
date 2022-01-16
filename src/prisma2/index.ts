@@ -48,12 +48,12 @@ export class Schema {
   provider(): string {
     const datasource = this.datasources[0]
     if (!datasource) {
-      throw new Error("The Prisma 2 schema must contain a datasource configuration")
+      throw new Error("The Prisma 2+ schema must contain a datasource configuration")
     }
     // find the prisma2 datasource provider
     const provider = datasource.provider
     if (!provider) {
-      throw new Error("The Prisma 2 datasource must contain a provider")
+      throw new Error("The Prisma 2+ datasource must contain a provider")
     }
     return provider
   }
@@ -62,7 +62,7 @@ export class Schema {
   setURL(url: string) {
     const datasource = this.datasources[0]
     if (!datasource) {
-      throw new Error("The Prisma 2 schema must contain a datasource configuration")
+      throw new Error("The Prisma 2+ schema must contain a datasource configuration")
     }
     datasource.url = url
   }
