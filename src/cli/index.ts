@@ -169,7 +169,7 @@ async function main(argv: string[]): Promise<void> {
   // no models
   if (prisma2.models.length === 0) {
     return fatal(
-      `Your Prisma 2 schema doesn't have any models. Run ${green(`\`prisma introspect\``)}, then run ${green(
+      `Your Prisma 2 schema doesn't have any models. Run ${green(`\`prisma db pull\``)}, then run ${green(
         `\`prisma-upgrade\``
       )} again.`
     )
@@ -208,7 +208,7 @@ async function main(argv: string[]): Promise<void> {
 
         1. The Upgrade CLI generates SQL commands for you to run on your database.
         2. You run the SQL commands against your database.
-        3. You run the ${green(`\`npx prisma introspect\``)} command again.
+        3. You run the ${green(`\`npx prisma db pull\``)} command again.
         4. You run the ${green(`\`npx prisma-upgrade\``)} command again.
         5. The Upgrade CLI adjusts the Prisma 2 schema by adding missing attributes.
 
@@ -417,7 +417,7 @@ async function main(argv: string[]): Promise<void> {
       please run the following two commands to refresh your Prisma 2 schema and check
       the changes.
 
-        1. Run ${green(`\`npx prisma introspect\``)} again to refresh your Prisma 2 schema.
+        1. Run ${green(`\`npx prisma db pull\``)} again to refresh your Prisma 2 schema.
         2. Run ${green(`\`npx prisma-upgrade\``)} again.
 
       If you can't or don't want to execute the remaining SQL statements right now, you can
