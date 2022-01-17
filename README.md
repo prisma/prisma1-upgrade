@@ -44,6 +44,7 @@ This table reflects the _current_ feature set of the upgrade CLI and will be upd
 
 ² = fixed by executing SQL statements  
 ³ = fixed by making changes to Prisma 2+ schema
+
 What do the columns mean?
 
 - **MySQL**: Does the CLI generate the correct MySQL statements to solve the problem?
