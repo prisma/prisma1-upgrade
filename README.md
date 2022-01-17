@@ -18,27 +18,32 @@ $ npx prisma-upgrade
 
 See [our documentation](https://www.prisma.io/docs/guides/upgrade-from-prisma-1/how-to-upgrade#prisma-upgrade-cli) for more information about how to upgrade your Prisma 1 datamodel to Prisma 2.
 
-## Current features
+## Features
 
-This table reflects the _current_ feature set of the upgrade CLI and will be updated continuously. Read below for a more detailled explanation of each column. You can also find more info about each of these feautures in the [docs](https://www.prisma.io/docs/guides/upgrade-from-prisma-1/schema-incompatibilities).
+This table reflects the _current_ feature set of the upgrade CLI and will be updated continuously. Read below for a more detailed explanation of each column. 
 
-| Name                                  | MySQL   | PostgreSQL | Prisma schema | Prisma 1 compatible |
-| ------------------------------------- | ------- | ---------- | ------------- | ------------------- |
-| Default values                        | Yes     | Yes        | Yes           | Yes                 |
-| Missing UNIQUE for inline 1-1         | Yes     | Yes        | Yes           | Yes                 |
-| JSON                                  | Yes     | Yes        | Yes           | Yes                 |
-| Enums                                 | Yes     | Yes        | Yes           | Yes                 |
-| @createdAt                            | Yes     | Yes        | Yes           | Yes                 |
-| Generated IDs with `@default(cuid())` | n/a     | n/a        | Yes           | Yes                 |
-| @updatedAt                            | n/a     | n/a        | Yes           | Yes                 |
-| `@map` and `@@map`                    | n/a     | n/a        | Yes           | Yes                 |
-| Maintain required 1-1-relations       | n/a     | n/a        | Yes           | Yes                 |
-| Maintain order of models and fields   | n/a     | n/a        | Not yet       | Yes                 |
-| Maintain relation names               | n/a     | n/a        | Not yet       | Yes                 |
-| Relation tables are all m-n           | Not yet | Not yet    | Not yet       | No                  |
-| Scalar lists have extra table         | Not yet | Not yet    | Not yet       | No                  |
-| Cascading deletes                     | No      | No         | No            | No                  |
+| Problem                                                                                                                                                                                                                                                                               | MySQL   | PostgreSQL | Prisma schema | Prisma 1 compatible |
+|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------|------------|---------------|---------------------|
+| Database schema incompatibilities³                                                                                                                                                                                                                                                    |         |            |               |                     |
+| [Default values aren't represented in database](https://www.prisma.io/docs/guides/upgrade-guides/upgrade-from-prisma-1/schema-incompatibilities-mysql#default-values-arent-represented-in-database) <!-- SetDefaultOp -->                                                             | Yes     | Yes        | Yes           | Yes                 |
+| [Mismtaching CUID length](https://www.prisma.io/docs/guides/upgrade-guides/upgrade-from-prisma-1/schema-incompatibilities-mysql#mismatching-cuid-length)   <!-- AlterIDsOp -->                                                                                                        | Yes     | Yes        | Yes           | Yes                 |
+| [`@createdAt` isn't represented in database](https://www.prisma.io/docs/guides/upgrade-guides/upgrade-from-prisma-1/schema-incompatibilities-mysql#createdat-isnt-represented-in-database)<!-- SetCreatedAtOp -->                                                                     | Yes     | Yes        | Yes           | Yes                 |
+| [Inline 1-1 relations are recognized as 1-n (missing `UNIQUE` constraint)](https://www.prisma.io/docs/guides/upgrade-guides/upgrade-from-prisma-1/schema-incompatibilities-mysql#inline-1-1-relations-are-recognized-as-1-n-missing-unique-constraint) <!-- AddUniqueConstraintOp --> | Yes     | Yes        | Yes           | Yes                 |
+| [`Json` type is represented as `TEXT`](https://www.prisma.io/docs/guides/upgrade-guides/upgrade-from-prisma-1/schema-incompatibilities-mysql#json-type-is-represented-as-text-in-database)  <!-- SetJsonTypeOp -->                                                                    | Yes     | Yes        | Yes           | Yes                 |
+| [Enum types are represented as `TEXT` in database](https://www.prisma.io/docs/guides/upgrade-guides/upgrade-from-prisma-1/schema-incompatibilities-mysql#enums-are-represented-as-text-in-database)  <!-- SetEnumTypeOp -->                                                           | Yes     | Yes        | Yes           | Yes                 |
+| [All non-inline relations are recognized as m-n](https://www.prisma.io/docs/guides/upgrade-guides/upgrade-from-prisma-1/schema-incompatibilities-mysql#all-non-inline-relations-are-recognized-as-m-n) <!-- MigrateHasManyOp -->                                                      | Not yet | Not yet    | Not yet       | No                  |
+| [Scalar lists (arrays) are maintained with extra table](https://www.prisma.io/docs/guides/upgrade-guides/upgrade-from-prisma-1/schema-incompatibilities-mysql#scalar-lists-arrays-are-maintained-with-extra-table) <!-- MigrateScalarListOp -->                                       | Not yet | Not yet    | Not yet       | No                  |
+| Prisma 2+ schema differences³                                                                                                                                                                                                                                                         |         |            |               |                     |
+| [`@updatedAt` isn't represented in database](https://www.prisma.io/docs/guides/upgrade-guides/upgrade-from-prisma-1/schema-incompatibilities-mysql#updatedat-isnt-represented-in-database)   <!-- upgrade() -->                                                                       | n/a     | n/a        | Yes           | Yes                 |
+| [Generated CUIDs as ID values aren't represented in database](https://www.prisma.io/docs/guides/upgrade-guides/upgrade-from-prisma-1/schema-incompatibilities-mysql#generated-cuids-as-id-values-arent-represented-in-database)     <!-- upgrade() -->                                | n/a     | n/a        | Yes           | Yes                 |
+| Maintain required 1-1-relations                                                                                                                                                                                                                                                       | n/a     | n/a        | Yes           | Yes                 |
+| Maintain order of models and fields                                                                                                                                                                                                                                                   | n/a     | n/a        | Not yet       | Yes                 |
+| Maintain relation names                                                                                                                                                                                                                                                               | n/a     | n/a        | Not yet       | Yes                 |
+| Cascading deletes                                                                                                                                                                                                                                                                     | No      | No         | No            | No                  |
+<!-- TODO: MigrateEnumListOp -->
 
+² = fixed by executing SQL statements  
+³ = fixed by making changes to Prisma 2+ schema
 What do the columns mean?
 
 - **MySQL**: Does the CLI generate the correct MySQL statements to solve the problem?
