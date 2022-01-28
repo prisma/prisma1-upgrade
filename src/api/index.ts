@@ -98,7 +98,7 @@ export async function upgrade(input: Input): Promise<Output> {
             // mysql only: defaults don't work for JSON
             if (isMySQLDefaultJson(provider, p1Field, p1Attr)) {
               warnings.push(
-                `Prisma 2.0 doesn't support the Json data type with a default yet.
+                `Prisma 2+ doesn't support the Json data type with a default yet.
 
                 See: https://github.com/prisma/prisma/issues/2556 for more information.`
               )
