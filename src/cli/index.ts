@@ -158,7 +158,7 @@ async function main(argv: string[]): Promise<void> {
   // MongoDB is not supported and has a custom upgrade documentation
   if (provider === 'mongodb') {
     return fatal(
-      `MongoDB connector is not supported by `prisma-upgrade`. Check out the upgrade documentation for MongoDB at ${gray(underline(`https://pris.ly/d/prisma1-mongodb-upgrade`))}`
+      `MongoDB connector is not supported by \`prisma-upgrade\`.`
     )
   }
 
