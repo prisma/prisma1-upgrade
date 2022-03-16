@@ -152,6 +152,16 @@ async function main(argv: string[]): Promise<void> {
       `)
     )
   }
+
+  const provider = prisma2.provider()
+
+  // MongoDB is not supported and has a custom upgrade documentation
+  if (provider === 'mongodb') {
+    return fatal(
+      `MongoDB connector is not supported by \`prisma-upgrade\`.`
+    )
+  }
+
   const url = isURL(args["--url"] || "") ? args["--url"] : findURL(yml, prisma2)
   if (!url) {
     return fatal(
@@ -166,6 +176,7 @@ async function main(argv: string[]): Promise<void> {
     `)
     )
   }
+
   // no models
   if (prisma2.models.length === 0) {
     return fatal(
@@ -230,8 +241,6 @@ async function main(argv: string[]): Promise<void> {
   // Non-breaking operations
   const nonBreakingOps = ops.concat(idOps)
   if (nonBreakingOps.length) {
-    const provider = prisma2.provider()
-
     const segments = new Map<sql.Op["type"], sql.Op[]>()
     for (let op of nonBreakingOps) {
       if (!segments.has(op.type)) {
@@ -312,8 +321,6 @@ async function main(argv: string[]): Promise<void> {
   }
 
   if (breakingOps.length) {
-    const provider = prisma2.provider()
-
     const segments = new Map<sql.Op["type"], sql.Op[]>()
     for (let op of breakingOps) {
       if (!segments.has(op.type)) {

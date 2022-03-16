@@ -2,6 +2,7 @@
 
 - Update mentions of "Prisma 2" to "Prisma 2+"
 - Document use of `db pull` instead of `introspect` 
+- Error early when provider === mongodb as it's not supported
 
 # 0.0.43 / 2021-03-05
 

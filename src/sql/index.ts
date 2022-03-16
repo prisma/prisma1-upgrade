@@ -19,7 +19,7 @@ function getTranslator(provider: string): Translator {
     case "postgresql":
       return new Postgres()
     default:
-      throw new Error(`unsupported provider "${provider}"`)
+      throw new Error(`Unsupported provider "${provider}"`)
   }
 }
 
