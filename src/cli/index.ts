@@ -138,6 +138,7 @@ async function main(argv: string[]): Promise<void> {
   try {
     prisma2 = new p2.Schema(await readFile(schemaPrisma, "utf8"))
   } catch (err) {
+    const location = err.location ? `${err.location.start.line}:${err.location.start.column} to ${err.location.end.line}:${err.location.end.column}` : ''
     return fatal(
       redent(`
       Error parsing the Prisma 2+ file.
@@ -149,6 +150,10 @@ async function main(argv: string[]): Promise<void> {
       Stack Trace:
 
         ${redent(err.stack || err.message, 4).trim()}
+      
+      Location (line:column):
+
+        ${location}
       `)
     )
   }
