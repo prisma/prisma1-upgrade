@@ -1,8 +1,12 @@
-## NEXT
+# 0.0.44 / 2022-04-05
 
+- chore: add mongodb upgrade docs link (#134)
+- chore: error for mongodb (#130)
+- docs(README): Update and resort feature table (#126)
 - Update mentions of "Prisma 2" to "Prisma 2+"
-- Document use of `db pull` instead of `introspect` 
+- Document use of `db pull` instead of `introspect`
 - Error early when provider === mongodb as it's not supported
+- Create SECURITY.md
 
 # 0.0.43 / 2021-03-05
 
