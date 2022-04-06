@@ -1,4 +1,4 @@
-# Prisma Upgrade
+# Prisma Upgrade [![npm](https://img.shields.io/npm/v/prisma-upgrade)](https://www.npmjs.com/package/prisma-upgrade)
 
 Prisma Upgrade is a CLI tool to help Prisma 1 users using MySQL or Postgres to upgrade to Prisma 2+.
 
