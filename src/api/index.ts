@@ -260,7 +260,7 @@ export async function upgrade(input: Input): Promise<Output> {
           return m.name === `${p1Model.name}_${p1Field.name}`
         })
         if (p2ModelList) {
-          p2ModelList.remove()
+          // p2ModelList.remove()
         }
       }
     }
@@ -421,6 +421,7 @@ export async function upgrade(input: Input): Promise<Output> {
         p1FieldOtherID: hasOneOtherFieldID,
         joinTableName: joinTableName(edge1.from, edge1.fromField, edge2.from, edge2.fromField),
       })
+      continue;
     }
     // L: 1-1 relation with both sides required details
     const p2Field1 = prisma2.findField((m, f) => edge1.from.name === m.name && edge1.to.name === f.name)
@@ -879,7 +880,6 @@ const updateRelationFields = (field: p2.Field, oldValue: string, newValue: strin
   const { value: { values: [existingFieldArg] } } = fieldArg;
 
   fieldArg.value.values = [{...existingFieldArg, name: { name: newValue }}];
-  console.log(`Updated relation fields to ${newValue}`);
 };
 
 const syncFields = (p1Model: p1.ObjectTypeDefinition, p2Model: p2.Model) => {
@@ -925,13 +925,8 @@ const syncFields = (p1Model: p1.ObjectTypeDefinition, p2Model: p2.Model) => {
           syncRelationship(p1Field, p2Field);
           matchedFields.add(p1Field.name);
           break;
-        } else {
-          console.log(`No match between ${p1Field.name} and ${p2Field.name}`)
         }
       }
-    }
-    if (!matchedFields.has(p2Field.name)) {
-      console.warn(`Couldn't find match for ${p2Field.name}`);
     }
   }
 }
@@ -945,10 +940,8 @@ const getInnermostType = (p1Type: p1.Type): p1.NamedType => {
 }
 
 const syncRelationship = (p1Field: p1.FieldDefinition, p2Field: p2.Field) => {
-  console.log(`Renaming ${p2Field.name} to ${p1Field.name}`)
   p2Field.setName(p1Field.name);
   const p2Type = toP2Type(getInnermostType(p1Field.type), false);
-  console.log(`Setting type ${p2Type}`)
   p2Field.type.setInnermostType(p2Type);
 }
 
@@ -975,9 +968,5 @@ const fieldTypesMatch = (p1Field: p1.FieldDefinition, p2Field: p2.Field) => {
 
   const p1Type = p1Field.type.named()
   const p2Type = p2Field.type.innermost().toString()
-  const result = p1Type === p2Type;
-  if (!result) {
-    console.log(`${p1Type} !== ${p2Type}`)
-  }
-  return result;
+  return p1Type === p2Type;
 }
