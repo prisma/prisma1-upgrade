@@ -4,6 +4,7 @@ import * as p2 from "../prisma2"
 import * as p1 from "../prisma1"
 import * as uri from "url"
 import * as sql from "../sql"
+import { DataType } from "../prisma2"
 
 type Input = {
   prisma1: p1.Schema
@@ -507,26 +508,8 @@ export async function upgrade(input: Input): Promise<Output> {
       if (p2Model.name !== p1Model.dbname) {
         continue
       }
-      for (let p2Field of p2Model.fields) {
-        if (!p2Field.type.isReference()) {
-          continue
-        }
-        for (let p1Field of p1Model.fields) {
-          if (!p1Field.type.isReference()) {
-            continue
-          }
-          if (p2Field.type.innermost().toString() === p1Field.type.named()) {
-            // look for any conflicts
-            for (let p2Field of p2Model.fields) {
-              if (p1Field.name === p2Field.name) {
-                p2Field.rename(p2Field.name + "Id")
-                break
-              }
-            }
-            p2Field.setName(p1Field.name)
-          }
-        }
-      }
+
+      syncFields(p1Model, p2Model);
     }
   }
 
@@ -799,7 +782,7 @@ function toP2Type(dt: p1.Type, optional: boolean = true): p2ast.DataType {
         type: "list_type",
         end: pos,
         start: pos,
-        inner: toP2Type(dt.inner(), true),
+        inner: toP2Type(dt.inner()!, true),
       }
       if (!optional) {
         return listType
@@ -811,7 +794,7 @@ function toP2Type(dt: p1.Type, optional: boolean = true): p2ast.DataType {
         inner: listType,
       }
     case "NonNullType":
-      return toP2Type(dt.inner(), false)
+      return toP2Type(dt.inner()!, false)
     case "NamedType":
       // TODO: this should include other types like String
       const namedType: p2ast.NamedType = {
@@ -876,4 +859,125 @@ function getFieldName(a: p2.Attribute): string | undefined {
     return
   }
   return inner.name.name
+}
+
+const updateRelationFields = (field: p2.Field, oldValue: string, newValue: string) => {
+  const attributeWithRelation = field.findAttribute((a) => a.name === "relation");
+  if (!attributeWithRelation) {
+    return;
+  }
+
+  const fieldName = getFieldName(attributeWithRelation);
+
+  if (fieldName === newValue || fieldName !== oldValue) {
+    return;
+  }
+  
+  const fieldArgIndex = attributeWithRelation.arguments.findIndex((a) => a.key === "fields");
+  const fieldArg = attributeWithRelation.arguments[fieldArgIndex];
+
+  const { value: { values: [existingFieldArg] } } = fieldArg;
+
+  fieldArg.value.values = [{...existingFieldArg, name: { name: newValue }}];
+  console.log(`Updated relation fields to ${newValue}`);
+};
+
+const syncFields = (p1Model: p1.ObjectTypeDefinition, p2Model: p2.Model) => {
+  const matchedFields = new Set();
+  for (let p2Field of p2Model.fields) {
+    if (!p2Field.type.isReference()) {
+      continue
+    }
+    const candidateMatchesByType = p1Model
+      .fields
+      .filter(p1Field => !matchedFields.has(p1Field.name))
+      .filter(p1Field => fieldTypesMatch(p1Field, p2Field));
+
+    if (candidateMatchesByType.length === 1) {
+      const [p1Field] = candidateMatchesByType;
+      // look for any conflicts
+      for (let p2Field of p2Model.fields) {
+        if (p1Field.name === p2Field.name) {
+          setAsId(p2Field, p2Model);
+          break
+        }
+      }
+
+      syncRelationship(p1Field, p2Field);
+      matchedFields.add(p1Field.name);
+      continue;
+    }
+
+    for (let p1Field of p1Model.fields) {
+      if (matchedFields.has(p1Field.name)) {
+        continue
+      }
+      if (fieldTypesMatch(p1Field, p2Field)) {
+        // look for any conflicts
+        for (let p2Field of p2Model.fields) {
+          if (p1Field.name === p2Field.name) {
+            setAsId(p2Field, p2Model);
+            break
+          }
+        }
+
+        if (fieldNamesMatch(p1Field, p2Field)) {
+          syncRelationship(p1Field, p2Field);
+          matchedFields.add(p1Field.name);
+          break;
+        } else {
+          console.log(`No match between ${p1Field.name} and ${p2Field.name}`)
+        }
+      }
+    }
+    if (!matchedFields.has(p2Field.name)) {
+      console.warn(`Couldn't find match for ${p2Field.name}`);
+    }
+  }
+}
+
+const getInnermostType = (p1Type: p1.Type): p1.NamedType => {
+  if (!p1Type.optional() || p1Type.list()) {
+    return getInnermostType((p1Type as p1.ListType | p1.NonNullType).inner()!);
+  }
+
+  return (p1Type as p1.NamedType);
+}
+
+const syncRelationship = (p1Field: p1.FieldDefinition, p2Field: p2.Field) => {
+  console.log(`Renaming ${p2Field.name} to ${p1Field.name}`)
+  p2Field.setName(p1Field.name);
+  const p2Type = toP2Type(getInnermostType(p1Field.type), false);
+  console.log(`Setting type ${p2Type}`)
+  p2Field.type.setInnermostType(p2Type);
+}
+
+const setAsId = (p2Field: p2.Field, p2Model: p2.Model) => {
+  const originalName = p2Field.name;
+  const newName = p2Field.name + "Id"
+  p2Field.rename(newName);
+  // update fields in relations affected by this
+  p2Model
+    .fields
+    .filter(({ name }) => name !== newName)
+    .forEach(field => updateRelationFields(field, originalName, newName));
+}
+
+const fieldNamesMatch = (p1Field: p1.FieldDefinition, p2Field: p2.Field) => {
+  const toTypeEnding = `${p1Field.name}To${p1Field.type.named()}`;
+  return p2Field.name.endsWith(p1Field.name) || p2Field.name.endsWith(toTypeEnding);
+}
+
+const fieldTypesMatch = (p1Field: p1.FieldDefinition, p2Field: p2.Field) => {
+  if (!p1Field.type.isReference() || !p2Field.type.isReference()) {
+    return false;
+  }
+
+  const p1Type = p1Field.type.named()
+  const p2Type = p2Field.type.innermost().toString()
+  const result = p1Type === p2Type;
+  if (!result) {
+    console.log(`${p1Type} !== ${p2Type}`)
+  }
+  return result;
 }
