@@ -434,6 +434,52 @@ export async function upgrade(input: Input): Promise<Output> {
     }
   }
 
+
+  // loop over the edges and rewrite relations from nullable fields
+  for (let [edge1, edge2] of relations) {
+    // 1:1 relationship
+    if (!isInlineOneToOne(edge1, edge2)) {
+      continue
+    }
+
+    // L: 1-1 relation with both sides required details
+    const p2Field1 = prisma2.findField((m, f) => edge1.from.name === m.name && edge1.to.name === f.name);
+    const p2Field2 = prisma2.findField((m, f) => edge2.from.name === m.name && edge2.to.name === f.name);
+
+    if (p2Field1 && p2Field2 && (p2Field1.type.optional() != p2Field2.type.optional())) {
+      const createSwappedRelation = (relation: p2.Attribute) => {
+        const fieldsArg = relation.arguments.find(arg => arg.key === 'fields')?.['n'];
+        const referencesArg = relation.arguments.find(arg => arg.key === 'references')?.['n'];
+
+        if (!fieldsArg || !referencesArg) {
+          return relation['n'];
+        }
+
+        return {
+          ...relation['n'],
+          arguments: [
+            { ...referencesArg, name: (fieldsArg as p2ast.KeyedArgument).name },
+            { ...fieldsArg, name: (referencesArg as p2ast.KeyedArgument).name },
+            ...relation.arguments.filter((arg) => !['fields', 'references'].includes(arg.key ?? '')).map((argument) => argument['n']),
+          ]
+        };
+      }
+
+      const field1Relation = p2Field1.findAttribute(({ name }) => name === "relation");
+      const field2Relation = p2Field2.findAttribute(({ name }) => name === "relation");
+
+      if (p2Field1.type.optional() && field1Relation) {
+        p2Field2.upsertAttribute(createSwappedRelation(field1Relation));
+        p2Field1.removeAttribute(({ name }) => name === "relation");
+      }
+
+      if (p2Field2.type.optional() && field2Relation) {
+        p2Field1.upsertAttribute(createSwappedRelation(field2Relation));
+        p2Field2.removeAttribute(({ name }) => name === "relation");
+      }
+    }
+  }
+
   // Migrate INLINE has-many relations with NOT NULL
   // on both sides
   for (let [edge1, edge2] of relations) {
@@ -510,7 +556,7 @@ export async function upgrade(input: Input): Promise<Output> {
         continue
       }
 
-      syncFields(p1Model, p2Model);
+      syncFields(p1Model, p2Model, prisma2);
     }
   }
 
@@ -862,27 +908,48 @@ function getFieldName(a: p2.Attribute): string | undefined {
   return inner.name.name
 }
 
-const updateRelationFields = (field: p2.Field, oldValue: string, newValue: string) => {
+const getArgumentName = (a: p2.Attribute, argumentKey: string) => {
+  const arg = a.arguments.find(({ key }) => key === argumentKey);
+  if (!arg) {
+    return
+  }
+  const value = arg.value;
+  if (value.type !== "list_value") {
+    return
+  }
+  const inner = value.values[0];
+  if (!inner || inner.type !== "reference_value") {
+    return
+  }
+  return inner.name.name
+}
+
+const updateRelationArguments = (field: p2.Field, argumentKeys: string[], oldValue: string, newValue: string) => {
   const attributeWithRelation = field.findAttribute((a) => a.name === "relation");
   if (!attributeWithRelation) {
     return;
   }
 
-  const fieldName = getFieldName(attributeWithRelation);
+  argumentKeys.forEach((argKey) => {
+    const fieldName = getArgumentName(attributeWithRelation, argKey);
 
-  if (fieldName === newValue || fieldName !== oldValue) {
-    return;
-  }
+    if (fieldName === newValue || fieldName !== oldValue) {
+      return;
+    }
   
-  const fieldArgIndex = attributeWithRelation.arguments.findIndex((a) => a.key === "fields");
-  const fieldArg = attributeWithRelation.arguments[fieldArgIndex];
+    const arg = attributeWithRelation.arguments.find(({ key }) => key === argKey);
 
-  const { value: { values: [existingFieldArg] } } = fieldArg;
+    if (!arg) {
+      return;
+    }
 
-  fieldArg.value.values = [{...existingFieldArg, name: { name: newValue }}];
+    const { value: { values: [existingArg] } } = arg;
+
+    arg.value.values = [{...existingArg, name: { name: newValue }}];
+  });
 };
 
-const syncFields = (p1Model: p1.ObjectTypeDefinition, p2Model: p2.Model) => {
+const syncFields = (p1Model: p1.ObjectTypeDefinition, p2Model: p2.Model, p2Schema: p2.Schema) => {
   const matchedFields = new Set();
   for (let p2Field of p2Model.fields) {
     if (!p2Field.type.isReference()) {
@@ -897,8 +964,9 @@ const syncFields = (p1Model: p1.ObjectTypeDefinition, p2Model: p2.Model) => {
       const [p1Field] = candidateMatchesByType;
       // look for any conflicts
       for (let p2Field of p2Model.fields) {
-        if (p1Field.name === p2Field.name) {
-          setAsId(p2Field, p2Model);
+        // type check here in case we are running over an already converted schema
+        if (p1Field.name === p2Field.name && !fieldTypesMatch(p1Field, p2Field)) {
+          setAsId(p2Field, p2Model, p2Schema);
           break
         }
       }
@@ -915,8 +983,8 @@ const syncFields = (p1Model: p1.ObjectTypeDefinition, p2Model: p2.Model) => {
       if (fieldTypesMatch(p1Field, p2Field)) {
         // look for any conflicts
         for (let p2Field of p2Model.fields) {
-          if (p1Field.name === p2Field.name) {
-            setAsId(p2Field, p2Model);
+          if (p1Field.name === p2Field.name && !fieldTypesMatch(p1Field, p2Field)) {
+            setAsId(p2Field, p2Model, p2Schema);
             break
           }
         }
@@ -945,7 +1013,7 @@ const syncRelationship = (p1Field: p1.FieldDefinition, p2Field: p2.Field) => {
   p2Field.type.setInnermostType(p2Type);
 }
 
-const setAsId = (p2Field: p2.Field, p2Model: p2.Model) => {
+const setAsId = (p2Field: p2.Field, p2Model: p2.Model, p2Schema: p2.Schema) => {
   const originalName = p2Field.name;
   const newName = p2Field.name + "Id"
   p2Field.rename(newName);
@@ -953,7 +1021,13 @@ const setAsId = (p2Field: p2.Field, p2Model: p2.Model) => {
   p2Model
     .fields
     .filter(({ name }) => name !== newName)
-    .forEach(field => updateRelationFields(field, originalName, newName));
+    .forEach(field => updateRelationArguments(field, ['fields', 'references'], originalName, newName));
+
+  p2Schema.models
+    .filter(model => model !== p2Model)
+    .forEach(model => model.fields
+      .forEach(field => updateRelationArguments(field, ['fields', 'references'], originalName, newName))
+    );
 }
 
 const fieldNamesMatch = (p1Field: p1.FieldDefinition, p2Field: p2.Field) => {
