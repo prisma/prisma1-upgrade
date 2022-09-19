@@ -475,7 +475,7 @@ async function main(argv: string[]): Promise<void> {
       ${green(`npm install @prisma/client`)}
 
       You can find guides for different upgrade scenarios in the docs:
-      ${gray(underline(`https://pris.ly/upgrading-to-prisma2`))}
+      ${gray(underline(`https://pris.ly/d/upgrade-from-prisma-1`))}
   `)
   )
   return
