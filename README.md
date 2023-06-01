@@ -1,6 +1,6 @@
-# Prisma Upgrade [![npm](https://img.shields.io/npm/v/prisma-upgrade)](https://www.npmjs.com/package/prisma-upgrade)
+# Prisma1 Upgrade [![npm](https://img.shields.io/npm/v/prisma-upgrade)](https://www.npmjs.com/package/prisma-upgrade)
 
-Prisma Upgrade is a CLI tool to help Prisma 1 users using MySQL or Postgres to upgrade to Prisma 2+.
+Prisma1 Upgrade is a CLI tool to help Prisma 1 users using MySQL or Postgres to upgrade to Prisma 2+.
 
 ## Scope
 
@@ -53,11 +53,11 @@ What do the columns mean?
 - **Prisma schema**: Does the final Prisma 2+ schema I get from the CLI reflect the right solution?
 - **Prisma 1 compatible:** Does the SQL change to the schema maintain Prisma 1 compatibility?
 
-## How Prisma Upgrade (Technically) Works
+## How Prisma1 Upgrade (Technically) Works
 
 We parse your Prisma 1 datamodel and your Prisma 2+ schema and run both ASTs through a set of rules. These rules produce operations. The operations are printed into SQL commands for you to run on your database.
 
-Prisma upgrade is idempotent, so you can run it as many times as you want and it will produce the same result each time. Prisma upgrade only shows you commands you still need to run, it does not show you commands you've already run.
+Prisma1 Upgrade is idempotent, so you can run it as many times as you want and it will produce the same result each time. Prisma1 Upgrade only shows you commands you still need to run, it does not show you commands you've already run.
 
 You'll also notice that we never connect to your database, we simply look at your Prisma 1 files and your Prisma 2+ schema and generate from there!
 
