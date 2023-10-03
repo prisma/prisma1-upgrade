@@ -55,7 +55,7 @@
     "@types/mocha": "7.0.2",
     "@types/pg": "7.14.3",
     "mariadb": "2.4.0",
-    "mocha": "7.2.0",
+    "mocha": "10.2.0",
     "pg": "8.2.1",
     "prettier": "2.0.5",
     "prisma1": "1.34.11",
